@@ -47,7 +47,7 @@ export default async function FeaturedProducts({
         role="list"
         className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8"
       >
-        {products.map((product) => (
+        {products.filter((product) => !product.attributes.base_product_id).map((product: any) => (
           <Link key={product.id} href={`/products/${product.id}`}>
             <li className="relative group">
               <div className=" aspect-square block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
@@ -75,6 +75,9 @@ export default async function FeaturedProducts({
                 {product.attributes.name}
               </p>
               <p className="pointer-events-none block text-sm font-medium text-gray-500">
+                {product?.meta?.component_products && (
+                  <>FROM </>
+                )}
                 {product.meta.display_price?.without_tax.formatted}
               </p>
             </li>
