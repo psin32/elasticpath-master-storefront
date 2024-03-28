@@ -25,17 +25,18 @@ const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
       </span>
       {display_price && (
         <div className="flex items-center mt-2">
-          <Price
-            price={display_price.without_tax.formatted}
-            currency={display_price.without_tax.currency}
-            size="text-2xl"
-          />
           {original_display_price && (
             <StrikePrice
               price={original_display_price.without_tax.formatted}
               currency={original_display_price.without_tax.currency}
             />
           )}
+          <Price
+            price={display_price.without_tax.formatted}
+            currency={display_price.without_tax.currency}
+            original_display_price={original_display_price}
+            size="text-2xl"
+          />
         </div>
       )}
     </div>
