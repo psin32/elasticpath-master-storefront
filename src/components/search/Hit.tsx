@@ -43,17 +43,12 @@ export default function HitComponent({ hit }: { hit: SearchHit }): JSX.Element {
               <Link href={`/products/${objectID}`} passHref legacyBehavior>
                 <h3 className="text-sm font-bold">{ep_name}</h3>
               </Link>
-              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500">
-                {ep_description}
+              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500" dangerouslySetInnerHTML={{ __html: ep_description }}>
               </span>
             </div>
             <div>
               {currencyPrice && (
                 <div className="mt-1 flex items-center">
-                  <Price
-                    price={currencyPrice.formatted_price}
-                    currency={EP_CURRENCY_CODE}
-                  />
                   {currencyPrice.sale_prices && (
                     <StrikePrice
                       price={
@@ -63,6 +58,11 @@ export default function HitComponent({ hit }: { hit: SearchHit }): JSX.Element {
                       size="text-lg"
                     />
                   )}
+                  <Price
+                    price={currencyPrice.formatted_price}
+                    original_display_price={currencyPrice.sale_prices}
+                    currency={EP_CURRENCY_CODE}
+                  />
                 </div>
               )}
             </div>
