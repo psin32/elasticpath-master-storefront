@@ -33,6 +33,9 @@ function SimpleProductContainer(): JSX.Element {
 
   const { main_image, response, otherImages } = product;
   const { extensions } = response.attributes;
+  const {
+    meta: { original_display_price },
+  } = response;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -67,10 +70,15 @@ function SimpleProductContainer(): JSX.Element {
         </div>
         <div className="basis-full lg:basis-1/2">
           <form onSubmit={(e: any) => handleSubmit(e)}>
+            {original_display_price && (
+              <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-sm font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                {response.meta.sale_id}
+              </span>
+            )}
             <div className="flex flex-col gap-6 md:gap-10">
               <ProductSummary product={response} />
-              <ProductDetails product={response} />
               <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} />
+              <ProductDetails product={response} />
               {extensions && <ProductExtensions extensions={extensions} />}
               <StatusButton
                 type="submit"

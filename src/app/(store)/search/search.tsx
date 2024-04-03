@@ -8,6 +8,7 @@ import React from "react";
 import { buildBreadcrumbLookup } from "../../../lib/build-breadcrumb-lookup";
 import { useStore } from "@elasticpath/react-shopper-hooks";
 import {
+  Configure,
   HierarchicalMenuProps,
   PaginationProps,
   RangeInputProps,
@@ -45,6 +46,7 @@ export function Search() {
       <VirtualRefinementList attribute="price" />
       <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
       <SearchResults lookup={lookup} />
+      <Configure filters="is_child:0" />
     </InstantSearchNext>
   );
 }

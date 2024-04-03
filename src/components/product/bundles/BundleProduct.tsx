@@ -43,6 +43,9 @@ function BundleProductContainer(): JSX.Element {
   const { mutate, isPending } = useScopedAddBundleProductToCart();
   const { response, main_image, otherImages } = configuredProduct as any;
   const { extensions } = response.attributes;
+  const {
+    meta: { original_display_price },
+  } = response;
 
   const submit = useCallback(
     async (values: any) => {
@@ -94,6 +97,11 @@ function BundleProductContainer(): JSX.Element {
             )}
           </div>
           <div className="basis-full lg:basis-1/2">
+            {original_display_price && (
+              <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-sm font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                {response.meta.sale_id}
+              </span>
+            )}
             <Form>
               <div className="flex flex-col gap-6 md:gap-10">
                 <ProductSummary product={response} />

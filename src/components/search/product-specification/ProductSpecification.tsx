@@ -1,13 +1,23 @@
-import ColorRefinement from "./ColorRefinement";
-import BrandRefinement from "./BrandRefinement";
-import OnSaleRefinement from "./OnSaleRefinement";
+import FilterCheckbox from "./FilterCheckbox";
+import FilterRadio from "./FilterRadio";
 
 const ProductSpecification = () => {
+  const data = process.env.NEXT_PUBLIC_FILTER_ITEMS || ""
   return (
     <>
-      <BrandRefinement attribute="ep_extensions_products_specifications.brand" />
-      <OnSaleRefinement attribute="ep_extensions_products_specifications.on-sale" />
-      <ColorRefinement attribute="ep_extensions_products_specifications.color" />
+      {data.split(",").map((item: string) => {
+        const attribute = item.split("|")
+        if (attribute.length === 3) {
+          if (attribute[2] === "checkbox") {
+            return <FilterCheckbox attribute={attribute[0]} name={attribute[1]} key={attribute[0]} />
+          }
+
+          if (attribute[2] === "radio") {
+            return <FilterRadio attribute={attribute[0]} name={attribute[1]} key={attribute[0]} />
+          }
+        }
+        return <></>
+      })}
     </>
   );
 };

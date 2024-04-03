@@ -5,6 +5,8 @@ import { ArrowRightIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit-client";
 import { fetchFeaturedProducts } from "./fetchFeaturedProducts";
+import StrikePrice from "../product/StrikePrice";
+import Price from "../product/Price";
 
 interface IFeaturedProductsProps {
   title: string;
@@ -78,7 +80,22 @@ export default async function FeaturedProducts({
                 {product?.meta?.component_products && (
                   <>FROM </>
                 )}
-                {product.meta.display_price?.without_tax.formatted}
+                {product.meta.display_price && (
+                  <div className="flex items-center">
+                    {product.meta.original_display_price && (
+                      <StrikePrice
+                        price={product.meta.original_display_price?.without_tax?.formatted ? product.meta.original_display_price?.without_tax?.formatted : product.meta.original_display_price.with_tax.formatted}
+                        currency={product.meta.original_display_price.without_tax?.currency ? product.meta.original_display_price?.without_tax?.currency : product.meta.original_display_price.with_tax.currency}
+                      />
+                    )}
+                    <Price
+                      price={product.meta.display_price?.without_tax?.formatted ? product.meta.display_price?.without_tax?.formatted : product.meta.display_price.with_tax.formatted}
+                      currency={product.meta.display_price?.without_tax?.currency ? product.meta.display_price?.without_tax?.currency : product.meta.display_price.with_tax.currency}
+                      original_display_price={product.meta.original_display_price}
+                      size="text-2xl"
+                    />
+                  </div>
+                )}
               </p>
             </li>
           </Link>

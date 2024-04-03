@@ -6,7 +6,8 @@ interface IProductExtensions {
 }
 
 const ProductExtensions = ({ extensions }: IProductExtensions): JSX.Element => {
-  const extensionsValues = Object.values(extensions ?? {}).flat();
+  const extensionsValues: any = Object.values(extensions?.["product(highlights)"] ?? {}).flat();
+  console.log("extensionsValues", extensionsValues)
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <div>
@@ -14,7 +15,7 @@ const ProductExtensions = ({ extensions }: IProductExtensions): JSX.Element => {
           More Info
         </span>
         <dl>
-          {extensionsValues.map((extension) => {
+          {extensionsValues.map((extension: any) => {
             const extensionKeys = Object.keys(extension);
             return extensionKeys.map((key) => {
               const value = extension[key];
