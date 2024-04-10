@@ -7,6 +7,7 @@ import { CartItem as CartItemType } from "@moltin/sdk";
 import { LoadingDots } from "../../../components/LoadingDots";
 import { CartAdditionalData } from "../../../components/cart/CartAdditionalData";
 import { CartComponentData } from "../../../components/cart/CartComponentData";
+import Image from "next/image";
 
 export type CartItemProps = {
   item: CartItemType;
@@ -19,19 +20,46 @@ export function CartItem({ item }: CartItemProps) {
   return (
     <div className="flex gap-5">
       <div className="flex w-16 sm:w-24 h-20 sm:h-[7.5rem] justify-center shrink-0 items-start">
-        <ProductThumbnail productId={item.product_id} />
+        {item.product_id && (
+          <ProductThumbnail productId={item.product_id} />
+        )}
+
+        {item.custom_inputs?.image_url && (
+          <Image
+            src={item.custom_inputs?.image_url}
+            width="100"
+            height="100"
+            alt={item.name}
+            className="overflow-hidden"
+          />
+        )}
       </div>
       <div className="flex flex-col gap-5 flex-1">
         <div className="flex gap-5 self-stretch">
           <div className="flex flex-col flex-1 gap-1">
-            <Link href={`/products/${item.product_id}`}>
+            {item.product_id && (
+              <Link href={`/products/${item.product_id}`}>
+                <span className="font-medium text-xl">
+                  {item.name}
+                  {item?.custom_inputs?.options && (
+                    <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
+                  )}
+                  <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                </span>
+              </Link>
+            )}
+            {!item.product_id && (
               <span className="font-medium text-xl">
                 {item.name}
                 {item?.custom_inputs?.options && (
-                  <div className="mb-2 mt-1 text-black/70 text-sm">{item?.custom_inputs?.options}</div>
+                  <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
                 )}
+                <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
               </span>
-            </Link>
+            )}
+            <span className="text-sm text-black/60">
+              Item Price: {item.meta.display_price.with_tax.unit.formatted}
+            </span>
             <span className="text-sm text-black/60">
               Quantity: {item.quantity}
             </span>

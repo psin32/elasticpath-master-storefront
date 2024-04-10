@@ -46,19 +46,7 @@ export default async function Orders({
 
   const client = getServerSideImplicitClient();
 
-  const result: Awaited<ReturnType<typeof client.Orders.All>> =
-    await client.request.send(
-      `/orders?include=items&page[limit]=${limit}&page[offset]=${offset}`,
-      "GET",
-      null,
-      undefined,
-      client,
-      undefined,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
+  const result: Awaited<ReturnType<typeof client.Orders.All>> = await client.Orders.With("items").Limit(limit).Offset(offset).All()
 
   const mappedOrders = result.included
     ? resolveShopperOrder(result.data, result.included)
@@ -115,9 +103,9 @@ function resolveShopperOrder(
   return data.map((order) => {
     const orderItems = order.relationships?.items?.data
       ? resolveOrderItemsFromRelationship(
-          order.relationships.items.data,
-          itemMap,
-        )
+        order.relationships.items.data,
+        itemMap,
+      )
       : [];
 
     return {

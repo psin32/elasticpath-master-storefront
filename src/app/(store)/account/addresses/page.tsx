@@ -36,7 +36,6 @@ export default async function Addresses() {
 
   const addresses = await client.AccountAddresses.All({
     account: selectedAccount.account_id,
-    token: selectedAccount.token,
   });
 
   return (

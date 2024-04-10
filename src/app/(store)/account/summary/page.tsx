@@ -27,36 +27,9 @@ export default async function AccountSummary() {
   }
 
   const client = getServerSideImplicitClient();
-
   const selectedAccount = getSelectedAccount(accountMemberCookie);
-
-  const account: Awaited<ReturnType<typeof client.Accounts.Get>> =
-    await client.request.send(
-      `/accounts/${selectedAccount.account_id}`,
-      "GET",
-      null,
-      undefined,
-      client,
-      undefined,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
-
-  const accountMember: Awaited<ReturnType<typeof client.AccountMembers.Get>> =
-    await client.request.send(
-      `/account-members/${accountMemberCookie.accountMemberId}`,
-      "GET",
-      null,
-      undefined,
-      client,
-      undefined,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
+  const account: Awaited<ReturnType<typeof client.Accounts.Get>> = await client.Accounts.Get(selectedAccount.account_id)
+  const accountMember: Awaited<ReturnType<typeof client.AccountMembers.Get>> = await client.AccountMembers.Get(accountMemberCookie.accountMemberId)
 
   return (
     <div className="flex flex-col gap-10 items-start w-full">

@@ -9,7 +9,6 @@ import {
   RelationshipToMany,
 } from "@moltin/sdk";
 import {
-  getSelectedAccount,
   retrieveAccountMemberCredentials,
 } from "../../../../../lib/retrieve-account-member-credentials";
 import { Button } from "../../../../../components/button/Button";
@@ -20,7 +19,7 @@ import { OrderLineItem } from "./OrderLineItem";
 
 export const dynamic = "force-dynamic";
 
-export default async function Orders({
+export default async function Order({
   params,
 }: {
   params: { orderId: string };
@@ -36,25 +35,12 @@ export default async function Orders({
     return redirect("/login");
   }
 
-  const selectedAccount = getSelectedAccount(accountMemberCookie);
-
   const client = getServerSideImplicitClient();
 
   let result: Awaited<ReturnType<typeof client.Orders.Get>> | undefined =
     undefined;
   try {
-    result = await client.request.send(
-      `/orders/${params.orderId}?include=items`,
-      "GET",
-      null,
-      undefined,
-      client,
-      undefined,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
+    result = await client.Orders.With("items").Get(params.orderId)
   } catch (e: any) {
     if (
       "errors" in e &&
@@ -133,7 +119,7 @@ export default async function Orders({
           <div className="flex justify-between items-baseline self-stretch">
             <span className="text-sm">Subtotal</span>
             <span className="font-medium">
-              {shopperOrder.raw.meta.display_price.without_tax.formatted}
+              {shopperOrder.raw.meta.display_price?.without_tax?.formatted ? shopperOrder.raw.meta.display_price?.without_tax?.formatted : shopperOrder.raw.meta.display_price?.with_tax?.formatted}
             </span>
           </div>
           <div className="flex justify-between items-baseline self-stretch">

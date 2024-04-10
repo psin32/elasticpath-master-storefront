@@ -4,6 +4,7 @@ import StrikePrice from "./StrikePrice";
 import clsx from "clsx";
 import type { ShopperProduct } from "@elasticpath/react-shopper-hooks";
 import { ProductContext } from "../../lib/product-context";
+import ProductMultibuyOffer from "./ProductMultibuyOffer";
 
 interface IProductSummary {
   product: ShopperProduct["response"];
@@ -39,6 +40,13 @@ const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
           />
         </div>
       )}
+      {"tiers" in attributes && (
+        <>
+          <div className="uppercase font-bold mt-4 mb-4 text-lg text-red-700">Bulk Buy Offer</div>
+          <ProductMultibuyOffer product={product} />
+        </>
+      )}
+
     </div>
   );
 };

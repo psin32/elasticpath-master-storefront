@@ -17,10 +17,8 @@ import { toFormikValidate } from "zod-formik-adapter";
 import ProductCarousel from "../carousel/ProductCarousel";
 import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
-import ProductExtensions from "../ProductExtensions";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
-import { Label } from "../../label/Label";
 
 interface IBundleProductDetail {
   bundleProduct: BundleProduct;
@@ -107,14 +105,13 @@ function BundleProductContainer(): JSX.Element {
                 <ProductSummary product={response} />
                 <ProductComponents product={response} />
                 <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} formikForm={true} />
-                <ProductDetails product={response} />
-                {extensions && <ProductExtensions extensions={extensions} />}
                 <StatusButton
                   type="submit"
                   status={isPending ? "loading" : "idle"}
                 >
                   ADD TO CART
                 </StatusButton>
+                <ProductDetails product={response} />
               </div>
             </Form>
           </div>

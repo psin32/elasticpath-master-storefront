@@ -9,7 +9,6 @@ import ProductVariations from "./ProductVariations";
 import ProductCarousel from "../carousel/ProductCarousel";
 import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
-import ProductExtensions from "../ProductExtensions";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 
@@ -102,12 +101,10 @@ export function VariationProductContainer(): JSX.Element {
             </span>
           )}
           <form onSubmit={(e: any) => handleSubmit(e)}>
-            <div className="flex flex-col gap-6 md:gap-10">
+            <div className="flex flex-col gap-4 md:gap-6">
               <ProductSummary product={response} />
               <ProductVariations />
               <PersonalisedInfo custom_inputs={response.attributes.custom_inputs} />
-              <ProductDetails product={response} />
-              {extensions && <ProductExtensions extensions={extensions} />}
               <StatusButton
                 disabled={product.kind === "base-product"}
                 type="submit"
@@ -115,6 +112,7 @@ export function VariationProductContainer(): JSX.Element {
               >
                 ADD TO CART
               </StatusButton>
+              <ProductDetails product={response} />
             </div>
           </form>
         </div>

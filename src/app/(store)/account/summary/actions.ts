@@ -4,7 +4,6 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
 import {
-  getSelectedAccount,
   retrieveAccountMemberCredentials,
 } from "../../../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
@@ -42,34 +41,16 @@ export async function updateAccount(formData: FormData) {
     throw new Error("Account member credentials not found");
   }
 
-  const selectedAccount = getSelectedAccount(accountMemberCreds);
-
   const { name, id } = validatedFormData.data;
 
   const body = {
-    data: {
       type: "account",
       name,
       legal_name: name,
-    },
   };
 
   try {
-    // TODO fix the sdk typing for this endpoint
-    //    should be able to include the token in the request
-    await client.request.send(
-      `/accounts/${id}`,
-      "PUT",
-      body,
-      undefined,
-      client,
-      false,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
-
+    await client.Accounts.Update(id, body)
     revalidatePath("/accounts/summary");
   } catch (error) {
     console.error(getErrorMessage(error));
@@ -152,33 +133,16 @@ export async function updateUserAuthenticationPasswordProfile(
     );
   }
 
-  const body = {
-    data: {
+  const body: any = {
       type: "user_authentication_password_profile_info",
       id: userAuthenticationPasswordProfileInfo.id,
       password_profile_id: PASSWORD_PROFILE_ID,
       ...(username && { username }),
       ...(newPassword && { password: newPassword }),
-    },
   };
 
   try {
-    // TODO fix the sdk typing for this endpoint
-    //    should be able to include the token in the request
-    await client.request.send(
-      `/authentication-realms/${AUTHENTICATION_REALM_ID}/user-authentication-info/${accountMemberCreds.accountMemberId}/user-authentication-password-profile-info/${userAuthenticationPasswordProfileInfo.id}`,
-      "PUT",
-      body,
-      undefined,
-      client,
-      false,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token":
-          reAuthedSelectedAccount.token,
-      },
-    );
-
+    await client.UserAuthenticationInfo.Update(AUTHENTICATION_REALM_ID, accountMemberCreds.accountMemberId, body)
     revalidatePath("/accounts");
   } catch (error) {
     console.error(error);

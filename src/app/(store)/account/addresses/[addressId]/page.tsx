@@ -39,7 +39,6 @@ export default async function Address({
   const address = await client.AccountAddresses.Get({
     account: activeAccount.account_id,
     address: addressId,
-    token: activeAccount.token,
   });
 
   const addressData = address.data;

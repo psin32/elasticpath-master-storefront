@@ -40,9 +40,7 @@ const addAddressSchema = shippingAddressSchema.merge(
 
 export async function deleteAddress(formData: FormData) {
   const client = getServerSideImplicitClient();
-
   const rawEntries = Object.fromEntries(formData.entries());
-
   const validatedFormData = deleteAddressSchema.safeParse(rawEntries);
 
   if (!validatedFormData.success) {
@@ -62,21 +60,7 @@ export async function deleteAddress(formData: FormData) {
   const selectedAccount = getSelectedAccount(accountMemberCreds);
 
   try {
-    // TODO fix the sdk typing for this endpoint
-    //    should be able to include the token in the request
-    await client.request.send(
-      `/accounts/${selectedAccount.account_id}/addresses/${addressId}`,
-      "DELETE",
-      null,
-      undefined,
-      client,
-      undefined,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
-
+    await client.AccountAddresses.Delete({account: selectedAccount.account_id, address: addressId})
     revalidatePath("/accounts/addresses");
   } catch (error) {
     console.error(error);
@@ -106,33 +90,17 @@ export async function updateAddress(formData: FormData) {
   }
 
   const selectedAccount = getSelectedAccount(accountMemberCreds);
-
   const { addressId, ...addressData } = validatedFormData.data;
 
-  const body = {
-    data: {
-      type: "address",
-      id: addressId,
-      ...addressData,
-    },
+  const body: any = {
+    type: "address",
+    id: addressId,
+    ...addressData,
   };
 
+  
   try {
-    // TODO fix the sdk typing for this endpoint
-    //    should be able to include the token in the request
-    await client.request.send(
-      `/accounts/${selectedAccount.account_id}/addresses/${addressId}`,
-      "PUT",
-      body,
-      undefined,
-      client,
-      false,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    );
-
+    await client.AccountAddresses.Update({ account: selectedAccount.account_id, address: addressId, body: body })
     revalidatePath("/accounts/addresses");
   } catch (error) {
     console.error(error);
@@ -142,9 +110,7 @@ export async function updateAddress(formData: FormData) {
 
 export async function addAddress(formData: FormData) {
   const client = getServerSideImplicitClient();
-
   const rawEntries = Object.fromEntries(formData.entries());
-
   const validatedFormData = addAddressSchema.safeParse(rawEntries);
 
   if (!validatedFormData.success) {
@@ -162,33 +128,16 @@ export async function addAddress(formData: FormData) {
   }
 
   const selectedAccount = getSelectedAccount(accountMemberCreds);
-
   const { ...addressData } = validatedFormData.data;
 
-  const body = {
-    data: {
+  const body: any = {
       type: "address",
       ...addressData,
-    },
   };
 
   let redirectUrl: string | undefined = undefined;
   try {
-    // TODO fix the sdk typing for this endpoint
-    //    should be able to include the token in the request
-    const result = (await client.request.send(
-      `/accounts/${selectedAccount.account_id}/addresses`,
-      "POST",
-      body,
-      undefined,
-      client,
-      false,
-      "v2",
-      {
-        "EP-Account-Management-Authentication-Token": selectedAccount.token,
-      },
-    )) as Resource<AccountAddress>;
-
+    const result = (await client.AccountAddresses.Create({account: selectedAccount.account_id, body: body})) as Resource<AccountAddress>;
     redirectUrl = `/account/addresses/${result.data.id}`;
   } catch (error) {
     console.error(error);

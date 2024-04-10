@@ -28,8 +28,8 @@ export function Cart() {
 
   const discountedValues = (
     state?.meta?.display_price as
-      | { discount: { amount: number; formatted: string } }
-      | undefined
+    | { discount: { amount: number; formatted: string } }
+    | undefined
   )?.discount;
 
   return (
@@ -39,9 +39,8 @@ export function Cart() {
           <span>
             {state?.items && state.items.length > 0 && (
               <span
-                className={`${
-                  state?.items ? "flex" : "hidden"
-                } absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-full bg-brand-primary p-[0.1rem] text-[0.6rem] text-white`}
+                className={`${state?.items ? "flex" : "hidden"
+                  } absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-full bg-brand-primary p-[0.1rem] text-[0.6rem] text-white`}
               >
                 {state?.items?.length}
               </span>
@@ -118,12 +117,14 @@ export function Cart() {
               <Separator />
               {/* Totals */}
               <div className="flex flex-col items-start gap-2 w-full">
-                <div className="flex justify-between items-baseline self-stretch">
-                  <span>Sub Total</span>
-                  <span className="font-medium text-lg">
-                    {state?.meta?.display_price?.without_tax?.formatted}
-                  </span>
-                </div>
+                {state?.meta?.display_price?.tax && (
+                  <div className="flex justify-between items-baseline self-stretch">
+                    <span>Tax</span>
+                    <span className="font-medium text-lg">
+                      {state.meta.display_price.tax.formatted}
+                    </span>
+                  </div>
+                )}
                 {discountedValues && discountedValues.amount !== 0 && (
                   <div className="flex justify-between items-baseline self-stretch">
                     <span>Discount</span>
@@ -132,6 +133,12 @@ export function Cart() {
                     </span>
                   </div>
                 )}
+                <div className="flex justify-between items-baseline self-stretch">
+                  <span>Total</span>
+                  <span className="font-medium text-lg">
+                    {state?.meta?.display_price?.with_tax?.formatted}
+                  </span>
+                </div>
               </div>
               <Separator />
               <SheetClose asChild>

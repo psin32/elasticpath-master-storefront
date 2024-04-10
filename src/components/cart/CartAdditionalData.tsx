@@ -9,7 +9,7 @@ export function CartAdditionalData({ item }: CartAdditionalDataProps) {
 
   return (
     <div className="text-xs">
-      {item?.custom_inputs?.additional_information.length > 0 && (
+      {item?.custom_inputs?.additional_information?.length > 0 && (
         <div className="mt-1">
           <div className="mb-2 font-semibold underline">Additional Information:</div>
           {item.custom_inputs.additional_information.map((info: any) => {

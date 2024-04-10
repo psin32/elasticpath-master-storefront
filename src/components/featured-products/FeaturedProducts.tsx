@@ -7,6 +7,7 @@ import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit
 import { fetchFeaturedProducts } from "./fetchFeaturedProducts";
 import StrikePrice from "../product/StrikePrice";
 import Price from "../product/Price";
+import MultibuyOfferModal from "./MultibuyOfferModal";
 
 interface IFeaturedProductsProps {
   title: string;
@@ -50,8 +51,8 @@ export default async function FeaturedProducts({
         className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8"
       >
         {products.filter((product) => !product.attributes.base_product_id).map((product: any) => (
-          <Link key={product.id} href={`/products/${product.id}`}>
-            <li className="relative group">
+          <li className="relative group" key={product.id}>
+            <Link href={`/products/${product.id}`}>
               <div className=" aspect-square block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
                 <div className="relative w-full h-full bg-[#f6f7f9] rounded-lg text-center animate-fadeIn  transition duration-300 ease-in-out group-hover:scale-105">
                   {product.main_image?.link.href ? (
@@ -71,6 +72,17 @@ export default async function FeaturedProducts({
                       <EyeSlashIcon className="w-3 h-3" />
                     </div>
                   )}
+                  {product.attributes.components && (
+                    <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                      <h4>Bundle</h4>
+                    </div>
+                  )}
+                  {product.meta.variation_matrix && (
+                    <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                      <h4>Variation</h4>
+                    </div>
+                  )}
+
                 </div>
               </div>
               <p className="pointer-events-none mt-2 block truncate text-sm font-medium text-gray-900">
@@ -86,19 +98,26 @@ export default async function FeaturedProducts({
                       <StrikePrice
                         price={product.meta.original_display_price?.without_tax?.formatted ? product.meta.original_display_price?.without_tax?.formatted : product.meta.original_display_price.with_tax.formatted}
                         currency={product.meta.original_display_price.without_tax?.currency ? product.meta.original_display_price?.without_tax?.currency : product.meta.original_display_price.with_tax.currency}
+                        size="text-md"
                       />
                     )}
                     <Price
                       price={product.meta.display_price?.without_tax?.formatted ? product.meta.display_price?.without_tax?.formatted : product.meta.display_price.with_tax.formatted}
                       currency={product.meta.display_price?.without_tax?.currency ? product.meta.display_price?.without_tax?.currency : product.meta.display_price.with_tax.currency}
                       original_display_price={product.meta.original_display_price}
-                      size="text-2xl"
+                      size="text-md"
                     />
                   </div>
                 )}
               </p>
-            </li>
-          </Link>
+            </Link>
+            {"tiers" in product.attributes && (
+              <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-sm">
+                <h4 className="basis-1/2">Bulk Save</h4>
+                <MultibuyOfferModal product={product} />
+              </div>
+            )}
+          </li>
         ))}
       </ul>
     </div>

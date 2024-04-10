@@ -8,7 +8,6 @@ import {
 import ProductCarousel from "./carousel/ProductCarousel";
 import ProductSummary from "./ProductSummary";
 import ProductDetails from "./ProductDetails";
-import ProductExtensions from "./ProductExtensions";
 import { StatusButton } from "../button/StatusButton";
 import PersonalisedInfo from "./PersonalisedInfo";
 
@@ -78,14 +77,13 @@ function SimpleProductContainer(): JSX.Element {
             <div className="flex flex-col gap-6 md:gap-10">
               <ProductSummary product={response} />
               <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} />
-              <ProductDetails product={response} />
-              {extensions && <ProductExtensions extensions={extensions} />}
               <StatusButton
                 type="submit"
                 status={isPending ? "loading" : "idle"}
               >
                 ADD TO CART
               </StatusButton>
+              <ProductDetails product={response} />
             </div>
           </form>
         </div>
