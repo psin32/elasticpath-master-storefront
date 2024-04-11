@@ -1,14 +1,14 @@
-"use client";
+"use server";
 import clsx from "clsx";
 import Link from "next/link";
 import { ArrowRightIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit-client";
 import { fetchFeaturedProducts } from "./fetchFeaturedProducts";
 import StrikePrice from "../product/StrikePrice";
 import Price from "../product/Price";
 import MultibuyOfferModal from "./MultibuyOfferModal";
 import Ratings from "../reviews/yotpo/Ratings";
-import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 
 interface IFeaturedProductsProps {
   title: string;
@@ -22,7 +22,7 @@ export default async function FeaturedProducts({
   title,
   linkProps,
 }: IFeaturedProductsProps) {
-  const client = getEpccImplicitClient();
+  const client = getServerSideImplicitClient();
   const products = await fetchFeaturedProducts(client);
 
   return (

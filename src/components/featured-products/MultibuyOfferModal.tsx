@@ -8,7 +8,7 @@ interface IMultibuyOfferModalProps {
   product: any;
 }
 
-export default async function MultibuyOfferModal({ product }: IMultibuyOfferModalProps) {
+export default function MultibuyOfferModal({ product }: IMultibuyOfferModalProps) {
   let [isOpen, setIsOpen] = useState(false)
 
   return (

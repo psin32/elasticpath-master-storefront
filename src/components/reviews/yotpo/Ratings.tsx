@@ -1,3 +1,5 @@
+'use client'
+
 import type { ProductResponse } from "@moltin/sdk";
 import { useEffect } from "react";
 import Script from "next/script";
@@ -37,10 +39,7 @@ const Ratings = ({ product, displayFromProduct }: IRatings): JSX.Element => {
             starSpacing="0px"
             starRatedColor="orange"
           />{" "}
-          (
-          {product.attributes.extensions?.["products(ratings)"]?.review_count ||
-            0}
-          )
+          ({product.attributes.extensions?.["products(ratings)"]?.review_count || 0})
         </>
       </div>
     ) : (

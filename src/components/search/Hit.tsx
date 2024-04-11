@@ -17,7 +17,7 @@ export default function HitComponent({ hit, product }: { hit: SearchHit, product
 
   return (
     <>
-      <Link href={`/products/${objectID}`} legacyBehavior>
+      <Link href={`/products/${objectID}`} legacyBehavior key={objectID}>
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={objectID}
