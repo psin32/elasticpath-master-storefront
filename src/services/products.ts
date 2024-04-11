@@ -19,6 +19,21 @@ export async function getProductById(
   });
 }
 
+export async function getProductByIds(
+  productIds: string,
+  client: EPCCClient,
+): Promise<ShopperCatalogResource<ProductResponse[]>> {
+  return client.ShopperCatalog.Products.With([
+    "main_image",
+    "files",
+    "component_products",
+  ]).Filter({
+    in: {
+      id: productIds
+    }
+  }).All();
+}
+
 export function getAllProducts(client: EPCCClient): Promise<ProductResponse[]> {
   return _getAllProductPages(client)();
 }

@@ -2,15 +2,18 @@ import { SearchHit } from "./SearchHit";
 import Link from "next/link";
 import Price from "../product/Price";
 import StrikePrice from "../product/StrikePrice";
-import { EP_CURRENCY_CODE } from "../../lib/resolve-ep-currency-code";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
+import { ProductResponse } from "@moltin/sdk";
+import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
 
-export default function HitComponent({ hit }: { hit: SearchHit }): JSX.Element {
-  const { ep_price, ep_name, objectID, ep_main_image_url, ep_description } =
+export default function HitComponent({ hit, product }: { hit: SearchHit, product: ProductResponse }): JSX.Element {
+  const { ep_name, objectID, ep_main_image_url, ep_description } =
     hit;
 
-  const currencyPrice = ep_price?.[EP_CURRENCY_CODE];
+  const {
+    meta: { display_price, original_display_price },
+  } = product;
 
   return (
     <>
@@ -37,6 +40,21 @@ export default function HitComponent({ hit }: { hit: SearchHit }): JSX.Element {
                 <EyeSlashIcon width={10} height={10} />
               </div>
             )}
+            {product.attributes.components && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                <h4>Bundle</h4>
+              </div>
+            )}
+            {product.meta.variation_matrix && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                <h4>Variation</h4>
+              </div>
+            )}
+            {"tiers" in product.attributes && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 left-2 text-sm">
+                <h4>Bulk Buy Offer</h4>
+              </div>
+            )}
           </div>
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
@@ -47,21 +65,23 @@ export default function HitComponent({ hit }: { hit: SearchHit }): JSX.Element {
               </span>
             </div>
             <div>
-              {currencyPrice && (
-                <div className="mt-1 flex items-center">
-                  {currencyPrice.sale_prices && (
+              {display_price && (
+                <div className="flex items-center mt-2">
+                  {product?.meta?.component_products && (
+                    <div className="mr-1 text-md">FROM </div>
+                  )}
+                  {original_display_price && (
                     <StrikePrice
-                      price={
-                        currencyPrice.sale_prices.original_price.formatted_price
-                      }
-                      currency={EP_CURRENCY_CODE}
-                      size="text-lg"
+                      price={original_display_price.without_tax.formatted}
+                      currency={original_display_price.without_tax.currency}
+                      size="text-xl"
                     />
                   )}
                   <Price
-                    price={currencyPrice.formatted_price}
-                    original_display_price={currencyPrice.sale_prices}
-                    currency={EP_CURRENCY_CODE}
+                    price={display_price.without_tax.formatted}
+                    currency={display_price.without_tax.currency}
+                    original_display_price={original_display_price}
+                    size="text-xl"
                   />
                 </div>
               )}

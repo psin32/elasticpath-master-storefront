@@ -88,9 +88,9 @@ export default async function FeaturedProducts({
               <p className="pointer-events-none mt-2 block truncate text-sm font-medium text-gray-900">
                 {product.attributes.name}
               </p>
-              <p className="pointer-events-none block text-sm font-medium text-gray-500">
+              <div className="pointer-events-none text-sm font-medium text-gray-500 flex items-center gap-2">
                 {product?.meta?.component_products && (
-                  <>FROM </>
+                  <div>FROM </div>
                 )}
                 {product.meta.display_price && (
                   <div className="flex items-center">
@@ -109,7 +109,7 @@ export default async function FeaturedProducts({
                     />
                   </div>
                 )}
-              </p>
+              </div>
             </Link>
             {"tiers" in product.attributes && (
               <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-sm">
