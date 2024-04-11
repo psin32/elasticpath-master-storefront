@@ -1,10 +1,15 @@
+import { reviewsEnv } from "../../../lib/resolve-reviews-field-env";
 import FilterCheckbox from "./FilterCheckbox";
 import FilterRadio from "./FilterRadio";
+import RatingRefinement from "./RatingRefinement";
 
 const ProductSpecification = () => {
   const data = process.env.NEXT_PUBLIC_FILTER_ITEMS || ""
   return (
     <>
+      {reviewsEnv.enable && (
+        <RatingRefinement attribute={reviewsEnv.avgRatingField} />
+      )}
       {data.split(",").map((item: string) => {
         const attribute = item.split("|")
         if (attribute.length === 3) {
