@@ -10,6 +10,7 @@ import ProductSummary from "./ProductSummary";
 import ProductDetails from "./ProductDetails";
 import { StatusButton } from "../button/StatusButton";
 import PersonalisedInfo from "./PersonalisedInfo";
+import Reviews from "../reviews/yotpo/Reviews";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
@@ -88,6 +89,7 @@ function SimpleProductContainer(): JSX.Element {
           </form>
         </div>
       </div>
+      <Reviews product={response} />
     </div>
   );
 }

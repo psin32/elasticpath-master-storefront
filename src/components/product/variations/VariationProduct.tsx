@@ -11,6 +11,7 @@ import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
+import Reviews from "../../reviews/yotpo/Reviews";
 
 export const VariationProductDetail = ({
   variationProduct,
@@ -117,6 +118,7 @@ export function VariationProductContainer(): JSX.Element {
           </form>
         </div>
       </div>
+      <Reviews product={response} />
     </div>
   );
 }

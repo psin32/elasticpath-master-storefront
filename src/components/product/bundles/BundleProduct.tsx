@@ -19,6 +19,7 @@ import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
+import Reviews from "../../reviews/yotpo/Reviews";
 
 interface IBundleProductDetail {
   bundleProduct: BundleProduct;
@@ -116,6 +117,7 @@ function BundleProductContainer(): JSX.Element {
             </Form>
           </div>
         </div>
+        <Reviews product={response} />
       </div>
     </Formik>
   );

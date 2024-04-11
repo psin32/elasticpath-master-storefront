@@ -5,7 +5,7 @@ import StrikePrice from "../product/StrikePrice";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
 import { ProductResponse } from "@moltin/sdk";
-import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
+import Ratings from "../reviews/yotpo/Ratings";
 
 export default function HitComponent({ hit, product }: { hit: SearchHit, product: ProductResponse }): JSX.Element {
   const { ep_name, objectID, ep_main_image_url, ep_description } =
@@ -86,6 +86,7 @@ export default function HitComponent({ hit, product }: { hit: SearchHit, product
                 </div>
               )}
             </div>
+            <Ratings product={product} displayFromProduct={true} />
           </div>
         </div>
       </Link>

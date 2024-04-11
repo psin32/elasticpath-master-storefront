@@ -2,12 +2,12 @@ import { useContext } from "react";
 import Price from "./Price";
 import StrikePrice from "./StrikePrice";
 import clsx from "clsx";
-import type { ShopperProduct } from "@elasticpath/react-shopper-hooks";
 import { ProductContext } from "../../lib/product-context";
 import ProductMultibuyOffer from "./ProductMultibuyOffer";
+import Ratings from "../reviews/yotpo/Ratings";
 
 interface IProductSummary {
-  product: ShopperProduct["response"];
+  product: any;
 }
 
 const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
@@ -24,6 +24,7 @@ const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
       <span className="text-xl font-semibold leading-[1.1] sm:text-3xl lg:text-4xl">
         {attributes.name}
       </span>
+      <Ratings product={product} displayFromProduct={true} />
       {display_price && (
         <div className="flex items-center mt-2">
           {original_display_price && (
