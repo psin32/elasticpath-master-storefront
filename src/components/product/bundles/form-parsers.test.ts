@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { BundleConfigurationSelectedOptions } from "@elasticpath/react-shopper-hooks";
+import { BundleConfigurationSelectedOptions } from "../../../react-shopper-hooks";
 import {
   formSelectedOptionsToData,
   selectedOptionsToFormValues,

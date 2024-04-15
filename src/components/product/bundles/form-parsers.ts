@@ -1,4 +1,4 @@
-import { BundleConfigurationSelectedOptions } from "@elasticpath/react-shopper-hooks";
+import { BundleConfigurationSelectedOptions } from "../../../react-shopper-hooks";
 
 export interface FormSelectedOptions {
   [key: string]: string[];

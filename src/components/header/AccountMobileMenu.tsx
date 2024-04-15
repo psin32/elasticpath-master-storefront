@@ -1,4 +1,4 @@
-import { useAuthedAccountMember } from "@elasticpath/react-shopper-hooks";
+import { useAuthedAccountMember } from "../../react-shopper-hooks";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {

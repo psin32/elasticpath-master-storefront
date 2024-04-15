@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { getServerSideCredentialsClient } from "../../../lib/epcc-server-side-credentials-client";
 import { COOKIE_PREFIX_KEY } from "../../../lib/resolve-cart-env";
 
-const registerSchema = z.object({
+const addCustomItemSchema = z.object({
   name: z.string(),
   description: z.string(),
   sku: z.string(),
@@ -21,7 +21,7 @@ export async function addCustomItemToCart(data: FormData) {
   const client = getServerSideCredentialsClient();
   const cookie = cookies();
   const cartId = cookie.get(`${COOKIE_PREFIX_KEY}_ep_cart`)?.value
-  const validatedProps = registerSchema.safeParse(
+  const validatedProps = addCustomItemSchema.safeParse(
     Object.fromEntries(data.entries()),
   );
 
@@ -59,5 +59,5 @@ export async function addCustomItemToCart(data: FormData) {
   image_url ? request.custom_inputs.image_url = image_url : {}
   options ? request.custom_inputs.options = options : {}
 
-  await client.Cart(cartId).AddCustomItem(request)
+  return await client.Cart(cartId).AddCustomItem(request)
 }

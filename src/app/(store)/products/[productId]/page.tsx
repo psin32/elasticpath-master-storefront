@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { ProductDetailsComponent, ProductProvider } from "./product-display";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
-import { getProductById } from "../../../../services/products";
+import { getProductById, getSubscriptionOffering } from "../../../../services/products";
 import { notFound } from "next/navigation";
 import { parseProductResponse } from "@elasticpath/shopper-common";
 import React from "react";
@@ -29,8 +29,9 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: Props) {
-  const client = getServerSideImplicitClient();
+  const client: any = getServerSideImplicitClient();
   const product = await getProductById(params.productId, client);
+  const offerings = await getSubscriptionOffering(params.productId, client);
 
   if (!product) {
     notFound();
@@ -44,7 +45,7 @@ export default async function ProductPage({ params }: Props) {
       key={"page_" + params.productId}
     >
       <ProductProvider>
-        <ProductDetailsComponent product={shopperProduct} />
+        <ProductDetailsComponent product={shopperProduct} offerings={offerings} />
       </ProductProvider>
     </div>
   );

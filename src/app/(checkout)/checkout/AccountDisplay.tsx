@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthedAccountMember } from "@elasticpath/react-shopper-hooks";
+import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import { Button } from "../../../components/button/Button";
 import { FormControl, FormField } from "../../../components/form/Form";
 import { Input } from "../../../components/input/Input";

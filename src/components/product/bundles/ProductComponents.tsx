@@ -1,4 +1,4 @@
-import { ShopperProduct, useBundle } from "@elasticpath/react-shopper-hooks";
+import { ShopperProduct, useBundle } from "../../../react-shopper-hooks";
 import { ProductComponent } from "./ProductComponent";
 import { useFormikContext } from "formik";
 import { useEffect, useState } from "react";

@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   accountAddressesQueryKeys,
   useAuthedAccountMember,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../../react-shopper-hooks";
 
 export function DeleteAddressBtn({ addressId }: { addressId: string }) {
   const queryClient = useQueryClient();

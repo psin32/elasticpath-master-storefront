@@ -11,7 +11,7 @@ import {
 import { Button } from "../button/Button";
 import { LockClosedIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { CartItem } from "../../app/(store)/cart/CartItem";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../react-shopper-hooks";
 import { Separator } from "../separator/Separator";
 import { ShoppingBagIcon } from "@heroicons/react/24/outline";
 import { Fragment } from "react";

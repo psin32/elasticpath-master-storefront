@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../../react-shopper-hooks";
 import { Separator } from "../../../components/separator/Separator";
 import { CartDiscounts } from "../../../components/cart/CartDiscounts";
 import * as React from "react";

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { useVariationProduct } from "@elasticpath/react-shopper-hooks";
+import type { useVariationProduct } from "../../../react-shopper-hooks";
 
 interface ProductVariationOption {
   id: string;

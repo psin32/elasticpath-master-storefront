@@ -19,7 +19,7 @@ import { OrderLineItem } from "./OrderLineItem";
 
 export const dynamic = "force-dynamic";
 
-export default async function Order({
+export default async function Orders({
   params,
 }: {
   params: { orderId: string };

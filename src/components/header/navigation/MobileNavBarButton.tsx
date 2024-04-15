@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import NavMenu from "./NavMenu";
-import { NavigationNode } from "@elasticpath/react-shopper-hooks";
+import { NavigationNode } from "../../../react-shopper-hooks";
 import {
   Sheet,
   SheetClose,

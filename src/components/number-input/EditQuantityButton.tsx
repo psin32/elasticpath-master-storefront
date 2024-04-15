@@ -4,7 +4,7 @@ import { cn } from "../../lib/cn";
 import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { LoadingDots } from "../LoadingDots";
 import type { CartItem } from "@moltin/sdk";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../react-shopper-hooks";
 
 export function EditItemQuantityButton({
   item,

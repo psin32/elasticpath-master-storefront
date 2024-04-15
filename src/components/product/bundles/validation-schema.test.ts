@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { BundleComponents } from "@elasticpath/react-shopper-hooks";
+import { BundleComponents } from "../../../react-shopper-hooks";
 
 import { createBundleFormSchema } from "./validation-schema";
 import { DeepPartial } from "../../../lib/types/deep-partial";

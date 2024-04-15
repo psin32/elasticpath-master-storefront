@@ -5,7 +5,7 @@ import { CheckCircleIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import {
   accountMemberQueryKeys,
   useAuthedAccountMember,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import { SwitchButton } from "../account/switch-button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Separator } from "../../separator/Separator";

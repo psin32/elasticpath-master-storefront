@@ -4,7 +4,7 @@ import { CartSidebar } from "./CartSidebar";
 import { Button } from "../../../components/button/Button";
 import Link from "next/link";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../../react-shopper-hooks";
 
 export function CartView() {
   const { state } = useCart();

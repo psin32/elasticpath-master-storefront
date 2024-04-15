@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { NavigationNode } from "@elasticpath/react-shopper-hooks";
+import { NavigationNode } from "../../react-shopper-hooks";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 

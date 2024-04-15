@@ -1,7 +1,7 @@
 "use client";
 import { createBreadcrumb } from "../lib/create-breadcrumb";
 import Link from "next/link";
-import { useStore } from "@elasticpath/react-shopper-hooks";
+import { useStore } from "../react-shopper-hooks";
 import { buildBreadcrumbLookup } from "../lib/build-breadcrumb-lookup";
 import { usePathname } from "next/navigation";
 

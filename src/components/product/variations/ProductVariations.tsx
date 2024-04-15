@@ -9,7 +9,7 @@ import {
 } from "../../../lib/product-helper";
 import ProductVariationStandard from "./ProductVariationStandard";
 import ProductVariationColor from "./ProductVariationColor";
-import { useVariationProduct } from "@elasticpath/react-shopper-hooks";
+import { useVariationProduct } from "../../../react-shopper-hooks";
 import { ProductContext } from "../../../lib/product-context";
 
 const getSelectedOption = (

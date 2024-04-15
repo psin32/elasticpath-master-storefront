@@ -2,8 +2,8 @@ import {
   useBundleComponent,
   useBundle,
   useBundleComponentOption,
-} from "@elasticpath/react-shopper-hooks";
-import type { BundleComponent, ShopperProduct } from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
+import type { BundleComponent, ShopperProduct } from "../../../react-shopper-hooks";
 import { ProductComponentOption, ProductResponse } from "@moltin/sdk";
 import { sortByOrder } from "./sort-by-order";
 import { useField, useFormikContext } from "formik";
@@ -26,11 +26,33 @@ export const ProductComponent = ({
 }): JSX.Element => {
   const { componentProducts } = useBundle();
 
-  const { name } = component;
+  const { name, min, max } = component;
 
   const { errors, touched } = useFormikContext<{
     selectedOptions: any;
   }>();
+
+  const getSelectionMessage = () => {
+    let message = "(Optional: Choose any product below)"
+
+    if (min || min === 0) {
+      if (min == 0 && max && max >= 1) {
+        message = `(Optional: Choose maximum ${max} product${max > 1 ? "s" : ""})`
+      } else if (min == 1 && max && max == 1) {
+        message = `(Required: Choose any 1 product)`
+      } else if (min == 1 && max && max > 1) {
+        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`
+      } else if (min > 1 && max && max == min) {
+        message = `(Required: Choose any ${min} products)`
+      } else if (min > 1 && max && max > min) {
+        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`
+      }
+    }
+
+    return (
+      <span className="text-[11px]">{message}</span>
+    )
+  }
 
   return (
     <fieldset
@@ -43,7 +65,7 @@ export const ProductComponent = ({
       )}
     >
       <div key={name} className="m-2">
-        <legend className="mb-2 font-semibold">{name}</legend>
+        <legend className="mb-2 font-semibold">{name} {getSelectionMessage()}</legend>
         <div>
           {(errors as any)[`selectedOptions.${componentLookupKey}`] && (
             <div className="">
@@ -115,7 +137,7 @@ function CheckboxComponentOption({
   const isDisabled =
     reachedMax &&
     !selectedOptionKey.some((optionKey) => optionKey === option.id);
-  const { display_price, original_display_price } = product?.meta?.component_products?.[optionProduct.id] as any
+  const { display_price, original_display_price } = product?.meta?.component_products?.[optionProduct.id] as any || {}
   const name = `selectedOptions.${componentKey}`;
   const inputId = `${name}.${option.id}`;
 

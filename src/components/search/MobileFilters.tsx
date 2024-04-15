@@ -4,7 +4,7 @@ import { Dispatch, Fragment, SetStateAction } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { EP_ROUTE_PRICE } from "../../lib/search-constants";
 import NodeMenu from "./NodeMenu";
-import { useStore } from "@elasticpath/react-shopper-hooks";
+import { useStore } from "../../react-shopper-hooks";
 import PriceRangeSlider from "./price-range-slider/PriceRangeSliderWrapper";
 import ProductSpecification from "./product-specification/ProductSpecification";
 

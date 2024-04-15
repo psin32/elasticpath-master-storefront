@@ -2,6 +2,7 @@ import type {
   ProductResponse,
   ResourcePage,
   ShopperCatalogResource,
+  SubscriptionOffering,
 } from "@moltin/sdk";
 import { wait300 } from "../lib/product-helper";
 import { Moltin as EPCCClient } from "@moltin/sdk";
@@ -17,6 +18,18 @@ export async function getProductById(
   ]).Get({
     productId,
   });
+}
+
+export async function getSubscriptionOffering(
+  productId: string,
+  client: EPCCClient,
+): Promise<ResourcePage<SubscriptionOffering, never>> {
+  const filter: any = ["plans"]
+  return client.SubscriptionOfferings.With(filter).Filter({
+    eq: {
+      "products.external_ref": productId
+    }
+  }).All();
 }
 
 export async function getProductByIds(

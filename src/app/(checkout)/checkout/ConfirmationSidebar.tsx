@@ -5,7 +5,7 @@ import * as React from "react";
 import {
   groupCartItems,
   useCurrencies,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import {
   ItemSidebarHideable,
   ItemSidebarItems,
@@ -31,9 +31,11 @@ export function ConfirmationSidebar() {
 
   const { order, cart } = confirmationData;
 
-  const groupedItems = groupCartItems(cart.data);
+  const groupedItems: any = groupCartItems(cart.data);
 
-  const shippingMethodCustomItem = groupedItems.custom.find((item) =>
+  const items = groupedItems.regular.concat(groupedItems.custom.filter((item: any) => !item.sku.startsWith("__shipping_")), groupedItems.subscription)
+
+  const shippingMethodCustomItem = groupedItems.custom.find((item: any) =>
     item.sku.startsWith("__shipping_"),
   );
 
@@ -53,20 +55,20 @@ export function ConfirmationSidebar() {
 
   const formattedTotalAmountInclShipping =
     meta?.display_price?.with_tax?.amount !== undefined &&
-    shippingAmount !== undefined &&
-    storeCurrency
+      shippingAmount !== undefined &&
+      storeCurrency
       ? resolveTotalInclShipping(
-          shippingAmount,
-          meta.display_price.with_tax.amount,
-          storeCurrency,
-        )
+        shippingAmount,
+        meta.display_price.with_tax.amount,
+        storeCurrency,
+      )
       : undefined;
 
   return (
     <ItemSidebarHideable meta={meta}>
       <div className="inline-flex flex-col items-start gap-5 w-full lg:w-[24.375rem] px-5 lg:px-0">
         <div className="flex flex-col gap-5">
-          <ItemSidebarItems items={groupedItems.regular} />
+          <ItemSidebarItems items={items} />
         </div>
         <span className="text-sm text-black/60">Discounts applied</span>
         <CartDiscountsReadOnly promotions={groupedItems.promotion} />

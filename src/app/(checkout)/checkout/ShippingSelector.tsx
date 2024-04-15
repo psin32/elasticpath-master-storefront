@@ -1,8 +1,7 @@
 "use client";
 import {
-  useAccountAddresses,
   useAuthedAccountMember,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import {
   Select,
   SelectContent,
@@ -10,30 +9,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/select/Select";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { CheckoutForm as CheckoutFormSchemaType } from "../../../components/checkout/form-schema/checkout-form-schema";
 import { AccountAddress } from "@moltin/sdk";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "../../../components/skeleton/Skeleton";
 import { Button } from "../../../components/button/Button";
 import Link from "next/link";
+import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 export function ShippingSelector() {
+  const [accountAddresses, setAccountAddresses] = useState<any>();
   const { selectedAccountToken } = useAuthedAccountMember();
 
-  const { data: accountAddressData } = useAccountAddresses(
-    selectedAccountToken?.account_id!,
-    {
-      ep: { accountMemberToken: selectedAccountToken?.token },
-      enabled: !!selectedAccountToken,
-    },
-  );
+  const client = getEpccImplicitClient();
 
   const { setValue } = useFormContext<CheckoutFormSchemaType>();
 
   function updateAddress(addressId: string, addresses: AccountAddress[]) {
     const address = addresses.find((address) => address.id === addressId);
-
     if (address) {
       setValue("shippingAddress", {
         postcode: address.postcode,
@@ -53,25 +47,34 @@ export function ShippingSelector() {
   }
 
   useEffect(() => {
-    if (accountAddressData && accountAddressData[0]) {
-      updateAddress(accountAddressData[0].id, accountAddressData);
-    }
-  }, [accountAddressData]);
+    const init = async () => {
+      const addresses = await client.AccountAddresses.All({
+        account: selectedAccountToken?.account_id || "",
+      })
+      if (addresses?.data?.length > 0) {
+        updateAddress(addresses.data[0].id, addresses.data);
+        setAccountAddresses(addresses.data)
+      } else {
+        setAccountAddresses([])
+      }
+    };
+    init();
+  }, [selectedAccountToken?.account_id]);
 
   return (
     <div>
-      {accountAddressData ? (
+      {accountAddresses ? (
         <Select
           onValueChange={(value) =>
-            updateAddress(value, accountAddressData ?? [])
+            updateAddress(value, accountAddresses ?? [])
           }
-          defaultValue={accountAddressData[0]?.id}
+          defaultValue={accountAddresses[0]?.id}
         >
           <SelectTrigger className="p-5">
             <SelectValue placeholder="Select address" />
           </SelectTrigger>
           <SelectContent>
-            {accountAddressData?.map((address) => (
+            {accountAddresses?.map((address: any) => (
               <SelectItem key={address.id} value={address.id} className="py-5">
                 <div className="flex flex-col items-start gap-2">
                   <span>{address.name}</span>

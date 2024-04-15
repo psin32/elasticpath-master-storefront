@@ -1,7 +1,7 @@
 "use client";
 
 import { useCheckout } from "./checkout-provider";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../../react-shopper-hooks";
 import { StatusButton } from "../../../components/button/StatusButton";
 
 export function SubmitCheckoutButton() {

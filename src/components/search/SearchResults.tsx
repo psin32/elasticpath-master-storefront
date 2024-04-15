@@ -13,7 +13,7 @@ import { useInstantSearch, useSortBy } from "react-instantsearch";
 import { sortByItems } from "../../lib/sort-by-items";
 import { EP_ROUTE_PRICE } from "../../lib/search-constants";
 import NodeMenu from "./NodeMenu";
-import { useStore } from "@elasticpath/react-shopper-hooks";
+import { useStore } from "../../react-shopper-hooks";
 
 interface ISearchResults {
   lookup?: BreadcrumbLookup;

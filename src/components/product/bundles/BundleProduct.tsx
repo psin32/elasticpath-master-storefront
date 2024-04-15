@@ -6,7 +6,7 @@ import {
   BundleProductProvider,
   useBundle,
   useCart,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import { useCallback, useMemo } from "react";
 import {
   formSelectedOptionsToData,
@@ -19,23 +19,27 @@ import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
+import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
+import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 
 interface IBundleProductDetail {
   bundleProduct: BundleProduct;
+  offerings: ResourcePage<SubscriptionOffering, never>
 }
 
 const BundleProductDetail = ({
   bundleProduct,
+  offerings
 }: IBundleProductDetail): JSX.Element => {
   return (
     <BundleProductProvider bundleProduct={bundleProduct}>
-      <BundleProductContainer />
+      <BundleProductContainer offerings={offerings} />
     </BundleProductProvider>
   );
 };
 
-function BundleProductContainer(): JSX.Element {
+function BundleProductContainer({ offerings }: { offerings: ResourcePage<SubscriptionOffering, never> }): JSX.Element {
   const { configuredProduct, selectedOptions, components } = useBundle();
   const { useScopedAddBundleProductToCart } = useCart();
 
@@ -103,7 +107,7 @@ function BundleProductContainer(): JSX.Element {
             )}
             <Form>
               <div className="flex flex-col gap-6 md:gap-10">
-                <ProductSummary product={response} />
+                <ProductSummary product={response} offerings={offerings} />
                 <ProductComponents product={response} />
                 <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} formikForm={true} />
                 <StatusButton
@@ -113,6 +117,7 @@ function BundleProductContainer(): JSX.Element {
                   ADD TO CART
                 </StatusButton>
                 <ProductDetails product={response} />
+                {extensions && <ProductHighlights extensions={extensions} />}
               </div>
             </Form>
           </div>

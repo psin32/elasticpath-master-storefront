@@ -17,7 +17,7 @@ import { AccountAddress } from "@moltin/sdk";
 import {
   accountAddressesQueryKeys,
   useAuthedAccountMember,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../../../react-shopper-hooks";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function UpdateForm({

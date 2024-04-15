@@ -32,7 +32,10 @@ export function CheckoutItem({ item }: { item: CartItem }) {
               {item?.custom_inputs?.options && (
                 <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
               )}
-              <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+              {item.sku && (
+                <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+              )}
+
             </span>
           </Link>
         )}
@@ -42,7 +45,9 @@ export function CheckoutItem({ item }: { item: CartItem }) {
             {item?.custom_inputs?.options && (
               <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
             )}
-            <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+            {item.sku && (
+              <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+            )}
           </span>
         )}
         <span className="text-sm text-black/60">Quantity: {item.quantity}</span>

@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { logout } from "../../../app/(auth)/actions";
-import { useAuthedAccountMember } from "@elasticpath/react-shopper-hooks";
+import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useFloating } from "@floating-ui/react";

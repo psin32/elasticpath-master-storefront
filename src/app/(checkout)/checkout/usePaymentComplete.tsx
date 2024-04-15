@@ -4,7 +4,7 @@ import {
   useCheckoutWithAccount,
   useOrderConfirm,
   usePayments,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { CheckoutForm } from "../../../components/checkout/form-schema/checkout-form-schema";
 import { staticDeliveryMethods } from "./useShippingMethod";

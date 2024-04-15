@@ -1,5 +1,5 @@
 "use client";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../../react-shopper-hooks";
 import { ProductThumbnail } from "../account/orders/[orderId]/ProductThumbnail";
 import Link from "next/link";
 import { NumberInput } from "../../../components/number-input/NumberInput";
@@ -42,7 +42,10 @@ export function CartItemWide({ item }: CartItemProps) {
                   {item?.custom_inputs?.options && (
                     <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
                   )}
-                  <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                  {item.sku && (
+                    <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                  )}
+
                 </span>
               </Link>
             )}
@@ -52,7 +55,9 @@ export function CartItemWide({ item }: CartItemProps) {
                 {item?.custom_inputs?.options && (
                   <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
                 )}
-                <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                {item.sku && (
+                  <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                )}
               </span>
             )}
             <span className="text-sm text-black/60">

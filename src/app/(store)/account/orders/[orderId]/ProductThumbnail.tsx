@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useProduct } from "@elasticpath/react-shopper-hooks";
+import { useProduct } from "../../../../../react-shopper-hooks";
 
 const gray1pxBase64 =
   "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";

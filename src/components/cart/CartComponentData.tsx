@@ -32,7 +32,7 @@ export function CartComponentData({ item }: CartComponentDataProps) {
             return Object.keys(item?.bundle_configuration?.selected_options[optionName]).map((optionId: string) => {
               const componentProduct = bundleProduct?.included?.component_products.find((component: any) => component.id === optionId)
               return (
-                <li className="mt-1 list-disc ml-4">
+                <li className="mt-1 list-disc ml-4" key={optionId}>
                   {componentProduct?.attributes?.name}: x{item?.bundle_configuration?.selected_options[optionName][optionId]}
                 </li>
               )

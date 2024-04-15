@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { useEvent } from "@elasticpath/react-shopper-hooks";
+import { useEvent } from "../../react-shopper-hooks";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

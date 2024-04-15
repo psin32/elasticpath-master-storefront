@@ -6,7 +6,7 @@ import { resolveAlgoliaRouting } from "../../../lib/algolia-search-routing";
 import SearchResults from "../../../components/search/SearchResults";
 import React from "react";
 import { buildBreadcrumbLookup } from "../../../lib/build-breadcrumb-lookup";
-import { useStore } from "@elasticpath/react-shopper-hooks";
+import { useStore } from "../../../react-shopper-hooks";
 import {
   Configure,
   HierarchicalMenuProps,

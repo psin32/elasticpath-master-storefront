@@ -1,5 +1,5 @@
 "use client";
-import { NavigationNode } from "@elasticpath/react-shopper-hooks";
+import { NavigationNode } from "../../../react-shopper-hooks";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import NavItemContent from "./NavItemContent";
 import {

@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import clsx from "clsx";
-import type { ShopperProduct } from "@elasticpath/react-shopper-hooks";
+import type { ShopperProduct } from "../../react-shopper-hooks";
 import { ProductContext } from "../../lib/product-context";
 
 interface IProductDetails {

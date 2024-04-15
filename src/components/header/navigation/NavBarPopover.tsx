@@ -54,8 +54,8 @@ export function NavBarPopover({
                     {item.name}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent className="bg-white">
-                    <div className="flex flex-col w-[400px] md:w-[500px] lg:w-[600px] px-8 pt-8">
-                      <div className="grid grid-cols-2 gap-y-12 md:grid-cols-3 w-full">
+                    <div className="flex flex-col w-[400px] md:w-[700px] lg:w-[900px] px-8 pt-8">
+                      <div className="grid grid-cols-2 gap-y-12 md:grid-cols-5 w-full">
                         {item.children.map(
                           (parent: NavigationNode, index: number) => {
                             return <div key={index}>{buildStack(parent)}</div>;

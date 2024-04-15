@@ -1,7 +1,7 @@
 "use client";
 
 import { CartItemWide } from "./CartItemWide";
-import { useCart } from "@elasticpath/react-shopper-hooks";
+import { useCart } from "../../../react-shopper-hooks";
 
 export function YourBag() {
   const { state } = useCart();

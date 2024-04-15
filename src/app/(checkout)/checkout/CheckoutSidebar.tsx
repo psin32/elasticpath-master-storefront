@@ -2,7 +2,7 @@
 import { Separator } from "../../../components/separator/Separator";
 import { CartDiscounts } from "../../../components/cart/CartDiscounts";
 import * as React from "react";
-import { useCart, useCurrencies } from "@elasticpath/react-shopper-hooks";
+import { useCart, useCurrencies } from "../../../react-shopper-hooks";
 import {
   ItemSidebarHideable,
   ItemSidebarItems,
@@ -38,23 +38,25 @@ export function CheckoutSidebar() {
     (method) => method.value === shippingMethod,
   )?.amount;
 
-  const { meta, __extended } = state;
+  const { meta, __extended } = state as any;
+
+  const items = __extended.groupedItems.regular.concat(__extended.groupedItems.custom, __extended.groupedItems.subscription)
 
   const formattedTotalAmountInclShipping =
     meta?.display_price?.with_tax?.amount !== undefined &&
-    shippingAmount !== undefined &&
-    storeCurrency
+      shippingAmount !== undefined &&
+      storeCurrency
       ? resolveTotalInclShipping(
-          shippingAmount,
-          meta.display_price.with_tax.amount,
-          storeCurrency,
-        )
+        shippingAmount,
+        meta.display_price.with_tax.amount,
+        storeCurrency,
+      )
       : undefined;
 
   return (
     <ItemSidebarHideable meta={meta}>
       <div className="inline-flex flex-col items-start gap-5 w-full lg:w-[24.375rem] px-5 lg:px-0">
-        <ItemSidebarItems items={__extended.groupedItems.regular} />
+        <ItemSidebarItems items={items} />
         <ItemSidebarPromotions />
         <Separator />
         <CartDiscounts promotions={state.__extended.groupedItems.promotion} />

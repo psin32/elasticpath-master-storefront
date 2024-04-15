@@ -2,7 +2,7 @@ import { z } from "zod";
 import type {
   BundleComponent,
   BundleComponents,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 
 export const createBundleComponentSchema = (component: BundleComponent) => {
   let schema = z.array(z.string());

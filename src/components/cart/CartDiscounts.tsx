@@ -2,7 +2,7 @@
 
 import { forwardRef, Fragment, HTMLAttributes } from "react";
 import { Separator } from "../separator/Separator";
-import { PromotionCartItem, useCart } from "@elasticpath/react-shopper-hooks";
+import { PromotionCartItem, useCart } from "../../react-shopper-hooks";
 import { LoadingDots } from "../LoadingDots";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import * as React from "react";

@@ -10,7 +10,7 @@ import {
   CartState,
   useAuthedAccountMember,
   useCart,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "../../../components/form/Form";
 import { ShippingMethod, useShippingMethod } from "./useShippingMethod";

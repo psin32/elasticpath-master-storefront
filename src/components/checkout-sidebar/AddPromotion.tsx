@@ -7,7 +7,7 @@ import { Input } from "../input/Input";
 import { Button } from "../button/Button";
 import { applyDiscount } from "./actions";
 import { useQueryClient } from "@tanstack/react-query";
-import { cartQueryKeys, useCart } from "@elasticpath/react-shopper-hooks";
+import { cartQueryKeys, useCart } from "../../react-shopper-hooks";
 import { useFormStatus } from "react-dom";
 import { LoadingDots } from "../LoadingDots";
 

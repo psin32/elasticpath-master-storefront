@@ -8,9 +8,10 @@ import Ratings from "../reviews/yotpo/Ratings";
 
 interface IProductSummary {
   product: any;
+  offerings?: any;
 }
 
-const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
+const ProductSummary = ({ product, offerings }: IProductSummary): JSX.Element => {
   const {
     attributes,
     meta: { display_price, original_display_price },
@@ -25,29 +26,32 @@ const ProductSummary = ({ product }: IProductSummary): JSX.Element => {
         {attributes.name}
       </span>
       <Ratings product={product} displayFromProduct={true} />
-      {display_price && (
-        <div className="flex items-center mt-2">
-          {original_display_price && (
-            <StrikePrice
-              price={original_display_price.without_tax.formatted}
-              currency={original_display_price.without_tax.currency}
-            />
-          )}
-          <Price
-            price={display_price.without_tax.formatted}
-            currency={display_price.without_tax.currency}
-            original_display_price={original_display_price}
-            size="text-2xl"
-          />
-        </div>
-      )}
-      {"tiers" in attributes && (
+      {offerings.data.length == 0 && (
         <>
-          <div className="uppercase font-bold mt-4 mb-4 text-lg text-red-700">Bulk Buy Offer</div>
-          <ProductMultibuyOffer product={product} />
+          {display_price && (
+            <div className="flex items-center mt-2">
+              {original_display_price && (
+                <StrikePrice
+                  price={original_display_price.without_tax.formatted}
+                  currency={original_display_price.without_tax.currency}
+                />
+              )}
+              <Price
+                price={display_price.without_tax.formatted}
+                currency={display_price.without_tax.currency}
+                original_display_price={original_display_price}
+                size="text-2xl"
+              />
+            </div>
+          )}
+          {"tiers" in attributes && (
+            <>
+              <div className="uppercase font-bold mt-4 mb-4 text-lg text-red-700">Bulk Buy Offer</div>
+              <ProductMultibuyOffer product={product} />
+            </>
+          )}
         </>
       )}
-
     </div>
   );
 };

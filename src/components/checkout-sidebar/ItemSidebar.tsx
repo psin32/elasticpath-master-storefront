@@ -2,7 +2,7 @@
 import { Separator } from "../separator/Separator";
 import { AddPromotion } from "./AddPromotion";
 import { CheckoutItem } from "../checkout-item/CheckoutItem";
-import { CartState } from "@elasticpath/react-shopper-hooks";
+import { CartState } from "../../react-shopper-hooks";
 import {
   Accordion,
   AccordionContent,

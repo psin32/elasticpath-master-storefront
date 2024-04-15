@@ -4,28 +4,32 @@ import {
   useVariationProduct,
   VariationProduct,
   VariationProductProvider,
-} from "@elasticpath/react-shopper-hooks";
+} from "../../../react-shopper-hooks";
 import ProductVariations from "./ProductVariations";
 import ProductCarousel from "../carousel/ProductCarousel";
 import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
+import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
+import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 
 export const VariationProductDetail = ({
   variationProduct,
+  offerings
 }: {
   variationProduct: VariationProduct;
+  offerings: ResourcePage<SubscriptionOffering, never>
 }): JSX.Element => {
   return (
     <VariationProductProvider variationProduct={variationProduct}>
-      <VariationProductContainer />
+      <VariationProductContainer offerings={offerings} />
     </VariationProductProvider>
   );
 };
 
-export function VariationProductContainer(): JSX.Element {
+export function VariationProductContainer({ offerings }: { offerings: ResourcePage<SubscriptionOffering, never> }): JSX.Element {
   const { product, selectedOptions } = useVariationProduct() as any;
   const { useScopedAddProductToCart } = useCart();
   const { mutate, isPending } = useScopedAddProductToCart();
@@ -103,7 +107,7 @@ export function VariationProductContainer(): JSX.Element {
           )}
           <form onSubmit={(e: any) => handleSubmit(e)}>
             <div className="flex flex-col gap-4 md:gap-6">
-              <ProductSummary product={response} />
+              <ProductSummary product={response} offerings={offerings} />
               <ProductVariations />
               <PersonalisedInfo custom_inputs={response.attributes.custom_inputs} />
               <StatusButton
@@ -114,6 +118,7 @@ export function VariationProductContainer(): JSX.Element {
                 ADD TO CART
               </StatusButton>
               <ProductDetails product={response} />
+              {extensions && <ProductHighlights extensions={extensions} />}
             </div>
           </form>
         </div>

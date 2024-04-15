@@ -5,7 +5,7 @@ import {
   StoreProvider,
   ElasticPathProvider,
   InitialState,
-} from "@elasticpath/react-shopper-hooks";
+} from "../react-shopper-hooks";
 import { QueryClient } from "@tanstack/react-query";
 import { getEpccImplicitClient } from "../lib/epcc-implicit-client";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../lib/cookie-constants";
