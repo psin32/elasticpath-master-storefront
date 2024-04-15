@@ -8,7 +8,12 @@ import { Label } from "../../../components/label/Label";
 import { Input } from "../../../components/input/Input";
 import { FormStatusButton } from "../../../components/button/FormStatusButton";
 
-export default function Register() {
+export default function Register({
+  searchParams,
+}: {
+  searchParams: { returnUrl?: string };
+}) {
+  const { returnUrl } = searchParams;
   const cookieStore = cookies();
   if (isAccountMemberAuthenticated(cookieStore)) {
     redirect("/account/summary");
@@ -74,6 +79,16 @@ export default function Register() {
                   required
                 />
               </div>
+              {returnUrl && (
+                <input
+                  id="returnUrl"
+                  readOnly
+                  name="returnUrl"
+                  type="text"
+                  className="hidden"
+                  value={returnUrl}
+                />
+              )}
             </div>
 
             <div>

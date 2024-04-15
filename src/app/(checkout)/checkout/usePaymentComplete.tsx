@@ -15,6 +15,10 @@ import {
   Resource,
 } from "@moltin/sdk";
 import { useElements, useStripe } from "@stripe/react-stripe-js";
+import { getSelectedAccount, parseAccountMemberCredentialsCookieStr, retrieveAccountMemberCredentials } from "../../../lib/retrieve-account-member-credentials";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../lib/cookie-constants";
+import { getCookie } from "cookies-next";
+import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 export type UsePaymentCompleteProps = {
   cartId: string | undefined;
@@ -59,6 +63,18 @@ export function usePaymentComplete(
         shippingMethod,
       } = data;
 
+      const client = getEpccImplicitClient()
+      const cookieValue = getCookie(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME)?.toString() || ""
+      let stripe_customer_id = null
+      if (!("guest" in data) && cookieValue) {
+        const accountMemberCookie = parseAccountMemberCredentialsCookieStr(cookieValue)
+        if (accountMemberCookie) {
+          const selectedAccount = getSelectedAccount(accountMemberCookie);
+          const response: any = await client.Accounts.Get(selectedAccount.account_id)
+          stripe_customer_id = response.data.stripe_customer_id
+        }
+      }
+
       const customerName = `${shippingAddress.first_name} ${shippingAddress.last_name}`;
 
       const checkoutProps = {
@@ -94,34 +110,43 @@ export function usePaymentComplete(
       /**
        * 1. Convert our cart to an order we can pay
        */
-      const createdOrder = await ("guest" in data
+      const createdOrder: any = await ("guest" in data
         ? mutateConvertToOrder({
-            customer: {
-              email: data.guest.email,
-              name: customerName,
-            },
-            ...checkoutProps,
-          })
+          customer: {
+            email: data.guest.email,
+            name: customerName,
+          },
+          ...checkoutProps,
+        })
         : mutateConvertToOrderAsAccount({
-            contact: {
-              name: data.account.name,
-              email: data.account.email,
-            },
-            token: accountToken ?? "",
-            ...checkoutProps,
-          }));
+          contact: {
+            name: data.account.name,
+            email: data.account.email,
+          },
+          token: accountToken ?? "",
+          ...checkoutProps,
+        }));
 
-      /**
-       * 2. Start payment against the order
-       */
-      const confirmedPayment = await mutatePayment({
+      const paymentRequest: any = {
         orderId: createdOrder.data.id,
         payment: {
           gateway: "elastic_path_payments_stripe",
           method: "purchase",
           payment_method_types: ["card"],
         },
-      });
+      }
+
+      const subsItem = createdOrder.included.items.filter((item: any) => item.subscription_offering_id)
+      if((!("guest" in data) && stripe_customer_id && subsItem?.length > 0)) {
+        paymentRequest.payment.options = {
+          customer: stripe_customer_id,
+          setup_future_usage: "off_session"
+        }
+      }
+      /**
+       * 2. Start payment against the order
+       */
+      const confirmedPayment = await mutatePayment(paymentRequest);
 
       /**
        * 3. Confirm the payment with Stripe

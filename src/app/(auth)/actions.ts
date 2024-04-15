@@ -29,6 +29,7 @@ const registerSchema = z.object({
   email: z.string().email(),
   password: z.string(),
   name: z.string(),
+  returnUrl: z.string().optional(),
 });
 
 const PASSWORD_PROFILE_ID = process.env.NEXT_PUBLIC_PASSWORD_PROFILE_ID!;
@@ -138,7 +139,7 @@ export async function register(data: FormData) {
     throw new Error("Invalid email or password or name");
   }
 
-  const { email, password, name } = validatedProps.data;
+  const { email, password, name, returnUrl } = validatedProps.data;
 
   const result = await client.AccountMembers.GenerateAccountToken({
     type: "account_management_authentication_token",
@@ -153,7 +154,7 @@ export async function register(data: FormData) {
   const cookieStore = cookies();
   cookieStore.set(createCookieFromGenerateTokenResponse(result));
 
-  redirect("/");
+  redirect(returnUrl ?? "/");
 }
 
 function createCookieFromGenerateTokenResponse(

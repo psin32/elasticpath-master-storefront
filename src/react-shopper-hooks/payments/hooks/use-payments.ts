@@ -4,7 +4,7 @@ import { ConfirmPaymentResponse, PaymentRequestBody } from "@moltin/sdk"
 
 export type UsePaymentsReq = {
   orderId: string
-  payment: PaymentRequestBody
+  payment: any
 }
 
 export const usePayments = (
