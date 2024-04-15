@@ -12,7 +12,7 @@ export const fetchFeaturedProducts = async (
 
   return productsIncluded?.main_images
     ? connectProductsWithMainImages(
-        productsResponse.slice(0, 4), // Only need the first 4 products to feature
+        productsResponse.slice(0, 20), // Only need the first 4 products to feature
         productsIncluded?.main_images,
       )
     : productsResponse;

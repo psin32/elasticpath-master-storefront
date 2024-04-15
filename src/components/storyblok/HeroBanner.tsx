@@ -21,7 +21,7 @@ const HeroBanner = ({ blok }: any) => {
               {blok.button_text && blok.link.url && (
                 <div className="mt-8">
                   <a href={blok.link.url} role="button" data-te-ripple-init data-te-ripple-color="primary"
-                    className="rounded-full border-transparent px-8 py-4 text-sm font-medium uppercase leading-normal text-white  drop-shadow-2x bg-primary-900 hover:bg-primary-500">
+                    className="rounded-full border-transparent px-8 py-4 text-sm font-medium uppercase leading-normal text-black  drop-shadow-2x bg-brand-primary hover:bg-brand-highlight">
                     {blok.button_text}
                   </a>
                 </div>
