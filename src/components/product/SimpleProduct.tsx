@@ -65,7 +65,7 @@ function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element 
     }
 
     const price_type = formData.get("price_type")?.toString() || ""
-    if (price_type === "one_time") {
+    if (price_type === "" || price_type === "one_time") {
       mutateAddItem({ productId: response.id, quantity: 1, data })
     } else {
       const planId = formData.get("plan")?.toString() || "";

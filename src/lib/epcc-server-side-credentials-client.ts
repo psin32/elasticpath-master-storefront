@@ -3,7 +3,6 @@ import { gateway, StorageFactory } from "@moltin/sdk";
 import { epccEnv } from "./resolve-epcc-env";
 import { resolveEpccCustomRuleHeaders } from "./custom-rule-headers";
 import { COOKIE_PREFIX_KEY } from "./resolve-cart-env";
-import { EP_CURRENCY_CODE } from "./resolve-ep-currency-code";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME, CREDENTIALS_COOKIE_NAME } from "./cookie-constants";
 import { cookies } from "next/headers";
 import { getSelectedAccount, retrieveAccountMemberCredentials } from "./retrieve-account-member-credentials";
@@ -13,7 +12,10 @@ let customHeaders = resolveEpccCustomRuleHeaders();
 const { client_id, host, client_secret } = epccEnv;
 
 export function getServerSideCredentialsClient() {
-  const credentialsCookie = cookies().get(CREDENTIALS_COOKIE_NAME);
+  const cookieStore = cookies();
+  const credentialsCookie = cookieStore.get(CREDENTIALS_COOKIE_NAME);
+  const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+
   const accountMemberCookie = retrieveAccountMemberCredentials(
     cookies(),
     ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
@@ -37,7 +39,7 @@ export function getServerSideCredentialsClient() {
     client_id,
     client_secret,
     host,
-    currency: EP_CURRENCY_CODE,
+    currency: currencyInCookie?.value ? currencyInCookie?.value : process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE,
     ...(customHeaders ? { headers: customHeaders } : {}),
     reauth: false,
     storage: createServerSideNextCookieStorageFactory(credentialsCookie?.value),

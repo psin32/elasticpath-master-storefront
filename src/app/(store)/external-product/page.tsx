@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { addCustomItemToCart } from "./actions";
 import { useCart } from "../../../react-shopper-hooks";
+import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 
 export default function CustomItem() {
   const [enabled, setEnabled] = useState(false)
@@ -75,7 +76,7 @@ export default function CustomItem() {
           </div>
 
           <div>
-            <Label htmlFor="price">Price ({process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE})</Label>
+            <Label htmlFor="price">Price ({EP_CURRENCY_CODE})</Label>
             <div className="mt-1">
               <Input
                 id="price"

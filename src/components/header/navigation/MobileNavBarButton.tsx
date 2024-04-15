@@ -14,6 +14,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { AccountMobileMenu } from "../AccountMobileMenu";
 import { Separator } from "../../separator/Separator";
 import { MobileAccountSwitcher } from "./MobileAccountSwitcher";
+import CurrencySelector from "../CurrencySelector";
 
 export function MobileNavBarButton({ nav }: { nav: NavigationNode[] }) {
   const [open, setOpen] = useState(false);
@@ -53,6 +54,8 @@ export function MobileNavBarButton({ nav }: { nav: NavigationNode[] }) {
           </SheetClose>
         </SheetHeader>
         <NavMenu nav={nav} setOpen={setOpen} />
+        <Separator />
+        <CurrencySelector />
         <Separator />
         <AccountMobileMenu />
         <div>

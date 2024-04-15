@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react'
+import { EP_CURRENCY_CODE } from '../../lib/resolve-ep-currency-code';
 
 interface IProductMultibuyOfferProps {
   product: any;
@@ -10,7 +11,7 @@ export default async function ProductMultibuyOffer({ product }: IProductMultibuy
   const [tiers, setTiers] = useState<any[]>()
 
   useEffect(() => {
-    const selectedCurrency = process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE || "GBP"
+    const selectedCurrency = EP_CURRENCY_CODE
     const selectedLanguage = "en"
     let messages = []
     const keys = Object.keys(product.attributes.tiers);

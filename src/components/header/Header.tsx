@@ -7,6 +7,7 @@ import { Cart } from "../cart/CartSheet";
 import Logo from "./Logo";
 import { getBanner } from "../../services/storyblok";
 import Content from "../storyblok/Content";
+import CurrencySelector from "./CurrencySelector";
 
 const Header = async () => {
   const content = await getBanner();
@@ -26,6 +27,7 @@ const Header = async () => {
           </Suspense>
         </div>
         <div className="flex items-center self-center gap-x-2">
+          <CurrencySelector />
           <AccountMenu accountSwitcher={<AccountSwitcher />} />
           <Cart />
         </div>
