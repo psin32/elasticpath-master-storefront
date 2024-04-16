@@ -44,7 +44,7 @@ const ProductVariationStandard = ({
             key={o.id}
             onClick={() => updateOptionHandler(variation.id, o.id)}
           >
-            {o.name}
+            {o.description}
           </button>
         ))}
       </div>

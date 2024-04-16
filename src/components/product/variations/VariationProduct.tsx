@@ -73,12 +73,7 @@ export function VariationProductContainer({ offerings }: { offerings: ResourcePa
         if (variation) {
           const optionValue = variation?.options.find((option: any) => option.id === optionId)
           if (optionValue) {
-            const option = {
-              key: variation.name,
-              value: optionValue.name
-            }
-            options.push(optionValue.name)
-
+            options.push(optionValue.description)
           }
         }
       }
