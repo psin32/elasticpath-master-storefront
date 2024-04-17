@@ -12,7 +12,7 @@ let headers = resolveEpccCustomRuleHeaders();
 const { client_id, host } = epccEnv;
 
 export function getEpccImplicitClient() {
-
+  const catalogTag = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
   const cookieValue = getCookie(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME)?.toString() || ""
   if (cookieValue) {
     const accountMemberCookie = parseAccountMemberCredentialsCookieStr(cookieValue)
@@ -25,6 +25,16 @@ export function getEpccImplicitClient() {
         headers = {
           "EP-Account-Management-Authentication-Token": accountToken
         }
+      }
+    }
+  }
+
+  if(catalogTag) {
+    if (headers) {
+      headers["EP-Context-Tag"] = catalogTag
+    } else {
+      headers = {
+        "EP-Context-Tag": catalogTag
       }
     }
   }
