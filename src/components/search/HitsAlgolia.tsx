@@ -1,13 +1,13 @@
 import { useHits } from "react-instantsearch";
 import { SearchHit } from "./SearchHit";
 import NoResults from "./NoResults";
-import HitComponent from "./Hit";
 import { getProductByIds } from "../../services/products";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { useEffect, useState } from "react";
 import { ProductResponse, ShopperCatalogResource } from "@moltin/sdk";
+import HitComponentAlgolia from "./HitAlgolia";
 
-export default function Hits(): JSX.Element {
+export default function HitsAlgolia(): JSX.Element {
   const { hits } = useHits<SearchHit>();
   const [products, setProducts] = useState<ShopperCatalogResource<ProductResponse[]> | undefined>(undefined);
   const client = getEpccImplicitClient()
@@ -30,7 +30,7 @@ export default function Hits(): JSX.Element {
                 className="list-none justify-items-stretch rounded-lg animate-fadeIn"
                 key={hit.objectID}
               >
-                <HitComponent hit={hit} product={product} />
+                <HitComponentAlgolia hit={hit} product={product} />
               </div>
             )
           }

@@ -8,7 +8,7 @@ import {
   PaginationItem,
 } from "../pagination/Pagination";
 
-export const Pagination = (): JSX.Element => {
+export const PaginationAlgolia = (): JSX.Element => {
   const { pages, currentRefinement, canRefine, refine } = usePagination();
   return (
     <DisplayPagination>
@@ -29,4 +29,4 @@ export const Pagination = (): JSX.Element => {
   );
 };
 
-export default Pagination;
+export default PaginationAlgolia;

@@ -1,7 +1,5 @@
 "use client";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
-import Hits from "./Hits";
-import Pagination from "./Pagination";
 import { BreadcrumbLookup } from "../../lib/types/breadcrumb-lookup";
 import MobileFilters from "./MobileFilters";
 import PriceRangeSlider from "./price-range-slider/PriceRangeSliderWrapper";
@@ -14,6 +12,8 @@ import { sortByItems } from "../../lib/sort-by-items";
 import { EP_ROUTE_PRICE } from "../../lib/search-constants";
 import NodeMenu from "./NodeMenu";
 import { useStore } from "../../react-shopper-hooks";
+import HitsAlgolia from "./HitsAlgolia";
+import PaginationAlgolia from "./PaginationAlgolia";
 
 interface ISearchResults {
   lookup?: BreadcrumbLookup;
@@ -26,7 +26,7 @@ function resolveTitle(slugArray: string[], lookup?: BreadcrumbLookup): string {
   );
 }
 
-export default function SearchResults({ lookup }: ISearchResults): JSX.Element {
+export default function SearchResultsAlgolia({ lookup }: ISearchResults): JSX.Element {
   const { uiState } = useInstantSearch();
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav } = useStore();
@@ -107,9 +107,9 @@ export default function SearchResults({ lookup }: ISearchResults): JSX.Element {
         </div>
 
         <div>
-          <Hits />
+          <HitsAlgolia />
           <div className="py-10">
-            <Pagination />
+            <PaginationAlgolia />
           </div>
         </div>
       </div>
