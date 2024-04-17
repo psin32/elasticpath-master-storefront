@@ -9,39 +9,53 @@ import { Currency, ResourcePage } from '@moltin/sdk';
 import { getCookie, setCookie } from 'cookies-next';
 import { COOKIE_PREFIX_KEY } from '../../lib/resolve-cart-env';
 
-const CurrencySelector = () => {
-  const [selected, setSelected] = useState<Currency>()
-  const [currencies, setCurrencies] = useState<ResourcePage<Currency, never>>()
+type CatalogTag = {
+  name: string,
+  tag: string | undefined
+}
 
-  const client = getEpccImplicitClient()
-  const currencyInCookie = getCookie(`${COOKIE_PREFIX_KEY}_ep_currency`);
+const CatalogSelector = () => {
+  const [selected, setSelected] = useState<CatalogTag>()
+  const [tags, setTags] = useState<CatalogTag[]>()
+
+  const tagInCookie = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   useEffect(() => {
-    const init = async () => {
-      const response = await client.Currencies.All()
-      setCurrencies(response)
-      const selectedCurrency = response.data.find(currency => currency.code === currencyInCookie)
-      setSelected(selectedCurrency)
-    };
-    init();
+    const catalogTagConfig = process.env.NEXT_PUBLIC_CATALOG_TAGS || ""
+    if (catalogTagConfig) {
+      const tagList: CatalogTag[] = []
+      catalogTagConfig.split(",").map((item: string) => {
+        const config = item.split("|")
+        if (config.length === 2) {
+          const catalogTag: CatalogTag = {
+            name: config[0],
+            tag: config[1],
+          }
+          tagList.push(catalogTag)
+        }
+      })
+      setTags(tagList)
+      const selectedCatalogTag = tagList.find(tag => tag.tag === tagInCookie)
+      setSelected(selectedCatalogTag)
+    }
   }, []);
 
-  const handleChangeCurrency = (currency: Currency) => {
-    setSelected(currency)
-    setCookie(`${COOKIE_PREFIX_KEY}_ep_currency`, currency.code)
+  const handleChangeCurrency = (catalogTag: CatalogTag) => {
+    setSelected(catalogTag)
+    setCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`, catalogTag.tag)
     location.reload();
   }
 
   return (
     selected && (
-      <div className='text-sm w-28 ml-2'>
+      <div className='text-sm w-60 ml-2'>
         <Listbox value={selected} onChange={handleChangeCurrency}>
           {({ open }) => (
             <>
               <div className="relative mt-1">
                 <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                   <span className="flex items-center">
-                    <span className="ml-3 block truncate">{selected?.code}</span>
+                    <span className="ml-3 block truncate">{selected?.name}</span>
                   </span>
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
                     <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -56,16 +70,16 @@ const CurrencySelector = () => {
                   leaveTo="opacity-0"
                 >
                   <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                    {currencies?.data.map((currency) => (
+                    {tags?.map((tag) => (
                       <Listbox.Option
-                        key={currency.id}
+                        key={tag.name}
                         className={({ active }) =>
                           clsx(
                             active ? 'bg-indigo-600 text-white' : 'text-gray-900',
                             'relative cursor-default select-none py-2 pl-3 pr-9'
                           )
                         }
-                        value={currency}
+                        value={tag}
                       >
                         {({ selected, active }) => (
                           <>
@@ -73,7 +87,7 @@ const CurrencySelector = () => {
                               <span
                                 className={clsx(selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate')}
                               >
-                                {currency.code}
+                                {tag.name}
                               </span>
                             </div>
 
@@ -102,4 +116,4 @@ const CurrencySelector = () => {
   );
 };
 
-export default CurrencySelector;
+export default CatalogSelector;

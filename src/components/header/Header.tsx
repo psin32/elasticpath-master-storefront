@@ -8,6 +8,7 @@ import Logo from "./Logo";
 import { getBanner } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import CurrencySelector from "./CurrencySelector";
+import CatalogSelector from "./CatalogSelector";
 
 const Header = async () => {
   const content = await getBanner();
@@ -27,6 +28,7 @@ const Header = async () => {
           </Suspense>
         </div>
         <div className="flex items-center self-center gap-x-2">
+          <CatalogSelector />
           <CurrencySelector />
           <AccountMenu accountSwitcher={<AccountSwitcher />} />
           <Cart />

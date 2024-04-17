@@ -15,6 +15,7 @@ export function getServerSideCredentialsClient() {
   const cookieStore = cookies();
   const credentialsCookie = cookieStore.get(CREDENTIALS_COOKIE_NAME);
   const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   const accountMemberCookie = retrieveAccountMemberCredentials(
     cookies(),
@@ -28,9 +29,11 @@ export function getServerSideCredentialsClient() {
 
   if (customHeaders) {
     customHeaders["EP-Account-Management-Authentication-Token"] = accountToken
+    customHeaders["EP-Context-Tag"] = tagInCookie?.value || ""
   } else {
     customHeaders = {
-      "EP-Account-Management-Authentication-Token": accountToken
+      "EP-Account-Management-Authentication-Token": accountToken,
+      "EP-Context-Tag": tagInCookie?.value || ""
     }
   }
 
