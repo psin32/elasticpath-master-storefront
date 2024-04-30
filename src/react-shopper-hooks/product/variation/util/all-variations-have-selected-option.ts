@@ -1,4 +1,4 @@
-import type { OptionDict } from "@elasticpath/shopper-common"
+import type { OptionDict } from "../../../../shopper-common/src"
 import type { CatalogsProductVariation } from "@moltin/sdk"
 
 export function allVariationsHaveSelectedOption(

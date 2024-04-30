@@ -1,8 +1,8 @@
 import { useCallback, useContext, useMemo } from "react"
 import { BundleProductContext } from "../../product"
 import { isSelectedOption as _isSelectedOption } from "../../product/bundle/util/is-selected-option"
-import type { BundleConfigurationSelectedOptions } from "@elasticpath/shopper-common"
 import { ProductComponents } from "@moltin/sdk"
+import { BundleConfigurationSelectedOptions } from "../../../shopper-common/src"
 
 export function useBundleComponent(componentKey: string): {
   selected: BundleConfigurationSelectedOptions[0]

@@ -1,4 +1,4 @@
-import { BundleConfigurationSelectedOptions } from "@elasticpath/shopper-common"
+import { BundleConfigurationSelectedOptions } from "../../../../shopper-common/src"
 
 export function isSelectedOption(
   selectedOptions: BundleConfigurationSelectedOptions[0],

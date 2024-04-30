@@ -1,7 +1,7 @@
 import { useContext } from "react"
 import { StoreProviderContext } from "../store/store-provider"
 import { Moltin } from "@moltin/sdk"
-import { NavigationNode } from "@elasticpath/shopper-common"
+import { NavigationNode } from "../../shopper-common/src"
 
 export function useStore(): { client: Moltin; nav?: NavigationNode[] } {
   const ctx = useContext(StoreProviderContext)

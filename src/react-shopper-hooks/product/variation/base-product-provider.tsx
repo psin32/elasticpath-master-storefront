@@ -1,8 +1,4 @@
 import React, {
-  BaseProduct,
-  MatrixObjectEntry,
-} from "@elasticpath/shopper-common"
-import {
   createContext,
   Dispatch,
   ReactNode,
@@ -10,6 +6,7 @@ import {
   useState,
 } from "react"
 import { CatalogsProductVariation, Moltin as EpccClient } from "@moltin/sdk"
+import { BaseProduct, MatrixObjectEntry } from "../../../shopper-common/src"
 
 interface BaseProductState {
   product: BaseProduct

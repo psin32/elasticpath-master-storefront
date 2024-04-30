@@ -3,7 +3,7 @@ import { emitter } from "../event/event-context"
 import { CartProvider } from "../cart"
 import React, { createContext } from "react"
 import type { Moltin as EPCCClient } from "@moltin/sdk"
-import { NavigationNode } from "@elasticpath/shopper-common"
+import { NavigationNode } from "../../shopper-common/src"
 import { useElasticPath } from "../elasticpath"
 
 interface StoreState {

@@ -4,7 +4,7 @@ import {
   BundleConfiguration,
   BundleConfigurationSelectedOptions,
   BundleProduct,
-} from "@elasticpath/shopper-common"
+} from "../../../shopper-common/src"
 import { ProductResponse, File, ProductComponents } from "@moltin/sdk"
 
 export function useBundle(): {

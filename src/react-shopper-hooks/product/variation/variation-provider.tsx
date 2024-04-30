@@ -13,7 +13,7 @@ import type {
   OptionDict,
   VariationProduct,
   MatrixObjectEntry,
-} from "@elasticpath/shopper-common"
+} from "../../../shopper-common/src"
 import { getOptionsFromProductId } from "../../product/variation/util/get-options-from-product-id"
 import { mapOptionsToVariation } from "../../product/variation/util/map-options-to-variations"
 import { createEmptyOptionDict } from "../../product/variation/util/create-empty-options-dict"

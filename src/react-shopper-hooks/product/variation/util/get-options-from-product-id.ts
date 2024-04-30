@@ -1,4 +1,4 @@
-import { MatrixObjectEntry, MatrixValue } from "@elasticpath/shopper-common"
+import { MatrixObjectEntry, MatrixValue } from "../../../../shopper-common/src"
 
 export const getOptionsFromProductId = (
   skuId: string,

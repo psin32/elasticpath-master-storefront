@@ -3,7 +3,7 @@ import { VariationProductContext } from "../../product/variation/variation-provi
 import {
   VariationProduct,
   MatrixObjectEntry,
-} from "@elasticpath/shopper-common"
+} from "../../../shopper-common/src"
 import { CatalogsProductVariation } from "@moltin/sdk"
 
 export function useVariationProduct(): {

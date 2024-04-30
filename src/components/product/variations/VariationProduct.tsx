@@ -80,7 +80,7 @@ export function VariationProductContainer({ offerings }: { offerings: ResourcePa
     })
 
     if (options.length > 0) {
-      data.custom_inputs.options = options.join("/")
+      data.custom_inputs.options = options.join(" / ")
     }
 
     mutate({ productId: response.id, quantity: 1, data })

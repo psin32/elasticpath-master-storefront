@@ -1,5 +1,5 @@
 import { Cart, CartItem } from "@moltin/sdk"
-import { DeepReadonly } from "@elasticpath/shopper-common"
+import { DeepReadonly } from "../../../shopper-common/src"
 
 /** --------------------------------- Cart State --------------------------------- */
 

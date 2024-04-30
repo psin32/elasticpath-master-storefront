@@ -15,7 +15,7 @@ import {
   BundleProduct,
   configureBundle as _configureBundle,
   createBundleConfigureValidator,
-} from "@elasticpath/shopper-common"
+} from "../../../shopper-common/src"
 import type { Moltin as EpccClient, ProductResponse, File } from "@moltin/sdk"
 import { useStore } from "../../store"
 
