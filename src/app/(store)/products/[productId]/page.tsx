@@ -1,10 +1,11 @@
 import { Metadata } from "next";
 import { ProductDetailsComponent, ProductProvider } from "./product-display";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
-import { getProductById, getSubscriptionOffering } from "../../../../services/products";
+import { getNodesByIds, getProductById, getSubscriptionOffering } from "../../../../services/products";
 import { notFound } from "next/navigation";
 import { parseProductResponse } from "@elasticpath/shopper-common";
 import React from "react";
+import { Node } from "@moltin/sdk";
 
 export const dynamic = "force-dynamic";
 
@@ -37,15 +38,20 @@ export default async function ProductPage({ params }: Props) {
     notFound();
   }
 
+  const breadCrumNode = product?.data?.meta?.bread_crumb_nodes?.[0] || ""
+  const nodeIds: string[] = []
+  const parentNodes = breadCrumNode && product?.data?.meta?.bread_crumbs?.[breadCrumNode].reverse() || []
+  nodeIds.push(breadCrumNode, ...parentNodes)
+  const breadcrumb: Node[] | undefined = await getNodesByIds(nodeIds, client)
+
   const shopperProduct = await parseProductResponse(product, client);
 
   return (
     <div
-      className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] md:py-20 lg:max-w-[80rem] w-full"
       key={"page_" + params.productId}
     >
       <ProductProvider>
-        <ProductDetailsComponent product={shopperProduct} offerings={offerings} />
+        <ProductDetailsComponent product={shopperProduct} breadcrumb={breadcrumb} offerings={offerings} />
       </ProductProvider>
     </div>
   );

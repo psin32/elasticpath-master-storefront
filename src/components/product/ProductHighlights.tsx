@@ -6,7 +6,7 @@ interface IProductHighlights {
 }
 
 const ProductHighlights = ({ extensions }: IProductHighlights): JSX.Element => {
-  const highlights: (string | number | boolean)[] = Object.values(extensions?.["products(highlights)"] ?? {}).flat();
+  const highlights: (string | number | boolean)[] = extensions?.["products(highlights)"] && Object.values(extensions?.["products(highlights)"])?.flat();
   return (
     highlights && (
       <div className="flex flex-col gap-4 sm:gap-6">

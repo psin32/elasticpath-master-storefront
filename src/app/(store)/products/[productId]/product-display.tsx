@@ -5,7 +5,8 @@ import { VariationProductDetail } from "../../../../components/product/variation
 import BundleProductDetail from "../../../../components/product/bundles/BundleProduct";
 import { ProductContext } from "../../../../lib/product-context";
 import SimpleProductDetail from "../../../../components/product/SimpleProduct";
-import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import { Node, ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import Breadcrumb from "../../../../components/product/Breadcrumb";
 
 export function ProductProvider({
   children,
@@ -44,10 +45,19 @@ export function resolveProductDetailComponent(
 
 export function ProductDetailsComponent({
   product,
+  breadcrumb,
   offerings
 }: {
   product: ShopperProduct;
+  breadcrumb: Node[];
   offerings: ResourcePage<SubscriptionOffering, never>
 }) {
-  return resolveProductDetailComponent(product, offerings);
+  return (
+    <div className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] lg:max-w-[80rem] w-full">
+      <Breadcrumb breadcrumb={breadcrumb} productName={product.response.attributes.name}></Breadcrumb>
+      <div>
+        {resolveProductDetailComponent(product, offerings)}
+      </div>
+    </div>
+  )
 }
