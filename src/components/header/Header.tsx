@@ -9,11 +9,13 @@ import { getBanner } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
+import SearchModal from "../search/SearchModal";
+import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 
 const Header = async () => {
   const content = await getBanner();
   return (
-    <div className="sticky z-40 border-b border-gray-200 bg-white">
+    <div className="sticky z-10 border-b border-gray-200 bg-white">
       <Content content={content}></Content>
       <Suspense>
         <MobileNavBar />
@@ -30,6 +32,7 @@ const Header = async () => {
         <div className="flex items-center self-center gap-x-2">
           <CatalogSelector />
           <CurrencySelector />
+          {algoliaEnvData.enabled && <SearchModal />}
           <AccountMenu accountSwitcher={<AccountSwitcher />} />
           <Cart />
         </div>
