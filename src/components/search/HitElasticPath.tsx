@@ -4,18 +4,17 @@ import StrikePrice from "../product/StrikePrice";
 import { EP_CURRENCY_CODE } from "../../lib/resolve-ep-currency-code";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
-import { ShopperProduct } from "../../react-shopper-hooks";
 
 export default function HitComponentElasticPath({
   hit,
 }: {
-  hit: ShopperProduct;
+  hit: any;
 }): JSX.Element {
   const {
     main_image,
     response: {
-      meta: { display_price, original_display_price },
-      attributes: { name, description },
+      meta: { display_price, original_display_price, variation_matrix },
+      attributes: { name, description, components },
       id,
     },
   } = hit;
@@ -50,15 +49,28 @@ export default function HitComponentElasticPath({
                 <EyeSlashIcon width={10} height={10} />
               </div>
             )}
+            {components && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                <h4>Bundle</h4>
+              </div>
+            )}
+            {variation_matrix && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 right-2 text-sm">
+                <h4>Variation</h4>
+              </div>
+            )}
+            {"tiers" in hit.response.attributes && (
+              <div className="absolute bg-red-600 text-white top-1 rounded-md pr-1 pl-1 left-2 text-sm">
+                <h4>Bulk Buy Offer</h4>
+              </div>
+            )}
           </div>
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
               <Link href={`/products/${id}`} passHref legacyBehavior>
                 <h3 className="text-sm font-bold">{name}</h3>
               </Link>
-              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500">
-                {description}
-              </span>
+              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500" dangerouslySetInnerHTML={{ __html: description }}></span>
             </div>
             <div>
               {currencyPrice && (
