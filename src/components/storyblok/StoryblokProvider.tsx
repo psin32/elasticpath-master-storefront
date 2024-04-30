@@ -12,6 +12,7 @@ import Announcement from "./Announcement";
 import HeaderLogo from "./HeaderLogo";
 import Banner from "./Banner";
 import ProductContent from "./ProductContent";
+import Footer from "./Footer";
 
 const components = {
     feature: Feature,
@@ -26,6 +27,7 @@ const components = {
     logo: HeaderLogo,
     banner: Banner,
     product: ProductContent,
+    footer: Footer
 };
 
 storyblokInit({
