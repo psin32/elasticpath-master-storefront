@@ -44,6 +44,7 @@ export function Search({
         indexName={algoliaEnvData.indexName}
         searchClient={searchClient}
         routing={resolveAlgoliaRouting()}
+        insights={true}
         future={{
           preserveSharedStateOnUnmount: true,
         }}

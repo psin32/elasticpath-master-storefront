@@ -1,4 +1,4 @@
-import { BaseHit } from "instantsearch.js";
+import { Hit } from "instantsearch.js";
 
 type HitSalePrice = {
   amount: number;
@@ -31,7 +31,7 @@ type HitPrice = {
   };
 };
 
-export interface SearchHit extends BaseHit {
+export interface SearchHit extends Hit {
   ep_amount: number;
   ep_categories: string[];
   ep_description: string;

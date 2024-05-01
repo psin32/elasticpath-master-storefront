@@ -6,8 +6,9 @@ import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
 import { ProductResponse } from "@moltin/sdk";
 import Ratings from "../reviews/yotpo/Ratings";
+import { SendEventForHits } from "instantsearch.js/es/lib/utils";
 
-export default function HitComponentAlgolia({ hit, product }: { hit: SearchHit, product: ProductResponse }): JSX.Element {
+export default function HitComponentAlgolia({ hit, product, sendEvent }: { hit: SearchHit, product: ProductResponse, sendEvent: SendEventForHits }): JSX.Element {
   const { ep_name, objectID, ep_main_image_url, ep_description } =
     hit;
 
@@ -21,6 +22,7 @@ export default function HitComponentAlgolia({ hit, product }: { hit: SearchHit, 
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={objectID}
+          onClick={() => sendEvent('click', hit, 'PLP: Product Clicked')}
         >
           <div className="relative bg-[#f6f7f9] overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
             {ep_main_image_url ? (

@@ -8,7 +8,7 @@ import { ProductResponse, ShopperCatalogResource } from "@moltin/sdk";
 import HitComponentAlgolia from "./HitAlgolia";
 
 export default function HitsAlgolia(): JSX.Element {
-  const { hits } = useHits<SearchHit>();
+  const { hits, sendEvent } = useHits<SearchHit>();
   const [products, setProducts] = useState<ShopperCatalogResource<ProductResponse[]> | undefined>(undefined);
   const client = getEpccImplicitClient()
 
@@ -30,7 +30,7 @@ export default function HitsAlgolia(): JSX.Element {
                 className="list-none justify-items-stretch rounded-lg animate-fadeIn"
                 key={hit.objectID}
               >
-                <HitComponentAlgolia hit={hit} product={product} />
+                <HitComponentAlgolia hit={hit} product={product} sendEvent={sendEvent} />
               </div>
             )
           }
