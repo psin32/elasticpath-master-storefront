@@ -38,3 +38,8 @@ export const getFooter = async (locale?: string) => {
     const headerResponse = await fetch(`https://api-us.storyblok.com/v2/cdn/stories/footer?token=${process.env.NEXT_PUBLIC_STORYBLOK_API_KEY}&version=published&language=${locale}`, { next: { revalidate: 10 } });
     return await headerResponse.json();
 }
+
+export const getCatalogMenu = async (locale?: string) => {
+    const headerResponse = await fetch(`https://api-us.storyblok.com/v2/cdn/stories/catalog-menu?token=${process.env.NEXT_PUBLIC_STORYBLOK_API_KEY}&version=published&language=${locale}`, { next: { revalidate: 10 } });
+    return await headerResponse.json();
+}

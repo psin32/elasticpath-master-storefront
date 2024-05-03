@@ -13,6 +13,7 @@ import HeaderLogo from "./HeaderLogo";
 import Banner from "./Banner";
 import ProductContent from "./ProductContent";
 import Footer from "./Footer";
+import CatalogMenu from "./CatalogMenu";
 
 const components = {
     feature: Feature,
@@ -27,7 +28,8 @@ const components = {
     logo: HeaderLogo,
     banner: Banner,
     product: ProductContent,
-    footer: Footer
+    footer: Footer,
+    catalog_menu: CatalogMenu,
 };
 
 storyblokInit({

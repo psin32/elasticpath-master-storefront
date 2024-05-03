@@ -5,7 +5,7 @@ import { AccountMenu } from "./account/AccountMenu";
 import { AccountSwitcher } from "./account/AccountSwitcher";
 import { Cart } from "../cart/CartSheet";
 import Logo from "./Logo";
-import { getBanner } from "../../services/storyblok";
+import { getBanner, getCatalogMenu } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
@@ -14,8 +14,11 @@ import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 
 const Header = async () => {
   const content = await getBanner();
+  const catalogMenu = await getCatalogMenu();
+
   return (
     <div className="sticky z-10 border-b border-gray-200 bg-white">
+      <Content content={catalogMenu}></Content>
       <Content content={content}></Content>
       <Suspense>
         <MobileNavBar />
