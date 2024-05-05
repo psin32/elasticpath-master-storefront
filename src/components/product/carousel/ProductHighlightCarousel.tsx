@@ -66,7 +66,7 @@ const ProductHighlightCarousel = ({
           />
         </div>
       </div>
-      <Slider className="rounded-lg bg-[#f6f7f9]">
+      <Slider className="rounded-lg">
         {images.map((imageFile, index) => (
           <Slide key={imageFile.id} index={index}>
             <Image

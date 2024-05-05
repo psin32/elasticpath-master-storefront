@@ -70,7 +70,7 @@ const HorizontalCarousel = ({
             >
               <Image
                 style={{ objectFit: "contain" }}
-                className="bg-[#f6f7f9] rounded-lg"
+                className="rounded-lg"
                 onClick={() => setSelectedImage(image)}
                 alt={image.name ?? `Product image ${index + 1}`}
                 src={image.src}

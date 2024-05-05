@@ -22,7 +22,7 @@ export default function HitComponentElasticPath({
   const ep_main_image_url = main_image?.link.href;
 
   // const currencyPrice = ep_price?.[EP_CURRENCY_CODE];
-  const currencyPrice = display_price?.without_tax.formatted;
+  const currencyPrice = display_price?.without_tax?.formatted || display_price?.with_tax?.formatted;
 
   return (
     <>
@@ -31,7 +31,7 @@ export default function HitComponentElasticPath({
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={id}
         >
-          <div className="relative bg-[#f6f7f9] overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
+          <div className="relative  overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
             {ep_main_image_url ? (
               <Image
                 className="relative h-full w-full transition duration-300 ease-in-out group-hover:scale-105"
@@ -75,17 +75,18 @@ export default function HitComponentElasticPath({
             <div>
               {currencyPrice && (
                 <div className="mt-1 flex items-center">
-                  <Price
-                    price={display_price?.without_tax.formatted}
-                    currency={EP_CURRENCY_CODE}
-                  />
-                  {original_display_price?.without_tax.formatted && (
+                  {original_display_price && (
                     <StrikePrice
-                      price={original_display_price?.without_tax.formatted}
-                      currency={EP_CURRENCY_CODE}
+                      price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
+                      currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
                       size="text-lg"
                     />
                   )}
+                  <Price
+                    price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
+                    currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                    original_display_price={original_display_price}
+                  />
                 </div>
               )}
             </div>

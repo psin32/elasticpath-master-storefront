@@ -54,8 +54,8 @@ export default async function FeaturedProducts({
         {products.filter((product) => !product.attributes.base_product_id).map((product: any) => (
           <li className="relative group" key={product.id}>
             <Link href={`/products/${product.id}`}>
-              <div className=" aspect-square block w-full overflow-hidden rounded-lg bg-gray-100 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
-                <div className="relative w-full h-full bg-[#f6f7f9] rounded-lg text-center animate-fadeIn  transition duration-300 ease-in-out group-hover:scale-105">
+              <div className="aspect-square block w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+                <div className="relative w-full h-full rounded-lg text-center animate-fadeIn  transition duration-300 ease-in-out group-hover:scale-105">
                   {product.main_image?.link.href ? (
                     <Image
                       alt={product.main_image?.file_name!}
