@@ -2,7 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useState } from 'react'
-import ProductMultibuyOffer from '../product/ProductMultibuyOffer';
+import { ProductMultibuyOffer } from '../product/ProductMultibuyOffer';
 
 interface IMultibuyOfferModalProps {
   product: any;

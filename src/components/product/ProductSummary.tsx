@@ -3,7 +3,7 @@ import Price from "./Price";
 import StrikePrice from "./StrikePrice";
 import clsx from "clsx";
 import { ProductContext } from "../../lib/product-context";
-import ProductMultibuyOffer from "./ProductMultibuyOffer";
+import { ProductMultibuyOffer } from "./ProductMultibuyOffer";
 import Ratings from "../reviews/yotpo/Ratings";
 
 interface IProductSummary {

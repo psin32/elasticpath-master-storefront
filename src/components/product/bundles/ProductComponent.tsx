@@ -150,67 +150,68 @@ function CheckboxComponentOption({
   });
 
   return (
-    <div className={clsx("flex flex-row w-full", field.checked ? 'border-2 rounded-lg border-brand-primary' : 'border-2 rounded-lg border-gray-500')}>
-      <div className={clsx(isDisabled && "opacity-50", "w-14 ml-4 mt-2")} key={option.id}>
-        <div>
-          <label
-            htmlFor={inputId}
-            className={clsx(
-              "cursor-pointer",
-              !field.checked && isDisabled ? "opacity-50" : "",
-            )}
-          >
-            <input
-              {...field}
-              type="checkbox"
-              id={inputId}
-              disabled={isDisabled}
-              className="hidden"
-              hidden
-            />
-            <div className="relative aspect-square">
-              {mainImage?.link.href ? (
-                <Image
-                  alt={mainImage?.id!}
-                  src={mainImage?.link?.href ?? "/150-placeholder.png"}
-                  className="rounded-lg"
-                  sizes="(max-width: 160px)"
-                  fill
-                  style={{
-                    objectFit: "contain",
-                    objectPosition: "center",
-                  }}
-                />
-              ) : (
-                <NoImage />
-              )}
+    <div className={clsx("w-full", field.checked ? 'border-2 rounded-lg border-brand-primary' : 'border-2 rounded-lg border-gray-500')}>
+      <label
+        htmlFor={inputId}
+        className={clsx(
+          "cursor-pointer",
+          !field.checked && isDisabled ? "opacity-50" : "",
+        )}
+      >
+        <input
+          {...field}
+          type="checkbox"
+          id={inputId}
+          disabled={isDisabled}
+          className="hidden"
+          hidden
+        />
+        <div className="flex flex-row">
+          <div className={clsx(isDisabled && "opacity-50", "w-14 ml-4 mt-2")} key={option.id}>
+            <div>
+              <div className="relative aspect-square">
+                {mainImage?.link.href ? (
+                  <Image
+                    alt={mainImage?.id!}
+                    src={mainImage?.link?.href ?? "/150-placeholder.png"}
+                    className="rounded-lg"
+                    sizes="(max-width: 160px)"
+                    fill
+                    style={{
+                      objectFit: "contain",
+                      objectPosition: "center",
+                    }}
+                  />
+                ) : (
+                  <NoImage />
+                )}
+              </div>
             </div>
-          </label>
+          </div>
+          <div className="ml-4 mt-2">
+            <p className="text-sm">{optionProduct.attributes.name}</p>
+            <p className="text-sm">
+              {display_price && (
+                <div className="flex items-center mb-6">
+                  {original_display_price && (
+                    <StrikePrice
+                      price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
+                      currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
+                      size="text-md"
+                    />
+                  )}
+                  <Price
+                    price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
+                    currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                    original_display_price={original_display_price}
+                    size="text-md"
+                  />
+                </div>
+              )}
+            </p>
+          </div>
         </div>
-
-      </div>
-      <div className="ml-4 mt-2">
-        <p className="text-sm">{optionProduct.attributes.name}</p>
-        <p className="text-sm">
-          {display_price && (
-            <div className="flex items-center mb-6">
-              {original_display_price && (
-                <StrikePrice
-                  price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
-                  currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
-                  size="text-md"
-                />
-              )}
-              <Price
-                price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
-                currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
-                original_display_price={original_display_price}
-                size="text-md"
-              />
-            </div>
-          )}
-        </p>
-      </div>
+      </label>
     </div>
   );
 }
