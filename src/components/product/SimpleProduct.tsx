@@ -51,17 +51,24 @@ function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element 
         additional_information: []
       }
     }
-    {
-      response?.attributes?.custom_inputs && Object.keys(response?.attributes?.custom_inputs).map(input => {
-        const value = formData.get(input)
-        if (value) {
-          const info = {
-            key: response.attributes.custom_inputs[input].name,
-            value
-          }
-          data.custom_inputs.additional_information.push(info)
+    response?.attributes?.custom_inputs && Object.keys(response?.attributes?.custom_inputs).map(input => {
+      const value = formData.get(input)
+      if (value) {
+        const info = {
+          key: response.attributes.custom_inputs[input].name,
+          value
         }
-      })
+        data.custom_inputs.additional_information.push(info)
+      }
+    })
+
+    if (response?.attributes?.extensions?.["products(vendor)"]) {
+      const info = {
+        key: "Fulfilled By",
+        value: response?.attributes?.extensions?.["products(vendor)"]?.vendor_name
+      }
+      info.value && data.custom_inputs.additional_information.push(info)
+      data.custom_inputs.vendor_store_id = response?.attributes?.extensions?.["products(vendor)"]?.vendor_store_id
     }
 
     const price_type = formData.get("price_type")?.toString() || ""
