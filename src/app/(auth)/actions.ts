@@ -5,7 +5,6 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
-import { AccountTokenBase, ResourcePage } from "@moltin/sdk";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import {
   AccountMemberCredential,
@@ -14,6 +13,15 @@ import {
 import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
 import { revalidatePath } from "next/cache";
 import { getErrorMessage } from "../../lib/get-error-message";
+import type {
+  AccountAuthenticationSettings,
+  AccountTokenBase,
+  ResourcePage,
+  Moltin as EPCCClient,
+  Profile,
+  ProfileResponse,
+  Resource,
+} from "@moltin/sdk";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -155,6 +163,58 @@ export async function register(data: FormData) {
   cookieStore.set(createCookieFromGenerateTokenResponse(result));
 
   redirect(returnUrl ?? "/");
+}
+
+export async function getAccountAuthenticationSettings(): Promise<
+  Resource<AccountAuthenticationSettings>
+> {
+  const client = getServerSideImplicitClient();
+  return client.AccountAuthenticationSettings.Get();
+}
+
+export async function getOidcProfile(
+  realmId: string,
+  profileId: string,
+): Promise<ProfileResponse> {
+  const client = getServerSideImplicitClient();
+  return client.OidcProfile.Get({
+    realmId,
+    profileId,
+  });
+}
+
+export async function loadOidcProfiles(
+  realmId: string,
+): Promise<ResourcePage<Profile>> {
+  const client = getServerSideImplicitClient();
+  return client.OidcProfile.All(realmId);
+}
+
+export async function oidcLogin(
+  code: string,
+  redirectUri: string,
+  codeVerifier: string,
+): Promise<AccountTokenBase[]> {
+  const client = getServerSideImplicitClient();
+  const cookieStore = cookies();
+  const request: any = {
+    type: "account_management_authentication_token",
+    authentication_mechanism: "oidc",
+    oauth_authorization_code: code,
+    oauth_redirect_uri: redirectUri,
+    oauth_code_verifier: codeVerifier,
+  };
+
+  const result: any = await client.AccountMembers.GenerateAccountToken(
+    request,
+  ).catch((error) => {
+    return error;
+  });
+  if (result?.data?.length > 0) {
+    cookieStore.set(createCookieFromGenerateTokenResponse(result));
+    redirect("/");
+  }
+  return result;
 }
 
 function createCookieFromGenerateTokenResponse(
