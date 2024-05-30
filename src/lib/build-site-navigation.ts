@@ -37,7 +37,7 @@ function constructTree(
   client: EPCCClient,
 ): Promise<NavigationNode[]> {
   const tree = hierarchies
-    .slice(0, 4)
+    .slice(0, 10)
     .map((hierarchy) =>
       createNode({
         name: hierarchy.attributes.name,
@@ -52,7 +52,7 @@ function constructTree(
       const allNodes = await getHierarchyNodes(hierarchy.id, client);
 
       // Build 2nd level by finding all 'child nodes' belonging to each first level featured-nodes
-      const directs = directChildren.slice(0, 4).map((child) => {
+      const directs = directChildren.map((child) => {
         const children: ISchema[] = allNodes
           .filter((node) => node?.relationships?.parent.data.id === child.id)
           .map((node) =>

@@ -1,17 +1,17 @@
-import type { Hierarchy, Moltin as EPCCClient } from "@moltin/sdk"
+import type { Hierarchy, Moltin as EPCCClient } from "@moltin/sdk";
 import {
   getHierarchies,
   getHierarchyChildren,
   getHierarchyNodes,
-} from "./services/hierarchy"
-import { ISchema, NavigationNode } from "./navigation-types"
+} from "./services/hierarchy";
+import { ISchema, NavigationNode } from "./navigation-types";
 
 export async function buildSiteNavigation(
   client: EPCCClient,
 ): Promise<NavigationNode[]> {
   // Fetch hierarchies to be used as top level nav
-  const hierarchies = await getHierarchies(client)
-  return constructTree(hierarchies, client)
+  const hierarchies = await getHierarchies(client);
+  return constructTree(hierarchies, client);
 }
 
 /**
@@ -22,7 +22,7 @@ function constructTree(
   client: EPCCClient,
 ): Promise<NavigationNode[]> {
   const tree = hierarchies
-    .slice(0, 4)
+    .slice(0, 10)
     .map((hierarchy) =>
       createNode({
         name: hierarchy.attributes.name,
@@ -32,12 +32,12 @@ function constructTree(
     )
     .map(async (hierarchy) => {
       // Fetch first-level nav ('parent nodes') - the direct children of each hierarchy
-      const directChildren = await getHierarchyChildren(hierarchy.id, client)
+      const directChildren = await getHierarchyChildren(hierarchy.id, client);
       // Fetch all nodes in each hierarchy (i.e. all 'child nodes' belonging to a hierarchy)
-      const allNodes = await getHierarchyNodes(hierarchy.id, client)
+      const allNodes = await getHierarchyNodes(hierarchy.id, client);
 
       // Build 2nd level by finding all 'child nodes' belonging to each first level featured-nodes
-      const directs = directChildren.slice(0, 4).map((child) => {
+      const directs = directChildren.map((child) => {
         const children: ISchema[] = allNodes
           .filter((node) => node?.relationships?.parent.data.id === child.id)
           .map((node) =>
@@ -47,7 +47,7 @@ function constructTree(
               slug: node.attributes.slug,
               hrefBase: `${hierarchy.href}/${child.attributes.slug}`,
             }),
-          )
+          );
 
         return createNode({
           name: child.attributes.name,
@@ -55,21 +55,21 @@ function constructTree(
           slug: child.attributes.slug,
           hrefBase: hierarchy.href,
           children,
-        })
-      })
+        });
+      });
 
-      return { ...hierarchy, children: directs }
-    })
+      return { ...hierarchy, children: directs };
+    });
 
-  return Promise.all(tree)
+  return Promise.all(tree);
 }
 
 interface CreateNodeDefinition {
-  name: string
-  id: string
-  slug?: string
-  hrefBase?: string
-  children?: ISchema[]
+  name: string;
+  id: string;
+  slug?: string;
+  hrefBase?: string;
+  children?: ISchema[];
 }
 
 function createNode({
@@ -85,5 +85,5 @@ function createNode({
     slug,
     href: `${hrefBase}/${slug}`,
     children,
-  }
+  };
 }
