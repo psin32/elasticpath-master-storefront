@@ -17,10 +17,10 @@ import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 
 export const VariationProductDetail = ({
   variationProduct,
-  offerings
+  offerings,
 }: {
   variationProduct: VariationProduct;
-  offerings: ResourcePage<SubscriptionOffering, never>
+  offerings: ResourcePage<SubscriptionOffering, never>;
 }): JSX.Element => {
   return (
     <VariationProductProvider variationProduct={variationProduct}>
@@ -29,7 +29,11 @@ export const VariationProductDetail = ({
   );
 };
 
-export function VariationProductContainer({ offerings }: { offerings: ResourcePage<SubscriptionOffering, never> }): JSX.Element {
+export function VariationProductContainer({
+  offerings,
+}: {
+  offerings: ResourcePage<SubscriptionOffering, never>;
+}): JSX.Element {
   const { product, selectedOptions } = useVariationProduct() as any;
   const { useScopedAddProductToCart } = useCart();
   const { mutate, isPending } = useScopedAddProductToCart();
@@ -46,45 +50,59 @@ export function VariationProductContainer({ offerings }: { offerings: ResourcePa
     const data: any = {
       custom_inputs: {
         additional_information: [],
-        options: []
-      }
-    }
-    {
-      response?.attributes?.custom_inputs && Object.keys(response.attributes.custom_inputs).map(input => {
-        const value = formData.get(input)
+        options: [],
+      },
+    };
+    response?.attributes?.custom_inputs &&
+      Object.keys(response.attributes.custom_inputs).map((input) => {
+        const value = formData.get(input);
         if (value) {
-          const value = formData.get(input)
+          const value = formData.get(input);
           if (value) {
             const info = {
               key: response.attributes.custom_inputs[input].name,
-              value
-            }
-            data.custom_inputs.additional_information.push(info)
+              value,
+            };
+            data.custom_inputs.additional_information.push(info);
           }
         }
-      })
+      });
+
+    if (response?.attributes?.extensions?.["products(vendor)"]) {
+      const info = {
+        key: "Fulfilled By",
+        value:
+          response?.attributes?.extensions?.["products(vendor)"]?.vendor_name,
+      };
+      info.value && data.custom_inputs.additional_information.push(info);
+      data.custom_inputs.vendor_store_id =
+        response?.attributes?.extensions?.["products(vendor)"]?.vendor_store_id;
     }
 
-    const options: any = []
+    const options: any = [];
     Object.keys(selectedOptions).map((key: any) => {
-      const optionId = selectedOptions[key]
+      const optionId = selectedOptions[key];
       if (optionId) {
-        const variation = product.baseProduct.meta.variations?.find((variation: any) => variation.id === key)
+        const variation = product.baseProduct.meta.variations?.find(
+          (variation: any) => variation.id === key,
+        );
         if (variation) {
-          const optionValue = variation?.options.find((option: any) => option.id === optionId)
+          const optionValue = variation?.options.find(
+            (option: any) => option.id === optionId,
+          );
           if (optionValue) {
-            options.push(optionValue.description)
+            options.push(optionValue.description);
           }
         }
       }
-    })
+    });
 
     if (options.length > 0) {
-      data.custom_inputs.options = options.join(" / ")
+      data.custom_inputs.options = options.join(" / ");
     }
 
-    mutate({ productId: response.id, quantity: 1, data })
-  }
+    mutate({ productId: response.id, quantity: 1, data });
+  };
 
   return (
     <div>
@@ -104,7 +122,9 @@ export function VariationProductContainer({ offerings }: { offerings: ResourcePa
             <div className="flex flex-col gap-4 md:gap-6">
               <ProductSummary product={response} offerings={offerings} />
               <ProductVariations />
-              <PersonalisedInfo custom_inputs={response.attributes.custom_inputs} />
+              <PersonalisedInfo
+                custom_inputs={response.attributes.custom_inputs}
+              />
               <StatusButton
                 disabled={product.kind === "base-product"}
                 type="submit"
