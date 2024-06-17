@@ -5,15 +5,13 @@ import { Label } from "../../../components/label/Label";
 import { Input } from "../../../components/input/Input";
 import { FormStatusButton } from "../../../components/button/FormStatusButton";
 import { useEffect, useState } from "react";
-import {
-  getAccountAuthenticationSettings,
-  getOidcProfile,
-  loadOidcProfiles,
-} from "../actions";
+import { getOidcProfile, loadOidcProfiles } from "../actions";
 import { Profile, ResourcePage } from "@moltin/sdk";
 import { generateOidcLoginRedirectUrl } from "../OidcUtilities";
 import { StatusButton } from "../../../components/button/StatusButton";
 import { useAuthentication } from "../../../react-shopper-hooks/authentication";
+import { useTranslation } from "../../i18n/client";
+import { getCookie } from "cookies-next";
 
 export function LoginForm({ returnUrl }: { returnUrl?: string }) {
   const [error, setError] = useState<string | undefined>(undefined);
@@ -24,6 +22,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
   const [oidcProfiles, setOidcProfiles] =
     useState<ResourcePage<Profile, never>>();
   const { data } = useAuthentication() as any;
+  const { t } = useTranslation(getCookie("locale") || "en", "auth", {});
 
   async function loginAction(formData: FormData) {
     const result = await login(formData);
@@ -63,7 +62,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
     <div>
       <form className="space-y-6" action={loginAction}>
         <div>
-          <Label htmlFor="email">Email address</Label>
+          <Label htmlFor="email">{t("login.label.email")}</Label>
           <div className="mt-2">
             <Input
               id="email"
@@ -77,13 +76,13 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
 
         <div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("login.label.password")}</Label>
             <div className="text-sm">
               <a
                 href="#"
                 className="font-light text-brand-primary hover:text-brand-highlight"
               >
-                Forgot password?
+                {t("login.link.forgot-password")}
               </a>
             </div>
           </div>
@@ -114,7 +113,9 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
         )}
 
         <div>
-          <FormStatusButton className="w-full">Login</FormStatusButton>
+          <FormStatusButton className="w-full">
+            {t("login.button.login")}
+          </FormStatusButton>
         </div>
       </form>
       {oidcProfiles &&
@@ -126,7 +127,7 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
                 className="w-full mt-4 bg-brand-primary text-black hover:bg-brand-highlight"
                 onClick={() => handleOidcButtonClicked(profile, clientId)}
               >
-                Login with {profile.name}
+                {t("login.button.login-with")} {profile.name}
               </StatusButton>
             </>
           );

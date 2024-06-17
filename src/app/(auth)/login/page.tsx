@@ -4,8 +4,9 @@ import { isAccountMemberAuthenticated } from "../../../lib/is-account-member-aut
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LoginForm } from "./LoginForm";
+import { useTranslation } from "../../i18n";
 
-export default function Login({
+export default async function Login({
   searchParams,
 }: {
   searchParams: { returnUrl?: string };
@@ -13,6 +14,11 @@ export default function Login({
   const { returnUrl } = searchParams;
 
   const cookieStore = cookies();
+  const { t } = await useTranslation(
+    cookieStore.get("locale")?.value || "en",
+    "auth",
+    {},
+  );
 
   if (isAccountMemberAuthenticated(cookieStore)) {
     redirect("/account/summary");
@@ -26,7 +32,7 @@ export default function Login({
             <EpLogo className="h-10 w-auto mx-auto" />
           </Link>
           <h2 className="mt-10 text-center text-2xl font-medium leading-9 tracking-tight text-gray-900">
-            Sign in to your account
+            {t("login.header")}
           </h2>
         </div>
 
@@ -34,12 +40,12 @@ export default function Login({
           <LoginForm returnUrl={returnUrl} />
 
           <p className="mt-10 text-center text-sm text-gray-500">
-            Not a member?{" "}
+            {t("login.not-a-member")}{" "}
             <a
               href="/register"
               className="leading-6 text-brand-primary hover:text-brand-highlight"
             >
-              Register now!
+              {t("login.link.register-now")}
             </a>
           </p>
         </div>

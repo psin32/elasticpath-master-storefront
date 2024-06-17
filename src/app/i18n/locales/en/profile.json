@@ -1,0 +1,35 @@
+{
+    "header": {
+        "signin": "Log In / Register"
+    },
+    "label": {
+        "login": "Log in",
+        "email": "Email Address",
+        "password": "Password",
+        "register": "Register",
+        "name": "Name",
+        "confirmPassword": "Confirm Password",
+        "welcome": "Hello",
+        "profile": "Profile",
+        "orders": "Orders",
+        "addresses": "Addresses",
+        "logout": "Logout"
+    },
+    "placeholder": {
+        "email": "Enter your email address",
+        "password": "Enter your password",
+        "name": "Enter your full name",
+        "confirmPassword": "Enter your password again"
+    },
+    "button": {
+        "login": "Log in",
+        "register": "Register"
+    },
+    "password": {
+        "minlength": "Password has at least 8 characters",
+        "special": "Password has a special characters",
+        "number": "Password has a number",
+        "capital": "Password has a capital letter",
+        "match": "Passwords match"
+    }
+}

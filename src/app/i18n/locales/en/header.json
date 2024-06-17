@@ -1,0 +1,17 @@
+{
+    "header": {
+        "label": {
+            "personal": "Personal",
+            "business": "Business",
+            "bell-for-better": "Bell For Better"
+        }
+    },
+    "language": {
+        "english": "English",
+        "french": "Français"
+    },
+    "regions": {
+        "ontario": "Ontario",
+        "british-columbia": "British Columbia"
+    }
+}

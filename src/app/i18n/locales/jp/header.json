@@ -1,0 +1,17 @@
+{
+    "header": {
+        "label": {
+            "personal": "Grand public",
+            "business": "Entreprises",
+            "bell-for-better": "Mieux pour tous"
+        }
+    },
+    "language": {
+        "english": "Anglais",
+        "french": "Français"
+    },
+    "regions": {
+        "ontario": "Ontario",
+        "british-columbia": "Colombie-Britannique"
+    }
+}

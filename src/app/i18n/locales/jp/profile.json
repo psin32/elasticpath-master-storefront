@@ -1,0 +1,35 @@
+{
+    "header": {
+        "signin": "Connexion / Inscription"
+    },
+    "label": {
+        "login": "Connexion",
+        "email": "Adresse e-mail",
+        "password": "Mot de passe",
+        "register": "Inscription",
+        "name": "Nom",
+        "confirmPassword": "Confirmez le mot de passe",
+        "welcome": "Bonjour",
+        "profile": "Profil",
+        "orders": "Ordres",
+        "addresses": "Adresses",
+        "logout": "Se déconnecter"
+    },
+    "placeholder": {
+        "email": "Entrez votre adresse email",
+        "password": "Tapez votre mot de passe",
+        "name": "Entrez votre nom complet",
+        "confirmPassword": "Entrez à nouveau votre mot de passe"
+    },
+    "button": {
+        "login": "Se connecter",
+        "register": "Inscription"
+    },
+    "password": {
+        "minlength": "Le mot de passe comporte au moins 8 caractères",
+        "special": "Le mot de passe comporte des caractères spéciaux",
+        "number": "Le mot de passe a un numéro",
+        "capital": "Le mot de passe a une majuscule",
+        "match": "Les mots de passe correspondent"
+    }
+}
