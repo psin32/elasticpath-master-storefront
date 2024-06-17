@@ -12,7 +12,7 @@ import HitsElasticPath from "./HitsElasticPath";
 import PaginationElasticPath from "./PaginationElasticPath";
 
 interface ISearchResults {
-  page?: ShopperCatalogResourcePage<ShopperProduct>;
+  page?: ShopperCatalogResourcePage<ShopperProduct> | any;
   nodes?: string[];
 }
 

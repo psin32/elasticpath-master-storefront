@@ -3,7 +3,10 @@ import {
   useBundle,
   useBundleComponentOption,
 } from "../../../react-shopper-hooks";
-import type { BundleComponent, ShopperProduct } from "../../../react-shopper-hooks";
+import type {
+  BundleComponent,
+  ShopperProduct,
+} from "../../../react-shopper-hooks";
 import { ProductComponentOption, ProductResponse } from "@moltin/sdk";
 import { sortByOrder } from "./sort-by-order";
 import { useField, useFormikContext } from "formik";
@@ -18,7 +21,7 @@ import Price from "../Price";
 export const ProductComponent = ({
   component,
   componentLookupKey,
-  product
+  product,
 }: {
   component: BundleComponent;
   componentLookupKey: string;
@@ -33,26 +36,24 @@ export const ProductComponent = ({
   }>();
 
   const getSelectionMessage = () => {
-    let message = "(Optional: Choose any product below)"
+    let message = "(Optional: Choose any product below)";
 
     if (min || min === 0) {
       if (min == 0 && max && max >= 1) {
-        message = `(Optional: Choose maximum ${max} product${max > 1 ? "s" : ""})`
+        message = `(Optional: Choose maximum ${max} product${max > 1 ? "s" : ""})`;
       } else if (min == 1 && max && max == 1) {
-        message = `(Required: Choose any 1 product)`
+        message = `(Required: Choose any 1 product)`;
       } else if (min == 1 && max && max > 1) {
-        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`
+        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`;
       } else if (min > 1 && max && max == min) {
-        message = `(Required: Choose any ${min} products)`
+        message = `(Required: Choose any ${min} products)`;
       } else if (min > 1 && max && max > min) {
-        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`
+        message = `(Required: Choose minimum ${min} product and maximum ${max} products)`;
       }
     }
 
-    return (
-      <span className="text-[11px]">{message}</span>
-    )
-  }
+    return <span className="text-[11px]">{message}</span>;
+  };
 
   return (
     <fieldset
@@ -60,12 +61,14 @@ export const ProductComponent = ({
       className={clsx(
         ((errors as any)?.[`selectedOptions.${componentLookupKey}`] &&
           (touched as any)?.[`selectedOptions.${componentLookupKey}`]) ??
-        "border-red-500",
+          "border-red-500",
         "w-full relative",
       )}
     >
       <div key={name} className="m-2">
-        <legend className="mb-2 font-semibold">{name} {getSelectionMessage()}</legend>
+        <legend className="mb-2 font-semibold">
+          {name} {getSelectionMessage()}
+        </legend>
         <div>
           {(errors as any)[`selectedOptions.${componentLookupKey}`] && (
             <div className="">
@@ -89,12 +92,12 @@ export const ProductComponent = ({
 function CheckboxComponentOptions({
   options,
   componentLookupKey,
-  product
+  product,
 }: {
   componentProducts: ProductResponse[];
   options: ProductComponentOption[];
-  max?: number;
-  min?: number;
+  max?: number | null;
+  min?: number | null;
   componentLookupKey: string;
   product: ShopperProduct["response"];
 }): JSX.Element {
@@ -117,7 +120,7 @@ function CheckboxComponentOptions({
 function CheckboxComponentOption({
   option,
   componentKey,
-  product
+  product,
 }: {
   option: ProductComponentOption;
   componentKey: string;
@@ -137,7 +140,8 @@ function CheckboxComponentOption({
   const isDisabled =
     reachedMax &&
     !selectedOptionKey.some((optionKey) => optionKey === option.id);
-  const { display_price, original_display_price } = product?.meta?.component_products?.[optionProduct.id] as any || {}
+  const { display_price, original_display_price } =
+    (product?.meta?.component_products?.[optionProduct.id] as any) || {};
   const name = `selectedOptions.${componentKey}`;
   const inputId = `${name}.${option.id}`;
 
@@ -150,7 +154,14 @@ function CheckboxComponentOption({
   });
 
   return (
-    <div className={clsx("w-full", field.checked ? 'border-2 rounded-lg border-brand-primary' : 'border-2 rounded-lg border-gray-500')}>
+    <div
+      className={clsx(
+        "w-full",
+        field.checked
+          ? "border-2 rounded-lg border-brand-primary"
+          : "border-2 rounded-lg border-gray-500",
+      )}
+    >
       <label
         htmlFor={inputId}
         className={clsx(
@@ -167,7 +178,10 @@ function CheckboxComponentOption({
           hidden
         />
         <div className="flex flex-row">
-          <div className={clsx(isDisabled && "opacity-50", "w-14 ml-4 mt-2")} key={option.id}>
+          <div
+            className={clsx(isDisabled && "opacity-50", "w-14 ml-4 mt-2")}
+            key={option.id}
+          >
             <div>
               <div className="relative aspect-square">
                 {mainImage?.link.href ? (
@@ -195,14 +209,30 @@ function CheckboxComponentOption({
                 <div className="flex items-center mb-6">
                   {original_display_price && (
                     <StrikePrice
-                      price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
-                      currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
+                      price={
+                        original_display_price?.without_tax?.formatted
+                          ? original_display_price?.without_tax?.formatted
+                          : original_display_price.with_tax.formatted
+                      }
+                      currency={
+                        original_display_price.without_tax?.currency
+                          ? original_display_price?.without_tax?.currency
+                          : original_display_price.with_tax.currency
+                      }
                       size="text-md"
                     />
                   )}
                   <Price
-                    price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
-                    currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                    price={
+                      display_price?.without_tax?.formatted
+                        ? display_price?.without_tax?.formatted
+                        : display_price.with_tax.formatted
+                    }
+                    currency={
+                      display_price?.without_tax?.currency
+                        ? display_price?.without_tax?.currency
+                        : display_price.with_tax.currency
+                    }
                     original_display_price={original_display_price}
                     size="text-md"
                   />
