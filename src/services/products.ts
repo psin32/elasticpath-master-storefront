@@ -1,6 +1,7 @@
 import type {
   Node,
   ProductResponse,
+  Resource,
   ResourcePage,
   ShopperCatalogResource,
   ShopperCatalogResourcePage,
@@ -22,7 +23,7 @@ export async function getProductById(
   });
 }
 
-export async function getSubscriptionOffering(
+export async function getSubscriptionOfferingByProductId(
   productId: string,
   client: EPCCClient,
 ): Promise<ResourcePage<SubscriptionOffering, never>> {
@@ -34,6 +35,14 @@ export async function getSubscriptionOffering(
       },
     })
     .All();
+}
+
+export async function getSubscriptionOfferingById(
+  offeringId: string,
+  client: EPCCClient,
+): Promise<Resource<SubscriptionOffering>> {
+  const filter: any = ["plans"];
+  return client.SubscriptionOfferings.With(filter).Get(offeringId);
 }
 
 export async function getProductByIds(

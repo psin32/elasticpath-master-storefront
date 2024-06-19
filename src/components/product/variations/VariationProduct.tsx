@@ -132,7 +132,7 @@ export function VariationProductContainer({
 
   return (
     <div>
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 mt-10">
         <div className="basis-full lg:basis-1/2">
           {main_image && (
             <ProductCarousel images={otherImages} mainImage={main_image} />

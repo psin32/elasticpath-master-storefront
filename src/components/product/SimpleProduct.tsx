@@ -17,12 +17,12 @@ import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
-  offerings: ResourcePage<SubscriptionOffering, never>
+  offerings: ResourcePage<SubscriptionOffering, never>;
 }
 
 function SimpleProductDetail({
   simpleProduct,
-  offerings
+  offerings,
 }: ISimpleProductDetail): JSX.Element {
   return (
     <SimpleProductProvider simpleProduct={simpleProduct}>
@@ -31,11 +31,20 @@ function SimpleProductDetail({
   );
 }
 
-function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element {
+function SimpleProductContainer({
+  offerings,
+}: {
+  offerings: any;
+}): JSX.Element {
   const { product } = useSimpleProduct() as any;
-  const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } = useCart();
-  const { mutate: mutateAddItem, isPending: isPendingAddItem } = useScopedAddProductToCart();
-  const { mutate: mutateAddSubscriptionItem, isPending: isPendingSubscriptionItem } = useScopedAddSubscriptionItemToCart();
+  const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } =
+    useCart();
+  const { mutate: mutateAddItem, isPending: isPendingAddItem } =
+    useScopedAddProductToCart();
+  const {
+    mutate: mutateAddSubscriptionItem,
+    isPending: isPendingSubscriptionItem,
+  } = useScopedAddSubscriptionItemToCart();
 
   const { main_image, response, otherImages } = product;
   const { extensions } = response.attributes;
@@ -48,36 +57,39 @@ function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element 
     const formData = new FormData(event.currentTarget);
     const data: any = {
       custom_inputs: {
-        additional_information: []
-      }
-    }
-    response?.attributes?.custom_inputs && Object.keys(response?.attributes?.custom_inputs).map(input => {
-      const value = formData.get(input)
-      if (value) {
-        const info = {
-          key: response.attributes.custom_inputs[input].name,
-          value
+        additional_information: [],
+      },
+    };
+    response?.attributes?.custom_inputs &&
+      Object.keys(response?.attributes?.custom_inputs).map((input) => {
+        const value = formData.get(input);
+        if (value) {
+          const info = {
+            key: response.attributes.custom_inputs[input].name,
+            value,
+          };
+          data.custom_inputs.additional_information.push(info);
         }
-        data.custom_inputs.additional_information.push(info)
-      }
-    })
+      });
 
     if (response?.attributes?.extensions?.["products(vendor)"]) {
       const info = {
         key: "Fulfilled By",
-        value: response?.attributes?.extensions?.["products(vendor)"]?.vendor_name
-      }
-      info.value && data.custom_inputs.additional_information.push(info)
-      data.custom_inputs.vendor_store_id = response?.attributes?.extensions?.["products(vendor)"]?.vendor_store_id
+        value:
+          response?.attributes?.extensions?.["products(vendor)"]?.vendor_name,
+      };
+      info.value && data.custom_inputs.additional_information.push(info);
+      data.custom_inputs.vendor_store_id =
+        response?.attributes?.extensions?.["products(vendor)"]?.vendor_store_id;
     }
 
-    const price_type = formData.get("price_type")?.toString() || ""
+    const price_type = formData.get("price_type")?.toString() || "";
     if (price_type === "" || price_type === "one_time") {
-      mutateAddItem({ productId: response.id, quantity: 1, data })
+      mutateAddItem({ productId: response.id, quantity: 1, data });
     } else {
       const planId = formData.get("plan")?.toString() || "";
       if (main_image?.link?.href) {
-        data.custom_inputs.image_url = main_image?.link?.href
+        data.custom_inputs.image_url = main_image?.link?.href;
       }
       mutateAddSubscriptionItem({
         data: {
@@ -85,17 +97,17 @@ function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element 
           id: price_type,
           quantity: 1,
           subscription_configuration: {
-            plan: planId
+            plan: planId,
           },
-          custom_inputs: data.custom_inputs
-        }
-      })
+          custom_inputs: data.custom_inputs,
+        },
+      });
     }
-  }
+  };
 
   return (
     <div>
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 mt-10">
         <div className="basis-full lg:basis-1/2">
           {main_image && (
             <ProductCarousel images={otherImages} mainImage={main_image} />
@@ -111,12 +123,21 @@ function SimpleProductContainer({ offerings }: { offerings: any }): JSX.Element 
             <div className="flex flex-col gap-6 md:gap-10">
               <ProductSummary product={response} offerings={offerings} />
               {offerings && offerings.data.length > 0 && (
-                <SubscriptionOfferPlans offerings={offerings} product={response} />
+                <SubscriptionOfferPlans
+                  offerings={offerings}
+                  product={response}
+                />
               )}
-              <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} />
+              <PersonalisedInfo
+                custom_inputs={response.attributes?.custom_inputs}
+              />
               <StatusButton
                 type="submit"
-                status={isPendingAddItem || isPendingSubscriptionItem ? "loading" : "idle"}
+                status={
+                  isPendingAddItem || isPendingSubscriptionItem
+                    ? "loading"
+                    : "idle"
+                }
               >
                 ADD TO CART
               </StatusButton>

@@ -8,10 +8,8 @@ const HeroBanner = ({ blok }: any) => {
     blok.enable && (
       <div {...storyblokEditable(blok)} className="mx-auto">
         <div
-          className={clsx(
-            "relative overflow-hidden bg-gray-900 px-6 py-20 shadow-xl sm:px-10 sm:py-24 md:px-12 lg:px-20",
-            blok.image_height ? `h-[${blok.image_height}]` : "",
-          )}
+          className="relative overflow-hidden bg-gray-900 px-6 py-20 shadow-xl sm:px-10 sm:py-24 md:px-12 lg:px-20"
+          style={{ height: blok.image_height }}
         >
           <img
             className="absolute inset-0 h-full w-full object-cover"
@@ -20,10 +18,10 @@ const HeroBanner = ({ blok }: any) => {
           />
           <div
             className={
-              blok.container_style ||
-              "relative my-auto mx-auto max-w-xl lg:mx-0 h-[250px] text-left"
+              blok.container_style || "flex flex-col relative mt-auto h-[500px]"
             }
           >
+            <div className="flex-grow"></div>
             <blockquote
               className="mt-6 text-xl sm:text-xl sm:leading-8 p-8"
               style={{

@@ -4,7 +4,7 @@ import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-im
 import {
   getNodesByIds,
   getProductById,
-  getSubscriptionOffering,
+  getSubscriptionOfferingByProductId,
 } from "../../../../services/products";
 import { notFound } from "next/navigation";
 import { parseProductResponse } from "@elasticpath/shopper-common";
@@ -36,7 +36,10 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: Props) {
   const client: any = getServerSideImplicitClient();
   const product = (await getProductById(params.productId, client)) as any;
-  const offerings = await getSubscriptionOffering(params.productId, client);
+  const offerings = await getSubscriptionOfferingByProductId(
+    params.productId,
+    client,
+  );
 
   if (!product) {
     notFound();

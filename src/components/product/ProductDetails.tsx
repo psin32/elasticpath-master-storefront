@@ -19,11 +19,10 @@ const ProductDetails = ({ product }: IProductDetails): JSX.Element => {
       <div
         dangerouslySetInnerHTML={{ __html: product.attributes.description }}
         className={clsx(
-          "flex flex-col gap-4 sm:gap-6",
+          "flex flex-col gap-4 sm:gap-6 [&>ul]:list-disc [&>ul]:list-inside [&>ul>li]:leading-8 [&>ul]:my-4",
           context?.isChangingSku && "opacity-20 cursor-default",
         )}
-      >
-      </div>
+      ></div>
     </>
   );
 };

@@ -84,7 +84,7 @@ function resolveVariationComponentByName(
   selectedOptionId?: string,
 ): JSX.Element {
   switch (v.name.toLowerCase()) {
-    case "color":
+    case "colorss":
       return (
         <ProductVariationColor
           key={v.id}

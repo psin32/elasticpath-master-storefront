@@ -25,12 +25,12 @@ import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 
 interface IBundleProductDetail {
   bundleProduct: BundleProduct;
-  offerings: ResourcePage<SubscriptionOffering, never>
+  offerings: ResourcePage<SubscriptionOffering, never>;
 }
 
 const BundleProductDetail = ({
   bundleProduct,
-  offerings
+  offerings,
 }: IBundleProductDetail): JSX.Element => {
   return (
     <BundleProductProvider bundleProduct={bundleProduct}>
@@ -39,7 +39,11 @@ const BundleProductDetail = ({
   );
 };
 
-function BundleProductContainer({ offerings }: { offerings: ResourcePage<SubscriptionOffering, never> }): JSX.Element {
+function BundleProductContainer({
+  offerings,
+}: {
+  offerings: ResourcePage<SubscriptionOffering, never>;
+}): JSX.Element {
   const { configuredProduct, selectedOptions, components } = useBundle();
   const { useScopedAddBundleProductToCart } = useCart();
 
@@ -54,26 +58,27 @@ function BundleProductContainer({ offerings }: { offerings: ResourcePage<Subscri
     async (values: any) => {
       const data: any = {
         custom_inputs: {
-          additional_information: []
-        }
-      }
+          additional_information: [],
+        },
+      };
       {
-        response?.attributes?.custom_inputs && Object.keys(response?.attributes?.custom_inputs).map((input) => {
-          const value = values[input]
-          if (value) {
-            const info = {
-              key: response.attributes.custom_inputs[input].name,
-              value
+        response?.attributes?.custom_inputs &&
+          Object.keys(response?.attributes?.custom_inputs).map((input) => {
+            const value = values[input];
+            if (value) {
+              const info = {
+                key: response.attributes.custom_inputs[input].name,
+                value,
+              };
+              data.custom_inputs.additional_information.push(info);
             }
-            data.custom_inputs.additional_information.push(info)
-          }
-        })
+          });
       }
       mutate({
         productId: configuredProduct.response.id,
         selectedOptions: formSelectedOptionsToData(values.selectedOptions),
         quantity: 1,
-        data
+        data,
       });
     },
     [configuredProduct.response.id, mutate],
@@ -93,7 +98,7 @@ function BundleProductContainer({ offerings }: { offerings: ResourcePage<Subscri
       onSubmit={async (values) => submit(values)}
     >
       <div>
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 mt-10">
           <div className="basis-full lg:basis-1/2">
             {main_image && (
               <ProductCarousel images={otherImages} mainImage={main_image} />
@@ -109,7 +114,10 @@ function BundleProductContainer({ offerings }: { offerings: ResourcePage<Subscri
               <div className="flex flex-col gap-6 md:gap-10">
                 <ProductSummary product={response} offerings={offerings} />
                 <ProductComponents product={response} />
-                <PersonalisedInfo custom_inputs={response.attributes?.custom_inputs} formikForm={true} />
+                <PersonalisedInfo
+                  custom_inputs={response.attributes?.custom_inputs}
+                  formikForm={true}
+                />
                 <StatusButton
                   type="submit"
                   status={isPending ? "loading" : "idle"}
