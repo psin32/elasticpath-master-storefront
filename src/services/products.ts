@@ -26,12 +26,14 @@ export async function getSubscriptionOffering(
   productId: string,
   client: EPCCClient,
 ): Promise<ResourcePage<SubscriptionOffering, never>> {
-  const filter: any = ["plans"]
-  return client.SubscriptionOfferings.With(filter).Filter({
-    eq: {
-      "products.external_ref": productId
-    }
-  }).All();
+  const filter: any = ["plans"];
+  return client.SubscriptionOfferings.With(filter)
+    .Filter({
+      eq: {
+        "products.external_ref": productId,
+      },
+    })
+    .All();
 }
 
 export async function getProductByIds(
@@ -42,11 +44,13 @@ export async function getProductByIds(
     "main_image",
     "files",
     "component_products",
-  ]).Filter({
-    in: {
-      id: productIds
-    }
-  }).All();
+  ])
+    .Filter({
+      in: {
+        id: productIds,
+      },
+    })
+    .All();
 }
 
 export function getAllProducts(client: EPCCClient): Promise<ProductResponse[]> {
@@ -55,6 +59,11 @@ export function getAllProducts(client: EPCCClient): Promise<ProductResponse[]> {
 
 export function getProducts(client: EPCCClient, offset = 0, limit = 100) {
   return client.ShopperCatalog.Products.With(["main_image"])
+    .Filter({
+      in: {
+        product_types: "standard,parent,bundle",
+      },
+    })
     .Limit(limit)
     .Offset(offset)
     .All();
@@ -94,25 +103,32 @@ const _getAllPages =
 
 const _getAllProductPages = (client: EPCCClient) =>
   _getAllPages((limit = 25, offset = 0) =>
-    client.ShopperCatalog.Products.Limit(limit).Offset(offset).All(),
+    client.ShopperCatalog.Products.Filter({
+      in: {
+        product_types: "standard,parent,bundle",
+      },
+    })
+      .Limit(limit)
+      .Offset(offset)
+      .All(),
   );
 
 export async function getNodesByIds(
   nodeIds: string[],
-  client: EPCCClient
+  client: EPCCClient,
 ): Promise<Node[]> {
-  nodeIds = nodeIds.reverse()
-  const response: ShopperCatalogResourcePage<Node> = await client.ShopperCatalog.Nodes.Filter({
-    in: {
-      id: nodeIds.join(",")
-    }
-  }).All();
+  nodeIds = nodeIds.reverse();
+  const response: ShopperCatalogResourcePage<Node> =
+    await client.ShopperCatalog.Nodes.Filter({
+      in: {
+        id: nodeIds.join(","),
+      },
+    }).All();
 
-  const nodes: Node[] = []
+  const nodes: Node[] = [];
   for (const nodeId of nodeIds) {
-    const node: Node | undefined = response.data.find(nd => nd.id == nodeId)
-    node && nodes.push(node)
+    const node: Node | undefined = response.data.find((nd) => nd.id == nodeId);
+    node && nodes.push(node);
   }
-  return nodes
+  return nodes;
 }
-  

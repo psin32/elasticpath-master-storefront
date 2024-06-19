@@ -51,7 +51,7 @@ export default async function FeaturedProducts({
         role="list"
         className="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8"
       >
-        {products.filter((product) => !product.attributes.base_product_id).map((product: any) => (
+        {products.map((product: any) => (
           <li className="relative group" key={product.id}>
             <Link href={`/products/${product.id}`}>
               <div className="aspect-square block w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
@@ -83,29 +83,50 @@ export default async function FeaturedProducts({
                       <h4>Variation</h4>
                     </div>
                   )}
-
                 </div>
               </div>
               <p className="pointer-events-none mt-2 block truncate text-sm font-medium text-gray-900">
                 {product.attributes.name}
               </p>
               <div className="pointer-events-none text-sm font-medium text-gray-500 flex items-center gap-2">
-                {product?.meta?.component_products && (
-                  <div>FROM </div>
-                )}
+                {product?.meta?.component_products && <div>FROM </div>}
                 {product.meta.display_price && (
                   <div className="flex items-center">
                     {product.meta.original_display_price && (
                       <StrikePrice
-                        price={product.meta.original_display_price?.without_tax?.formatted ? product.meta.original_display_price?.without_tax?.formatted : product.meta.original_display_price.with_tax.formatted}
-                        currency={product.meta.original_display_price.without_tax?.currency ? product.meta.original_display_price?.without_tax?.currency : product.meta.original_display_price.with_tax.currency}
+                        price={
+                          product.meta.original_display_price?.without_tax
+                            ?.formatted
+                            ? product.meta.original_display_price?.without_tax
+                                ?.formatted
+                            : product.meta.original_display_price.with_tax
+                                .formatted
+                        }
+                        currency={
+                          product.meta.original_display_price.without_tax
+                            ?.currency
+                            ? product.meta.original_display_price?.without_tax
+                                ?.currency
+                            : product.meta.original_display_price.with_tax
+                                .currency
+                        }
                         size="text-md"
                       />
                     )}
                     <Price
-                      price={product.meta.display_price?.without_tax?.formatted ? product.meta.display_price?.without_tax?.formatted : product.meta.display_price.with_tax.formatted}
-                      currency={product.meta.display_price?.without_tax?.currency ? product.meta.display_price?.without_tax?.currency : product.meta.display_price.with_tax.currency}
-                      original_display_price={product.meta.original_display_price}
+                      price={
+                        product.meta.display_price?.without_tax?.formatted
+                          ? product.meta.display_price?.without_tax?.formatted
+                          : product.meta.display_price.with_tax.formatted
+                      }
+                      currency={
+                        product.meta.display_price?.without_tax?.currency
+                          ? product.meta.display_price?.without_tax?.currency
+                          : product.meta.display_price.with_tax.currency
+                      }
+                      original_display_price={
+                        product.meta.original_display_price
+                      }
                       size="text-md"
                     />
                   </div>

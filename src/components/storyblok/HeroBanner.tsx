@@ -1,12 +1,18 @@
 "use client";
 
 import { storyblokEditable } from "@storyblok/react";
+import clsx from "clsx";
 
 const HeroBanner = ({ blok }: any) => {
   return (
     blok.enable && (
       <div {...storyblokEditable(blok)} className="mx-auto">
-        <div className="relative overflow-hidden bg-gray-900 px-6 py-20 shadow-xl sm:px-10 sm:py-24 md:px-12 lg:px-20 h-full">
+        <div
+          className={clsx(
+            "relative overflow-hidden bg-gray-900 px-6 py-20 shadow-xl sm:px-10 sm:py-24 md:px-12 lg:px-20",
+            blok.image_height ? `h-[${blok.image_height}]` : "",
+          )}
+        >
           <img
             className="absolute inset-0 h-full w-full object-cover"
             src={blok.image_url?.filename}

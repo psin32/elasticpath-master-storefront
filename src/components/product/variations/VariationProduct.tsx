@@ -14,6 +14,7 @@ import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 
 export const VariationProductDetail = ({
   variationProduct,
@@ -35,8 +36,14 @@ export function VariationProductContainer({
   offerings: ResourcePage<SubscriptionOffering, never>;
 }): JSX.Element {
   const { product, selectedOptions } = useVariationProduct() as any;
-  const { useScopedAddProductToCart } = useCart();
-  const { mutate, isPending } = useScopedAddProductToCart();
+  const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } =
+    useCart();
+  const { mutate: mutateAddItem, isPending: isPendingAddItem } =
+    useScopedAddProductToCart();
+  const {
+    mutate: mutateAddSubscriptionItem,
+    isPending: isPendingSubscriptionItem,
+  } = useScopedAddSubscriptionItemToCart();
 
   const { response, main_image, otherImages } = product;
   const { extensions } = response.attributes;
@@ -101,7 +108,26 @@ export function VariationProductContainer({
       data.custom_inputs.options = options.join(" / ");
     }
 
-    mutate({ productId: response.id, quantity: 1, data });
+    const price_type = formData.get("price_type")?.toString() || "";
+    if (price_type === "" || price_type === "one_time") {
+      mutateAddItem({ productId: response.id, quantity: 1, data });
+    } else {
+      const planId = formData.get("plan")?.toString() || "";
+      if (main_image?.link?.href) {
+        data.custom_inputs.image_url = main_image?.link?.href;
+      }
+      mutateAddSubscriptionItem({
+        data: {
+          type: "subscription_item",
+          id: price_type,
+          quantity: 1,
+          subscription_configuration: {
+            plan: planId,
+          },
+          custom_inputs: data.custom_inputs,
+        },
+      });
+    }
   };
 
   return (
@@ -122,13 +148,23 @@ export function VariationProductContainer({
             <div className="flex flex-col gap-4 md:gap-6">
               <ProductSummary product={response} offerings={offerings} />
               <ProductVariations />
+              {offerings && offerings.data.length > 0 && (
+                <SubscriptionOfferPlans
+                  offerings={offerings}
+                  product={response}
+                />
+              )}
               <PersonalisedInfo
                 custom_inputs={response.attributes.custom_inputs}
               />
               <StatusButton
                 disabled={product.kind === "base-product"}
                 type="submit"
-                status={isPending ? "loading" : "idle"}
+                status={
+                  isPendingAddItem || isPendingSubscriptionItem
+                    ? "loading"
+                    : "idle"
+                }
               >
                 ADD TO CART
               </StatusButton>
