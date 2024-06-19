@@ -23,6 +23,23 @@ export async function getProductById(
   });
 }
 
+export async function getProductBySlug(
+  slug: string,
+  client: EPCCClient,
+): Promise<ShopperCatalogResourcePage<ProductResponse>> {
+  return client.ShopperCatalog.Products.With([
+    "main_image",
+    "files",
+    "component_products",
+  ])
+    .Filter({
+      eq: {
+        slug: slug,
+      },
+    })
+    .All();
+}
+
 export async function getSubscriptionOfferingByProductId(
   productId: string,
   client: EPCCClient,

@@ -53,7 +53,7 @@ export default async function FeaturedProducts({
       >
         {products.map((product: any) => (
           <li className="relative group" key={product.id}>
-            <Link href={`/products/${product.id}`}>
+            <Link href={`/products/${product.attributes.slug}`}>
               <div className="aspect-square block w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
                 <div className="relative w-full h-full rounded-lg text-center animate-fadeIn  transition duration-300 ease-in-out group-hover:scale-105">
                   {product.main_image?.link.href ? (

@@ -11,6 +11,9 @@ import ProductVariationStandard from "./ProductVariationStandard";
 import ProductVariationColor from "./ProductVariationColor";
 import { useVariationProduct } from "../../../react-shopper-hooks";
 import { ProductContext } from "../../../lib/product-context";
+import { getProductById } from "../../../services/products";
+import { getServerSideImplicitClient } from "../../../lib/epcc-server-side-implicit-client";
+import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 const getSelectedOption = (
   variationId: string,
@@ -35,21 +38,28 @@ const ProductVariations = (): JSX.Element => {
   const router = useRouter();
 
   useEffect(() => {
-    const selectedSkuId = getSkuIdFromOptions(
-      Object.values(selectedOptions),
-      variationsMatrix,
-    );
+    const init = async () => {
+      const selectedSkuId = getSkuIdFromOptions(
+        Object.values(selectedOptions),
+        variationsMatrix,
+      );
 
-    if (
-      !context?.isChangingSku &&
-      selectedSkuId &&
-      selectedSkuId !== currentProductId &&
-      allVariationsHaveSelectedOption(selectedOptions, variations)
-    ) {
-      context?.setIsChangingSku(true);
-      router.replace(`/products/${selectedSkuId}`, { scroll: false });
-      context?.setIsChangingSku(false);
-    }
+      if (
+        !context?.isChangingSku &&
+        selectedSkuId &&
+        selectedSkuId !== currentProductId &&
+        allVariationsHaveSelectedOption(selectedOptions, variations)
+      ) {
+        const client = getEpccImplicitClient();
+        const response = await getProductById(selectedSkuId, client);
+        context?.setIsChangingSku(true);
+        router.replace(`/products/${response.data.attributes.slug}`, {
+          scroll: false,
+        });
+        context?.setIsChangingSku(false);
+      }
+    };
+    init();
   }, [
     selectedOptions,
     context,

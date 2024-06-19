@@ -3,11 +3,11 @@ import { ProductDetailsComponent, ProductProvider } from "./product-display";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
 import {
   getNodesByIds,
-  getProductById,
+  getProductBySlug,
   getSubscriptionOfferingByProductId,
 } from "../../../../services/products";
 import { notFound } from "next/navigation";
-import { parseProductResponse } from "@elasticpath/shopper-common";
+import { parseProductResponse } from "../../../../shopper-common/src";
 import React from "react";
 import { Node } from "@moltin/sdk";
 
@@ -21,35 +21,34 @@ export async function generateMetadata({
   params: { productId },
 }: Props): Promise<Metadata> {
   const client = getServerSideImplicitClient();
-  const product = await getProductById(productId, client);
+  const product = await getProductBySlug(productId, client);
 
   if (!product) {
     notFound();
   }
 
   return {
-    title: product.data.attributes.name,
-    description: product.data.attributes.description,
+    title: product.data?.[0]?.attributes.name,
+    description: product.data?.[0]?.attributes.description,
   };
 }
 
 export default async function ProductPage({ params }: Props) {
   const client: any = getServerSideImplicitClient();
-  const product = (await getProductById(params.productId, client)) as any;
+  const product = (await getProductBySlug(params.productId, client)) as any;
+  if (!product.data?.[0]?.id) {
+    notFound();
+  }
   const offerings = await getSubscriptionOfferingByProductId(
-    params.productId,
+    product?.data?.[0]?.id,
     client,
   );
 
-  if (!product) {
-    notFound();
-  }
-
-  const breadCrumNode = product?.data?.meta?.bread_crumb_nodes?.[0] || "";
+  const breadCrumNode = product?.data?.[0].meta?.bread_crumb_nodes?.[0] || "";
   const nodeIds: string[] = [];
   const parentNodes =
     (breadCrumNode &&
-      product?.data?.meta?.bread_crumbs?.[breadCrumNode].reverse()) ||
+      product?.data?.[0].meta?.bread_crumbs?.[breadCrumNode].reverse()) ||
     [];
   nodeIds.push(breadCrumNode, ...parentNodes);
   const breadcrumb: Node[] | undefined = await getNodesByIds(nodeIds, client);

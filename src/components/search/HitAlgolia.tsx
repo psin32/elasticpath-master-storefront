@@ -8,9 +8,16 @@ import { ProductResponse } from "@moltin/sdk";
 import Ratings from "../reviews/yotpo/Ratings";
 import { SendEventForHits } from "instantsearch.js/es/lib/utils";
 
-export default function HitComponentAlgolia({ hit, sendEvent, product }: { hit: SearchHit, sendEvent?: SendEventForHits, product: ProductResponse }): JSX.Element {
-  const { ep_name, objectID, ep_main_image_url, ep_description } =
-    hit;
+export default function HitComponentAlgolia({
+  hit,
+  sendEvent,
+  product,
+}: {
+  hit: SearchHit;
+  sendEvent?: SendEventForHits;
+  product: ProductResponse;
+}): JSX.Element {
+  const { ep_name, objectID, ep_main_image_url, ep_description, ep_slug } = hit;
 
   const {
     meta: { display_price, original_display_price },
@@ -18,11 +25,13 @@ export default function HitComponentAlgolia({ hit, sendEvent, product }: { hit: 
 
   return (
     <>
-      <Link href={`/products/${objectID}`} legacyBehavior key={objectID}>
+      <Link href={`/products/${ep_slug}`} legacyBehavior key={objectID}>
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={objectID}
-          onClick={() => sendEvent && sendEvent('click', hit, 'PLP: Product Clicked')}
+          onClick={() =>
+            sendEvent && sendEvent("click", hit, "PLP: Product Clicked")
+          }
         >
           <div className="relative overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
             {ep_main_image_url ? (
@@ -60,11 +69,13 @@ export default function HitComponentAlgolia({ hit, sendEvent, product }: { hit: 
           </div>
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
-              <Link href={`/products/${objectID}`} passHref legacyBehavior>
+              <Link href={`/products/${ep_slug}`} passHref legacyBehavior>
                 <h3 className="text-sm font-bold">{ep_name}</h3>
               </Link>
-              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500" dangerouslySetInnerHTML={{ __html: ep_description }}>
-              </span>
+              <span
+                className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
+                dangerouslySetInnerHTML={{ __html: ep_description }}
+              ></span>
             </div>
             <div>
               {display_price && (
@@ -74,14 +85,30 @@ export default function HitComponentAlgolia({ hit, sendEvent, product }: { hit: 
                   )}
                   {original_display_price && (
                     <StrikePrice
-                      price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
-                      currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
+                      price={
+                        original_display_price?.without_tax?.formatted
+                          ? original_display_price?.without_tax?.formatted
+                          : original_display_price.with_tax.formatted
+                      }
+                      currency={
+                        original_display_price.without_tax?.currency
+                          ? original_display_price?.without_tax?.currency
+                          : original_display_price.with_tax.currency
+                      }
                       size="text-xl"
                     />
                   )}
                   <Price
-                    price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
-                    currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                    price={
+                      display_price?.without_tax?.formatted
+                        ? display_price?.without_tax?.formatted
+                        : display_price.with_tax.formatted
+                    }
+                    currency={
+                      display_price?.without_tax?.currency
+                        ? display_price?.without_tax?.currency
+                        : display_price.with_tax.currency
+                    }
                     original_display_price={original_display_price}
                     size="text-xl"
                   />

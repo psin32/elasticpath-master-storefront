@@ -17,9 +17,7 @@ export function CartItemWide({ item }: CartItemProps) {
     <div className="flex gap-5 self-stretch">
       {/* Thumbnail */}
       <div className="flex h-20 sm:h-[7.5rem] justify-center lg:shrink-0 items-start">
-        {item.product_id && (
-          <ProductThumbnail productId={item.product_id} />
-        )}
+        {item.product_id && <ProductThumbnail productId={item.product_id} />}
 
         {item.custom_inputs?.image_url && (
           <Image
@@ -36,16 +34,19 @@ export function CartItemWide({ item }: CartItemProps) {
         <div className="flex flex-col gap-5 lg:flex-row lg:gap-14 self-stretch">
           <div className="flex flex-col flex-1 gap-1">
             {item.product_id && (
-              <Link href={`/products/${item.product_id}`}>
+              <Link href={`/products/${item.slug}`}>
                 <span className="font-medium text-xl lg:text-2xl">
                   {item.name}
                   {item?.custom_inputs?.options && (
-                    <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
+                    <div className="mt-1 text-black/60 text-xs">
+                      {item?.custom_inputs?.options}
+                    </div>
                   )}
                   {item.sku && (
-                    <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                    <div className="mt-1 text-black/60 text-sm font-normal">
+                      SKU: {item.sku}
+                    </div>
                   )}
-
                 </span>
               </Link>
             )}
@@ -53,10 +54,14 @@ export function CartItemWide({ item }: CartItemProps) {
               <span className="font-medium text-xl lg:text-2xl">
                 {item.name}
                 {item?.custom_inputs?.options && (
-                  <div className="mt-1 text-black/60 text-xs">{item?.custom_inputs?.options}</div>
+                  <div className="mt-1 text-black/60 text-xs">
+                    {item?.custom_inputs?.options}
+                  </div>
                 )}
                 {item.sku && (
-                  <div className="mt-1 text-black/60 text-sm font-normal">SKU: {item.sku}</div>
+                  <div className="mt-1 text-black/60 text-sm font-normal">
+                    SKU: {item.sku}
+                  </div>
                 )}
               </span>
             )}
@@ -91,13 +96,12 @@ export function CartItemWide({ item }: CartItemProps) {
         </span>
         {item.meta.display_price.without_discount?.value.amount &&
           item.meta.display_price.without_discount?.value.amount !==
-          item.meta.display_price.with_tax.value.amount && (
+            item.meta.display_price.with_tax.value.amount && (
             <span className="text-black/60 text-sm line-through">
               {item.meta.display_price.without_discount?.value.formatted}
             </span>
           )}
       </div>
     </div>
-
   );
 }

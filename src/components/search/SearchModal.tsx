@@ -1,11 +1,7 @@
-"use client"
+"use client";
 
 import { useEffect, useState } from "react";
-import {
-  Configure,
-  useHits,
-  useSearchBox,
-} from "react-instantsearch";
+import { Configure, useHits, useSearchBox } from "react-instantsearch";
 import { InstantSearchNext } from "react-instantsearch-nextjs";
 import NoResults from "./NoResults";
 import { SearchHit } from "./SearchHit";
@@ -42,7 +38,7 @@ const SearchBox = ({
       }
     },
     400,
-    [search]
+    [search],
   );
 
   return (
@@ -98,19 +94,30 @@ const SearchBox = ({
         </button>
       )}
     </div>
-
   );
 };
 
-const HitComponent = ({ hit, sendEvent, product }: { hit: SearchHit, sendEvent: SendEventForHits, product: ProductResponse }) => {
-  const { ep_price, ep_main_image_url, ep_name, ep_sku, objectID } = hit;
+const HitComponent = ({
+  hit,
+  sendEvent,
+  product,
+}: {
+  hit: SearchHit;
+  sendEvent: SendEventForHits;
+  product: ProductResponse;
+}) => {
+  const { ep_price, ep_main_image_url, ep_name, ep_sku, objectID, ep_slug } =
+    hit;
 
   const {
     meta: { display_price, original_display_price },
   } = product;
 
   return (
-    <div className="group" onClick={() => sendEvent('click', hit, 'Autocomplete: Product Clicked')}>
+    <div
+      className="group"
+      onClick={() => sendEvent("click", hit, "Autocomplete: Product Clicked")}
+    >
       <div className="grid grid-cols-6 grid-rows-3 h-100 gap-2">
         <div className="col-span-2 row-span-3">
           {ep_main_image_url ? (
@@ -126,7 +133,7 @@ const HitComponent = ({ hit, sendEvent, product }: { hit: SearchHit, sendEvent: 
         <div className="col-span-4">
           <h2 className="text-sm font-medium">
             <a
-              href={`/products/${objectID}`}
+              href={`/products/${ep_slug}`}
               className="text-blue-500 hover:underline"
             >
               {ep_name}
@@ -178,12 +185,19 @@ const HitComponent = ({ hit, sendEvent, product }: { hit: SearchHit, sendEvent: 
 
 const Hits = () => {
   const { hits, sendEvent } = useHits<SearchHit>();
-  const [products, setProducts] = useState<ShopperCatalogResource<ProductResponse[]> | undefined>(undefined);
-  const client = getEpccImplicitClient()
+  const [products, setProducts] = useState<
+    ShopperCatalogResource<ProductResponse[]> | undefined
+  >(undefined);
+  const client = getEpccImplicitClient();
 
   useEffect(() => {
     const init = async () => {
-      setProducts(await getProductByIds(hits.map(hit => hit.objectID).join(","), client))
+      setProducts(
+        await getProductByIds(
+          hits.map((hit) => hit.objectID).join(","),
+          client,
+        ),
+      );
     };
     init();
   }, [hits]);
@@ -191,19 +205,25 @@ const Hits = () => {
   if (hits.length) {
     return (
       <ul className="list-none divide-y divide-dashed">
-        {products && hits.map((hit) => {
-          const product: ProductResponse | undefined = products.data.find(prd => prd.id === hit.objectID)
-          if (product) {
-            return (
-              <li className="mb-4 pt-4" key={hit.objectID}>
-                <HitComponent hit={hit} product={product} sendEvent={sendEvent} />
-              </li>
-            )
-          }
-          return <></>
-        })}
+        {products &&
+          hits.map((hit) => {
+            const product: ProductResponse | undefined = products.data.find(
+              (prd) => prd.id === hit.objectID,
+            );
+            if (product) {
+              return (
+                <li className="mb-4 pt-4" key={hit.objectID}>
+                  <HitComponent
+                    hit={hit}
+                    product={product}
+                    sendEvent={sendEvent}
+                  />
+                </li>
+              );
+            }
+            return <></>;
+          })}
       </ul>
-
     );
   }
   return <NoResults />;
@@ -211,7 +231,7 @@ const Hits = () => {
 
 export const SearchModal = (): JSX.Element => {
   const [searchValue, setSearchValue] = useState("");
-  let [isOpen, setIsOpen] = useState(false)
+  let [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
   return (
@@ -231,7 +251,11 @@ export const SearchModal = (): JSX.Element => {
       >
         <MagnifyingGlassIcon width={24} />
       </button>
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="fixed z-20 inset-0 overflow-y-auto">
+      <Dialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        className="fixed z-20 inset-0 overflow-y-auto"
+      >
         <div className="flex items-start justify-center min-h-screen mt-20">
           <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
 
@@ -261,7 +285,6 @@ export const SearchModal = (): JSX.Element => {
         </div>
       </Dialog>
     </InstantSearchNext>
-
   );
 };
 

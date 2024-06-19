@@ -14,7 +14,7 @@ export default function HitComponentElasticPath({
     main_image,
     response: {
       meta: { display_price, original_display_price, variation_matrix },
-      attributes: { name, description, components },
+      attributes: { name, description, components, slug },
       id,
     },
   } = hit;
@@ -22,11 +22,12 @@ export default function HitComponentElasticPath({
   const ep_main_image_url = main_image?.link.href;
 
   // const currencyPrice = ep_price?.[EP_CURRENCY_CODE];
-  const currencyPrice = display_price?.without_tax?.formatted || display_price?.with_tax?.formatted;
+  const currencyPrice =
+    display_price?.without_tax?.formatted || display_price?.with_tax?.formatted;
 
   return (
     <>
-      <Link href={`/products/${id}`} legacyBehavior>
+      <Link href={`/products/${slug}`} legacyBehavior>
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={id}
@@ -67,24 +68,43 @@ export default function HitComponentElasticPath({
           </div>
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
-              <Link href={`/products/${id}`} passHref legacyBehavior>
+              <Link href={`/products/${slug}`} passHref legacyBehavior>
                 <h3 className="text-sm font-bold">{name}</h3>
               </Link>
-              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500" dangerouslySetInnerHTML={{ __html: description }}></span>
+              <span
+                className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
+                dangerouslySetInnerHTML={{ __html: description }}
+              ></span>
             </div>
             <div>
               {currencyPrice && (
                 <div className="mt-1 flex items-center">
                   {original_display_price && (
                     <StrikePrice
-                      price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
-                      currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
+                      price={
+                        original_display_price?.without_tax?.formatted
+                          ? original_display_price?.without_tax?.formatted
+                          : original_display_price.with_tax.formatted
+                      }
+                      currency={
+                        original_display_price.without_tax?.currency
+                          ? original_display_price?.without_tax?.currency
+                          : original_display_price.with_tax.currency
+                      }
                       size="text-lg"
                     />
                   )}
                   <Price
-                    price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
-                    currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                    price={
+                      display_price?.without_tax?.formatted
+                        ? display_price?.without_tax?.formatted
+                        : display_price.with_tax.formatted
+                    }
+                    currency={
+                      display_price?.without_tax?.currency
+                        ? display_price?.without_tax?.currency
+                        : display_price.with_tax.currency
+                    }
                     original_display_price={original_display_price}
                   />
                 </div>
