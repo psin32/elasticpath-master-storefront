@@ -20,6 +20,7 @@ const HeroBanner = ({ blok }: any) => {
             className={
               blok.container_style || "flex flex-col relative mt-auto h-[500px]"
             }
+            style={{ width: blok.container_width || "100%" }}
           >
             <div className="flex-grow"></div>
             <blockquote
