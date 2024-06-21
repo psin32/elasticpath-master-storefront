@@ -34,6 +34,13 @@ export default async function CheckoutPage() {
     ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
   );
 
+  if (
+    !accountMemberCookie &&
+    cart.included?.items.find((item) => item.subscription_offering_id)
+  ) {
+    redirect("/login?returnUrl=/checkout");
+  }
+
   return (
     <CheckoutProvider>
       <CheckoutViews>
