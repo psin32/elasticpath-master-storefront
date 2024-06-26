@@ -76,6 +76,7 @@ export async function login(props: FormData) {
       client,
       result?.data?.[0]?.token,
       result?.data?.[0]?.account_id,
+      true,
     );
     const cookieStore = cookies();
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
@@ -129,6 +130,14 @@ export async function selectedAccount(args: FormData) {
     throw new Error("Invalid account id");
   }
 
+  const client = getServerSideImplicitClient();
+  await mergeCart(
+    client,
+    accountMemberCredentials?.accounts[accountId].token,
+    accountId,
+    false,
+  );
+
   cookieStore.set({
     name: ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
     value: JSON.stringify({
@@ -174,6 +183,7 @@ export async function register(data: FormData) {
     client,
     result?.data?.[0]?.token,
     result?.data?.[0]?.account_id,
+    true,
   );
 
   const cookieStore = cookies();
@@ -231,6 +241,7 @@ export async function oidcLogin(
     client,
     result?.data?.[0]?.token,
     result?.data?.[0]?.account_id,
+    true,
   );
   if (result?.data?.length > 0) {
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
@@ -286,6 +297,7 @@ export async function mergeCart(
   client: EPCCClient,
   token: string,
   accountId: string,
+  isMergeEnabled: boolean,
 ) {
   const cookieStore = cookies();
   const headers = {
@@ -327,27 +339,29 @@ export async function mergeCart(
       });
   }
 
-  await client.request
-    .send(
-      `/carts/${accountCartId}/items`,
-      "POST",
-      {
-        data: {
-          type: "cart_items",
-          cart_id: cartId,
+  if (isMergeEnabled) {
+    await client.request
+      .send(
+        `/carts/${accountCartId}/items`,
+        "POST",
+        {
+          data: {
+            type: "cart_items",
+            cart_id: cartId,
+          },
+          options: {
+            add_all_or_nothing: false,
+          },
         },
-        options: {
-          add_all_or_nothing: false,
-        },
-      },
-      undefined,
-      client,
-      undefined,
-      "v2",
-      headers,
-    )
-    .catch((err) => {
-      console.log("Error while merge cart", err);
-    });
+        undefined,
+        client,
+        undefined,
+        "v2",
+        headers,
+      )
+      .catch((err) => {
+        console.log("Error while merge cart", err);
+      });
+  }
   cookieStore.set(CART_COOKIE_NAME, accountCartId);
 }

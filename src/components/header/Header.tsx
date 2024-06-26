@@ -11,6 +11,7 @@ import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
 import SearchModal from "../search/SearchModal";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
+import { SelectedAccount } from "./account/SelectedAccount";
 
 const Header = async () => {
   const content = await getBanner();
@@ -36,6 +37,7 @@ const Header = async () => {
           <CatalogSelector />
           <CurrencySelector />
           {algoliaEnvData.enabled && <SearchModal />}
+          <SelectedAccount />
           <AccountMenu accountSwitcher={<AccountSwitcher />} />
           <Cart />
         </div>
