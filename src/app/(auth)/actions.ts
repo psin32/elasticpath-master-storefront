@@ -4,7 +4,10 @@ import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
+import {
+  ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  CART_COOKIE_NAME,
+} from "../../lib/cookie-constants";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import {
   AccountMemberCredential,
@@ -69,6 +72,11 @@ export async function login(props: FormData) {
       password,
     });
 
+    await mergeCart(
+      client,
+      result?.data?.[0]?.token,
+      result?.data?.[0]?.account_id,
+    );
     const cookieStore = cookies();
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
   } catch (error) {
@@ -85,6 +93,9 @@ export async function logout() {
   const cookieStore = cookies();
 
   cookieStore.delete(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME);
+  const client = getServerSideImplicitClient();
+  const response = await client.Cart().CreateCart({ name: "Cart" });
+  cookieStore.set(CART_COOKIE_NAME, response.data.id);
 
   redirect("/");
 }
@@ -158,6 +169,12 @@ export async function register(data: FormData) {
     name, // TODO update sdk types as name should exist
     email,
   } as any);
+
+  await mergeCart(
+    client,
+    result?.data?.[0]?.token,
+    result?.data?.[0]?.account_id,
+  );
 
   const cookieStore = cookies();
   cookieStore.set(createCookieFromGenerateTokenResponse(result));
@@ -258,4 +275,74 @@ function createAccountMemberCredentialsCookieValue(
     selected: responseTokens[0].account_id,
     accountMemberId,
   };
+}
+
+export async function mergeCart(
+  client: EPCCClient,
+  token: string,
+  accountId: string,
+) {
+  const cookieStore = cookies();
+  const headers = {
+    "EP-Account-Management-Authentication-Token": token,
+  };
+
+  const accountCarts = await client.request
+    .send(`/carts`, "GET", null, undefined, client, undefined, "v2", headers)
+    .catch((err) => {
+      console.log("Error while getting account carts", err);
+    });
+
+  const cartCookie = cookieStore.get(CART_COOKIE_NAME);
+  const cartId = cartCookie?.value || "";
+  let accountCartId = null;
+  if (accountCarts.data.length > 0) {
+    accountCartId = accountCarts.data[0].id;
+  } else {
+    const response = await client.Cart().CreateCart({ name: "Cart" });
+    accountCartId = response.data.id;
+    await client.request
+      .send(
+        `/carts/${accountCartId}/relationships/accounts`,
+        "POST",
+        [
+          {
+            type: "account",
+            id: accountId,
+          },
+        ],
+        undefined,
+        client,
+        undefined,
+        "v2",
+        headers,
+      )
+      .catch((err) => {
+        console.log("Error while associating cart with account", err);
+      });
+  }
+
+  await client.request
+    .send(
+      `/carts/${accountCartId}/items`,
+      "POST",
+      {
+        data: {
+          type: "cart_items",
+          cart_id: cartId,
+        },
+        options: {
+          add_all_or_nothing: false,
+        },
+      },
+      undefined,
+      client,
+      undefined,
+      "v2",
+      headers,
+    )
+    .catch((err) => {
+      console.log("Error while merge cart", err);
+    });
+  cookieStore.set(CART_COOKIE_NAME, accountCartId);
 }
