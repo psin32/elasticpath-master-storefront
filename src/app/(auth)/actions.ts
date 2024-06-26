@@ -227,6 +227,11 @@ export async function oidcLogin(
   ).catch((error) => {
     return error;
   });
+  await mergeCart(
+    client,
+    result?.data?.[0]?.token,
+    result?.data?.[0]?.account_id,
+  );
   if (result?.data?.length > 0) {
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
     redirect("/");
