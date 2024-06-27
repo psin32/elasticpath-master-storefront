@@ -20,7 +20,7 @@ import Link from "next/link";
 import { LoadingDots } from "../LoadingDots";
 
 export function Cart() {
-  const { state, useScopedRemoveCartItem } = useCart();
+  const { state, useScopedRemoveCartItem } = useCart() as any;
 
   const { items, __extended } = state ?? {};
 
@@ -28,8 +28,8 @@ export function Cart() {
 
   const discountedValues = (
     state?.meta?.display_price as
-    | { discount: { amount: number; formatted: string } }
-    | undefined
+      | { discount: { amount: number; formatted: string } }
+      | undefined
   )?.discount;
 
   return (
@@ -39,8 +39,9 @@ export function Cart() {
           <span>
             {state?.items && state.items.length > 0 && (
               <span
-                className={`${state?.items ? "flex" : "hidden"
-                  } absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-full bg-brand-primary p-[0.1rem] text-[0.6rem] text-white`}
+                className={`${
+                  state?.items ? "flex" : "hidden"
+                } absolute right-0 top-0 h-5 w-5 items-center justify-center rounded-full bg-brand-primary p-[0.1rem] text-[0.6rem] text-white`}
               >
                 {state?.items?.length}
               </span>
@@ -53,7 +54,7 @@ export function Cart() {
         <SheetHeader className="border-b border-black/10">
           <div></div>
           <SheetTitle tabIndex={0} className="uppercase text-sm font-medium">
-            Your Bag
+            {state?.name}
           </SheetTitle>
           <SheetClose className="ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
             <XMarkIcon className="h-6 w-6" />
@@ -68,7 +69,7 @@ export function Cart() {
                 role="list"
                 className="flex flex-col items-start gap-5 self-stretch"
               >
-                {items.map((item) => {
+                {items.map((item: any) => {
                   return (
                     <Fragment key={item.id}>
                       <li key={item.id} className="self-stretch">
@@ -87,7 +88,7 @@ export function Cart() {
               </div>
               {__extended &&
                 __extended.groupedItems.promotion.length > 0 &&
-                __extended.groupedItems.promotion.map((promotion) => {
+                __extended.groupedItems.promotion.map((promotion: any) => {
                   return (
                     <Fragment key={promotion.id}>
                       <Separator />

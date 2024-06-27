@@ -307,7 +307,7 @@ export async function mergeCart(
   const accountCarts = await client.request
     .send(`/carts`, "GET", null, undefined, client, undefined, "v2", headers)
     .catch((err) => {
-      console.log("Error while getting account carts", err);
+      console.error("Error while getting account carts", err);
     });
 
   const cartCookie = cookieStore.get(CART_COOKIE_NAME);
@@ -335,7 +335,7 @@ export async function mergeCart(
         headers,
       )
       .catch((err) => {
-        console.log("Error while associating cart with account", err);
+        console.error("Error while associating cart with account", err);
       });
   }
 
@@ -360,7 +360,7 @@ export async function mergeCart(
         headers,
       )
       .catch((err) => {
-        console.log("Error while merge cart", err);
+        console.error("Error while merge cart", err);
       });
   }
   cookieStore.set(CART_COOKIE_NAME, accountCartId);

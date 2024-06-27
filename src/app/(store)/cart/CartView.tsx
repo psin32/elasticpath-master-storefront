@@ -7,7 +7,7 @@ import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useCart } from "../../../react-shopper-hooks";
 
 export function CartView() {
-  const { state } = useCart();
+  const { state } = useCart() as any;
   return (
     <>
       {state?.items.length && state.items.length > 0 ? (
@@ -15,7 +15,7 @@ export function CartView() {
           {/* Main Content */}
           <div className="flex justify-center self-stretch items-start gap-2 flex-only-grow">
             <div className="flex flex-col gap-10 p-5 lg:p-24 w-full">
-              <h1 className="text-4xl font-medium">Your Bag</h1>
+              <h1 className="text-4xl font-medium">{state.name}</h1>
               {/* Cart Items */}
               <YourBag />
             </div>
