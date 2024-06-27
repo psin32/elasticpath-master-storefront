@@ -29,19 +29,27 @@ export function ManageCarts({ token }: ManageCartsProps) {
 
   useEffect(() => {
     const init = async () => {
-      const accountCarts = await client.request
-        .send(`/carts`, "GET", null, undefined, client, undefined, "v2", {
-          "EP-Account-Management-Authentication-Token": token,
-        })
-        .catch((err) => {
-          console.error("Error while getting account carts", err);
-        });
-      setAccountCarts(accountCarts);
+      await refreshCart();
     };
     init();
   }, []);
 
-  const handleCartSelection = (cartId: string) => {
+  const refreshCart = async () => {
+    const accountCarts = await client.request
+      .send(`/carts`, "GET", null, undefined, client, undefined, "v2", {
+        "EP-Account-Management-Authentication-Token": token,
+      })
+      .catch((err) => {
+        console.error("Error while getting account carts", err);
+      });
+    setAccountCarts(accountCarts);
+  };
+
+  const handleCartSelection = async (cartId: string, name: string) => {
+    await client.Cart(cartId).UpdateCart({
+      name,
+    });
+    await refreshCart();
     setCookie(CART_COOKIE_NAME, cartId);
     router.refresh();
   };
@@ -61,14 +69,7 @@ export function ManageCarts({ token }: ManageCartsProps) {
     }
 
     setIsOverlayOpen(false);
-    const accountCarts = await client.request
-      .send(`/carts`, "GET", null, undefined, client, undefined, "v2", {
-        "EP-Account-Management-Authentication-Token": token,
-      })
-      .catch((err) => {
-        console.error("Error while getting account carts", err);
-      });
-    setAccountCarts(accountCarts);
+    await refreshCart();
     router.refresh();
   };
 
@@ -255,7 +256,10 @@ export function ManageCarts({ token }: ManageCartsProps) {
                                                   : "text-gray-900"
                                               } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
                                               onClick={() =>
-                                                handleCartSelection(cart.id)
+                                                handleCartSelection(
+                                                  cart.id,
+                                                  cart.name,
+                                                )
                                               }
                                             >
                                               Select this cart
