@@ -316,7 +316,23 @@ export async function mergeCart(
   if (accountCarts.data.length > 0) {
     accountCartId = accountCarts.data[0].id;
   } else {
-    const response = await client.Cart().CreateCart({ name: "Cart" });
+    const response = await client.request
+      .send(
+        `/carts`,
+        "POST",
+        {
+          name: "Cart",
+        },
+        undefined,
+        client,
+        undefined,
+        "v2",
+        headers,
+      )
+      .catch((err) => {
+        console.error("Error while creating new cart for account", err);
+      });
+
     accountCartId = response.data.id;
     await client.request
       .send(

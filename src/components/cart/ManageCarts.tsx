@@ -159,7 +159,7 @@ export function ManageCarts({ token }: ManageCartsProps) {
                               cartIdInCookie === cart.id ? "bg-green-50" : ""
                             }
                           >
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-800 sm:pl-6">
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-800 sm:pl-6 w-1/4">
                               {cartIdInCookie === cart.id && (
                                 <span className="inline-flex items-center rounded-md bg-green-300 px-2 text-[10px] text-green-900 ring-1 ring-inset ring-green-600/20 mb-2">
                                   Selected Cart
@@ -169,6 +169,9 @@ export function ManageCarts({ token }: ManageCartsProps) {
                               <div>{cart.name}</div>
                               <div className="mt-1 text-sm leading-5 text-gray-500">
                                 {cart.description}
+                              </div>
+                              <div className="mt-1 text-xs leading-5 text-gray-500">
+                                {cart.id}
                               </div>
                             </td>
                             <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
