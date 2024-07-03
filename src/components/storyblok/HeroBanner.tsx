@@ -30,7 +30,7 @@ const HeroBanner = ({ blok }: any) => {
                 color: blok.text_color?.color || "black",
               }}
             >
-              <div className="font-semibold text-4xl mb-4">{blok.title}</div>
+              <div className="font-semibold text-6xl mb-4">{blok.title}</div>
               <p>{blok.description}</p>
               {blok.button_text && blok.link.url && (
                 <div className="mt-8">
