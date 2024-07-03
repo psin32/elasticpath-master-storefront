@@ -18,11 +18,11 @@ export const connectProductsWithMainImages = (
 
   productList.forEach((product) => {
     if (
-      product.relationships.main_image?.data &&
-      imagesObject[product.relationships.main_image.data?.id]
+      product.relationships?.main_image?.data &&
+      imagesObject[product.relationships?.main_image.data?.id]
     ) {
       product.main_image =
-        imagesObject[product.relationships.main_image.data?.id];
+        imagesObject[product.relationships?.main_image.data?.id];
     }
   });
   return productList;

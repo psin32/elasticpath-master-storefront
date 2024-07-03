@@ -11,6 +11,7 @@ import { getCookie, setCookie } from "cookies-next";
 import { CART_COOKIE_NAME } from "../../lib/cookie-constants";
 import { useRouter } from "next/navigation";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
+import { useCart } from "../../react-shopper-hooks";
 
 export type ManageCartsProps = {
   token: string;
@@ -18,6 +19,9 @@ export type ManageCartsProps = {
 
 export function ManageCarts({ token }: ManageCartsProps) {
   const router = useRouter();
+  const { useClearCart } = useCart();
+  const { mutateAsync: mutateClearCart } = useClearCart();
+
   const cartIdInCookie = getCookie(CART_COOKIE_NAME);
   const client = getEpccImplicitClient();
   const [accountCarts, setAccountCarts] = useState<any>();
@@ -43,6 +47,7 @@ export function ManageCarts({ token }: ManageCartsProps) {
         console.error("Error while getting account carts", err);
       });
     setAccountCarts(accountCarts);
+    return accountCarts;
   };
 
   const handleCartSelection = async (cartId: string, name: string) => {
@@ -51,6 +56,21 @@ export function ManageCarts({ token }: ManageCartsProps) {
     });
     await refreshCart();
     setCookie(CART_COOKIE_NAME, cartId);
+    router.refresh();
+  };
+
+  const handleDeleteCart = async (cartId: string) => {
+    await client.Cart(cartId).Delete();
+    const accountCarts = await refreshCart();
+    await handleCartSelection(
+      accountCarts.data[0].id,
+      accountCarts.data[0].name,
+    );
+  };
+
+  const handleDeleteAllItems = async (cartId: string) => {
+    await mutateClearCart({ cartId });
+    await refreshCart();
     router.refresh();
   };
 
@@ -266,6 +286,40 @@ export function ManageCarts({ token }: ManageCartsProps) {
                                               }
                                             >
                                               Select this cart
+                                            </button>
+                                          )}
+                                        </Menu.Item>
+                                        {accountCarts.data.length > 1 && (
+                                          <Menu.Item>
+                                            {({ active }) => (
+                                              <button
+                                                className={`${
+                                                  active
+                                                    ? "bg-brand-primary text-white"
+                                                    : "text-gray-900"
+                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                                onClick={() =>
+                                                  handleDeleteCart(cart.id)
+                                                }
+                                              >
+                                                Delete Cart
+                                              </button>
+                                            )}
+                                          </Menu.Item>
+                                        )}
+                                        <Menu.Item>
+                                          {({ active }) => (
+                                            <button
+                                              className={`${
+                                                active
+                                                  ? "bg-brand-primary text-white"
+                                                  : "text-gray-900"
+                                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                              onClick={() =>
+                                                handleDeleteAllItems(cart.id)
+                                              }
+                                            >
+                                              Delete All Items
                                             </button>
                                           )}
                                         </Menu.Item>
