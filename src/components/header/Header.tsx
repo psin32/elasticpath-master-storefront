@@ -66,7 +66,7 @@ const Header = async () => {
                 )
               );
             })}
-          <AccountMenu accountSwitcher={<AccountSwitcher />} />
+          <AccountMenu />
           <Cart />
         </div>
       </div>

@@ -18,12 +18,8 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useFloating } from "@floating-ui/react";
 
-export function AccountMenu({
-  accountSwitcher,
-}: {
-  accountSwitcher: ReactNode;
-}) {
-  const { data, accountMemberTokens } = useAuthedAccountMember();
+export function AccountMenu() {
+  const { data } = useAuthedAccountMember();
 
   const pathname = usePathname();
 
