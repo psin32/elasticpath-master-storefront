@@ -62,6 +62,7 @@ const Header = async () => {
                   <SelectedAccount
                     accountSwitcher={<AccountSwitcher />}
                     accountName={value.account_name}
+                    key={value.account_id}
                   />
                 )
               );
