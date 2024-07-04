@@ -121,14 +121,14 @@ const BulkOrder = () => {
       ></textarea>
       <div className="flex justify-between mb-4">
         <StatusButton
-          variant={"secondary"}
+          variant="secondary"
           onClick={handleClearAll}
           className="text-md hover:bg-gray-100"
         >
           Clear All
         </StatusButton>
         <StatusButton
-          variant={"primary"}
+          variant="primary"
           onClick={handleAddToCart}
           status={isPending ? "loading" : "idle"}
         >

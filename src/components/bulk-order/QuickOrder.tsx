@@ -189,14 +189,14 @@ const QuickOrder = () => {
       </div>
       <div className="mt-6 flex justify-between">
         <StatusButton
-          variant={"secondary"}
+          variant="secondary"
           onClick={handleAddRow}
           className="text-md hover:bg-gray-100"
         >
           Add More
         </StatusButton>
         <StatusButton
-          variant={"primary"}
+          variant="primary"
           onClick={handleAddToCart}
           status={isPending ? "loading" : "idle"}
         >
