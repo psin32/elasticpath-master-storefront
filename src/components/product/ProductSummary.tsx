@@ -11,7 +11,10 @@ interface IProductSummary {
   offerings?: any;
 }
 
-const ProductSummary = ({ product, offerings }: IProductSummary): JSX.Element => {
+const ProductSummary = ({
+  product,
+  offerings,
+}: IProductSummary): JSX.Element => {
   const {
     attributes,
     meta: { display_price, original_display_price },
@@ -26,19 +29,36 @@ const ProductSummary = ({ product, offerings }: IProductSummary): JSX.Element =>
         {attributes.name}
       </span>
       <Ratings product={product} displayFromProduct={true} />
+      <div className="text-lg mt-2">{attributes.sku}</div>
       {offerings.data.length == 0 && (
         <>
           {display_price && (
             <div className="flex items-center mt-2">
               {original_display_price && (
                 <StrikePrice
-                  price={original_display_price?.without_tax?.formatted ? original_display_price?.without_tax?.formatted : original_display_price.with_tax.formatted}
-                  currency={original_display_price.without_tax?.currency ? original_display_price?.without_tax?.currency : original_display_price.with_tax.currency}
+                  price={
+                    original_display_price?.without_tax?.formatted
+                      ? original_display_price?.without_tax?.formatted
+                      : original_display_price.with_tax.formatted
+                  }
+                  currency={
+                    original_display_price.without_tax?.currency
+                      ? original_display_price?.without_tax?.currency
+                      : original_display_price.with_tax.currency
+                  }
                 />
               )}
               <Price
-                price={display_price?.without_tax?.formatted ? display_price?.without_tax?.formatted : display_price.with_tax.formatted}
-                currency={display_price?.without_tax?.currency ? display_price?.without_tax?.currency : display_price.with_tax.currency}
+                price={
+                  display_price?.without_tax?.formatted
+                    ? display_price?.without_tax?.formatted
+                    : display_price.with_tax.formatted
+                }
+                currency={
+                  display_price?.without_tax?.currency
+                    ? display_price?.without_tax?.currency
+                    : display_price.with_tax.currency
+                }
                 original_display_price={original_display_price}
                 size="text-2xl"
               />
@@ -46,7 +66,9 @@ const ProductSummary = ({ product, offerings }: IProductSummary): JSX.Element =>
           )}
           {"tiers" in attributes && (
             <>
-              <div className="uppercase font-bold mt-4 mb-4 text-lg text-red-700">Bulk Buy Offer</div>
+              <div className="uppercase font-bold mt-4 mb-4 text-lg text-red-700">
+                Bulk Buy Offer
+              </div>
               <ProductMultibuyOffer product={product} />
             </>
           )}
