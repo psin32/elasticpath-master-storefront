@@ -191,17 +191,6 @@ export function AccountMenu({
                     </>
                   )}
                 </div>
-                {accountMemberTokens &&
-                  Object.keys(accountMemberTokens).length > 1 && (
-                    <div className="px-1 py-1">
-                      <>
-                        <span className="text-[0.625rem] uppercase font-medium px-2">
-                          Use store as...
-                        </span>
-                        {accountSwitcher}
-                      </>
-                    </div>
-                  )}
               </div>
             </Popover.Panel>
           </>

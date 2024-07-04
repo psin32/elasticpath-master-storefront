@@ -13,10 +13,22 @@ import SearchModal from "../search/SearchModal";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { SelectedAccount } from "./account/SelectedAccount";
 import BulkOrderButton from "./BulkOrderButton";
+import { cookies } from "next/headers";
+import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
 
 const Header = async () => {
   const content = await getBanner();
   const catalogMenu = await getCatalogMenu();
+
+  const cookieStore = cookies();
+  const accountMemberCookie = retrieveAccountMemberCredentials(
+    cookieStore,
+    ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  );
+
+  const accountMemberTokens = accountMemberCookie?.accounts;
+  const selectedAccountId = accountMemberCookie?.selected;
 
   return (
     <div className="sticky z-10 border-b border-gray-200 bg-white">
@@ -41,7 +53,19 @@ const Header = async () => {
             <BulkOrderButton />
           )}
           {algoliaEnvData.enabled && <SearchModal />}
-          <SelectedAccount />
+          {accountMemberTokens &&
+            Object.keys(accountMemberTokens).length > 1 &&
+            Object.keys(accountMemberTokens).map((tokenKey) => {
+              const value = accountMemberTokens[tokenKey];
+              return (
+                selectedAccountId === value.account_id && (
+                  <SelectedAccount
+                    accountSwitcher={<AccountSwitcher />}
+                    accountName={value.account_name}
+                  />
+                )
+              );
+            })}
           <AccountMenu accountSwitcher={<AccountSwitcher />} />
           <Cart />
         </div>
