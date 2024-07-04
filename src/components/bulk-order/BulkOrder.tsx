@@ -91,7 +91,7 @@ const BulkOrder = () => {
         <div className="flex space-x-4">
           <label
             htmlFor="file-upload"
-            className="flex items-center text-blue-600 cursor-pointer"
+            className="flex items-center text-brand-primary cursor-pointer hover:text-brand-secondary"
           >
             <ArrowUpOnSquareIcon className="h-5 w-5 mr-2" />
             Import CSV File
@@ -105,7 +105,7 @@ const BulkOrder = () => {
           />
           <button
             onClick={handleDownloadTemplate}
-            className="flex items-center text-blue-600"
+            className="flex items-center text-brand-primary hover:text-brand-secondary"
           >
             <ArrowDownOnSquareIcon className="h-5 w-5 mr-2" />
             Download Template File
