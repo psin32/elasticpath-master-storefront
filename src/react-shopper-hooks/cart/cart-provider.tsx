@@ -23,6 +23,7 @@ import {
 import { useRemovePromotionCode } from "./hooks/use-remove-promotion";
 import { useAddSubscriptionItemToCart } from "./hooks/use-add-subscription-item";
 import { toast } from "react-toastify";
+import { useAddBulkProductToCart } from "./hooks/use-add-bulk-product";
 
 export const CartItemsContext = createContext<
   | ({
@@ -34,6 +35,9 @@ export const CartItemsContext = createContext<
       useScopedAddPromotion: () => ReturnType<typeof useAddPromotionToCart>;
       useScopedRemovePromotion: () => ReturnType<typeof useRemovePromotionCode>;
       useScopedAddProductToCart: () => ReturnType<typeof useAddProductToCart>;
+      useScopedAddBulkProductToCart: () => ReturnType<
+        typeof useAddBulkProductToCart
+      >;
       useScopedAddCustomItemToCart: () => ReturnType<
         typeof useAddCustomItemToCart
       >;
@@ -106,6 +110,20 @@ export function CartProvider({
         setCartQueryData(updatedData);
         invalidateCartQuery();
         toast("Item added successfully in your cart", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
+      },
+    });
+
+  const addBulkProductToCart = () =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useAddBulkProductToCart(cartId, {
+      onSuccess: async (updatedData) => {
+        setCartQueryData(updatedData);
+        await invalidateCartQuery();
+        toast("Items added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
           hideProgressBar: false,
@@ -202,6 +220,7 @@ export function CartProvider({
         useScopedAddPromotion: addPromotion,
         useScopedRemovePromotion: removePromotion,
         useScopedAddProductToCart: addProductToCart,
+        useScopedAddBulkProductToCart: addBulkProductToCart,
         useScopedAddBundleProductToCart: addBundleItemToCart,
         useScopedAddCustomItemToCart: addCustomItemToCart,
         useScopedAddSubscriptionItemToCart: addSubscriptionItemToCart,
