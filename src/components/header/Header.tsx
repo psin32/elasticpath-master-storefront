@@ -12,6 +12,7 @@ import CatalogSelector from "./CatalogSelector";
 import SearchModal from "../search/SearchModal";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { SelectedAccount } from "./account/SelectedAccount";
+import BulkOrderButton from "./BulkOrderButton";
 
 const Header = async () => {
   const content = await getBanner();
@@ -36,6 +37,9 @@ const Header = async () => {
         <div className="flex items-center self-center gap-x-2">
           <CatalogSelector />
           <CurrencySelector />
+          {process.env.NEXT_PUBLIC_DISABLE_BULK_ORDER_LINK != "true" && (
+            <BulkOrderButton />
+          )}
           {algoliaEnvData.enabled && <SearchModal />}
           <SelectedAccount />
           <AccountMenu accountSwitcher={<AccountSwitcher />} />

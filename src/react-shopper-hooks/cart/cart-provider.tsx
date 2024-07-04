@@ -123,11 +123,6 @@ export function CartProvider({
       onSuccess: async (updatedData) => {
         setCartQueryData(updatedData);
         await invalidateCartQuery();
-        toast("Items added successfully in your cart", {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-        });
       },
     });
 

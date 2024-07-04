@@ -1,14 +1,14 @@
 import { MinusIcon, PlusIcon } from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import { useState } from "react";
-import { Button } from "../button/Button";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { toast } from "react-toastify";
 import { useCart } from "../../react-shopper-hooks";
 import { CartItemObject } from "@moltin/sdk";
+import { StatusButton } from "../button/StatusButton";
 
 const QuickOrder = () => {
-  const { state, useScopedAddBulkProductToCart } = useCart();
+  const { useScopedAddBulkProductToCart } = useCart();
   const { mutate, isPending } = useScopedAddBulkProductToCart();
 
   const [items, setItems] = useState([{ sku: "", quantity: 1 }]);
@@ -52,18 +52,29 @@ const QuickOrder = () => {
         };
       });
     mutate(cartItems, {
-      onSuccess: (data: any) => {
-        if (data.errors) {
-          setErrors(data.errors);
+      onSuccess: (response: any) => {
+        if (response?.errors) {
+          setErrors(response.errors);
+        }
+
+        if (response?.data?.length > 0) {
+          toast("Items added successfully in your cart", {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+          });
         }
       },
     });
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-6">
-      <h1 className="text-3xl font-medium mb-6">Quick Order</h1>
-      <div className="space-y-4">
+    <div className="max-w-5xl mx-auto mt-10 bg-white">
+      <span className="text-md font-light">
+        Enter product SKU’s and Quantity in inputs. The quick add form accepts
+        up to 100 items at a time.
+      </span>
+      <div className="space-y-4 mt-6">
         {items.map((item, index) => (
           <div key={index}>
             <div className="flex space-x-4">
@@ -177,16 +188,20 @@ const QuickOrder = () => {
         ))}
       </div>
       <div className="mt-6 flex justify-between">
-        <Button
+        <StatusButton
           variant={"secondary"}
           onClick={handleAddRow}
-          className="text-md hover:bg-brand-primary hover:text-white"
+          className="text-md hover:bg-gray-100"
         >
           Add More
-        </Button>
-        <Button variant={"primary"} onClick={handleAddToCart}>
+        </StatusButton>
+        <StatusButton
+          variant={"primary"}
+          onClick={handleAddToCart}
+          status={isPending ? "loading" : "idle"}
+        >
           Add to Cart
-        </Button>
+        </StatusButton>
       </div>
     </div>
   );
