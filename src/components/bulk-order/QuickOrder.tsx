@@ -11,7 +11,14 @@ const QuickOrder = () => {
   const { useScopedAddBulkProductToCart } = useCart();
   const { mutate, isPending } = useScopedAddBulkProductToCart();
 
-  const [items, setItems] = useState([{ sku: "", quantity: 1 }]);
+  const [items, setItems] = useState([
+    { sku: "", quantity: 1 },
+    { sku: "", quantity: 1 },
+    { sku: "", quantity: 1 },
+    { sku: "", quantity: 1 },
+    { sku: "", quantity: 1 },
+    { sku: "", quantity: 1 },
+  ]);
   const [errors, setErrors] = useState<any[]>([]);
 
   const handleAddRow = () => {
@@ -74,10 +81,10 @@ const QuickOrder = () => {
         Enter product SKU’s and Quantity in inputs. The quick add form accepts
         up to 100 items at a time.
       </span>
-      <div className="space-y-4 mt-6">
+      <div className="mt-6 grid grid-cols-2 gap-4">
         {items.map((item, index) => (
           <div key={index}>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mt-6">
               <input
                 type="text"
                 placeholder="SKU"

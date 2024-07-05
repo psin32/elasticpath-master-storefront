@@ -34,25 +34,28 @@ const BulkOrder = () => {
       return {
         type: "cart_item",
         sku: sku.trim(),
-        quantity: Number(quantity.trim()),
+        quantity: Number(quantity?.trim()),
       };
     });
 
-    mutate(items, {
-      onSuccess: (response: any) => {
-        if (response?.errors) {
-          setErrors(response.errors);
-        }
+    mutate(
+      items.filter((item: any) => item.sku && item.quantity),
+      {
+        onSuccess: (response: any) => {
+          if (response?.errors) {
+            setErrors(response.errors);
+          }
 
-        if (response?.data?.length > 0) {
-          toast("Items added successfully in your cart", {
-            position: "top-center",
-            autoClose: 3000,
-            hideProgressBar: false,
-          });
-        }
+          if (response?.data?.length > 0) {
+            toast("Items added successfully in your cart", {
+              position: "top-center",
+              autoClose: 3000,
+              hideProgressBar: false,
+            });
+          }
+        },
       },
-    });
+    );
   };
 
   const handleFileUpload = (e: any) => {
@@ -112,14 +115,13 @@ const BulkOrder = () => {
           </button>
         </div>
       </div>
-
       <textarea
         value={textareaValue}
         onChange={handleTextareaChange}
         placeholder={"Ex:\nSKU001,10\nSKU002,20\n..."}
         className="w-full h-72 border-gray-300 rounded-md shadow-sm p-2 mb-4 block border border-input border-black/40 focus-visible:ring-0 focus-visible:border-black "
       ></textarea>
-      <div className="flex justify-between mb-4">
+      <div className="flex justify-between mb-4 mt-8">
         <StatusButton
           variant="secondary"
           onClick={handleClearAll}
