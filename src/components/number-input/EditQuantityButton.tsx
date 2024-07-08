@@ -5,6 +5,7 @@ import { MinusIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { LoadingDots } from "../LoadingDots";
 import type { CartItem } from "@moltin/sdk";
 import { useCart } from "../../react-shopper-hooks";
+import { toast } from "react-toastify";
 
 export function EditItemQuantityButton({
   item,
@@ -22,10 +23,23 @@ export function EditItemQuantityButton({
         type="submit"
         onClick={(e: FormEvent<HTMLButtonElement>) => {
           if (isPending) e.preventDefault();
-          mutate({
-            itemId: item.id,
-            quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
-          });
+          mutate(
+            {
+              itemId: item.id,
+              quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
+            },
+            {
+              onError: (response: any) => {
+                if (response?.errors) {
+                  toast.error(response?.errors?.[0].detail, {
+                    position: "top-center",
+                    autoClose: 2000,
+                    hideProgressBar: false,
+                  });
+                }
+              },
+            },
+          );
         }}
         aria-label={
           type === "plus" ? "Increase item quantity" : "Reduce item quantity"

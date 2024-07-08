@@ -14,6 +14,7 @@ import ProductHighlights from "./ProductHighlights";
 import Reviews from "../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
+import { toast } from "react-toastify";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
@@ -85,7 +86,20 @@ function SimpleProductContainer({
 
     const price_type = formData.get("price_type")?.toString() || "";
     if (price_type === "" || price_type === "one_time") {
-      mutateAddItem({ productId: response.id, quantity: 1, data });
+      mutateAddItem(
+        { productId: response.id, quantity: 1, data },
+        {
+          onError: (response: any) => {
+            if (response?.errors) {
+              toast.error(response?.errors?.[0].detail, {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: false,
+              });
+            }
+          },
+        },
+      );
     } else {
       const planId = formData.get("plan")?.toString() || "";
       if (main_image?.link?.href) {
