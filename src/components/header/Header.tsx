@@ -84,8 +84,11 @@ const Header = async () => {
                 key={value.account_id}
               >
                 You are currently logged in as Sales Representative for{" "}
-                <span className="underline">{value.account_name}</span> account.
-                To switch account, click on the account name in the header.
+                <span className="underline font-bold">
+                  {value.account_name}
+                </span>{" "}
+                account. To switch account, click on the account name in the
+                header.
               </div>
             )
           );
