@@ -10,7 +10,11 @@ import { Separator } from "../../../components/separator/Separator";
 import * as React from "react";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 
-export async function GuestCheckout() {
+type GuestCheckoutProps = {
+  cart?: any;
+};
+
+export async function GuestCheckout({ cart }: GuestCheckoutProps) {
   return (
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
@@ -38,12 +42,12 @@ export async function GuestCheckout() {
             <BillingForm />
           </div>
           <div className="flex flex-1 self-stretch">
-            <SubmitCheckoutButton />
+            <SubmitCheckoutButton cart={cart} />
           </div>
         </div>
         <div className="order-first lg:order-last lg:px-16 w-full lg:w-auto lg:pt-36 lg:bg-[#F9F9F9] lg:h-full lg:shadow-[0_0_0_100vmax_#F9F9F9] lg:clip-path-sidebar">
           {/* Sidebar */}
-          <CheckoutSidebar />
+          <CheckoutSidebar cart={cart} />
         </div>
       </div>
     </div>

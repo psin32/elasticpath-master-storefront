@@ -20,7 +20,11 @@ import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 import { formatCurrency } from "../../../lib/format-currency";
 import { LoadingDots } from "../../../components/LoadingDots";
 
-export function CheckoutSidebar() {
+type CheckoutSidebarProps = {
+  cart?: any;
+};
+
+export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
   const { state } = useCart();
   const shippingMethod = useWatch({ name: "shippingMethod" });
 
@@ -38,19 +42,26 @@ export function CheckoutSidebar() {
     (method) => method.value === shippingMethod,
   )?.amount;
 
-  const { meta, __extended } = state as any;
+  const { meta, __extended } = cart?.data ? cart?.data : (state as any);
 
-  const items = __extended.groupedItems.regular.concat(__extended.groupedItems.custom, __extended.groupedItems.subscription)
+  const items = cart?.included?.items
+    ? cart?.included?.items.filter(
+        (item: any) => !item.sku.startsWith("__shipping_"),
+      )
+    : __extended.groupedItems.regular.concat(
+        __extended.groupedItems.custom,
+        __extended.groupedItems.subscription,
+      );
 
   const formattedTotalAmountInclShipping =
     meta?.display_price?.with_tax?.amount !== undefined &&
-      shippingAmount !== undefined &&
-      storeCurrency
+    shippingAmount !== undefined &&
+    storeCurrency
       ? resolveTotalInclShipping(
-        shippingAmount,
-        meta.display_price.with_tax.amount,
-        storeCurrency,
-      )
+          shippingAmount,
+          meta.display_price.with_tax.amount,
+          storeCurrency,
+        )
       : undefined;
 
   return (

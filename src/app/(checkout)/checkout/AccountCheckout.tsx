@@ -9,7 +9,11 @@ import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
 
-export function AccountCheckout() {
+type AccountCheckoutProps = {
+  cart?: any;
+};
+
+export function AccountCheckout({ cart }: AccountCheckoutProps) {
   return (
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
@@ -39,12 +43,12 @@ export function AccountCheckout() {
             <BillingForm />
           </div>
           <div className="flex flex-1">
-            <SubmitCheckoutButton />
+            <SubmitCheckoutButton cart={cart} />
           </div>
         </div>
         <div className="order-first lg:order-last lg:px-16 w-full lg:w-auto lg:pt-36 lg:bg-[#F9F9F9] lg:h-full lg:shadow-[0_0_0_100vmax_#F9F9F9] lg:clip-path-sidebar">
           {/* Sidebar */}
-          <CheckoutSidebar />
+          <CheckoutSidebar cart={cart} />
         </div>
       </div>
     </div>

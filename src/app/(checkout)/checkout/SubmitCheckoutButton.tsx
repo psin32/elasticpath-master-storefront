@@ -4,9 +4,15 @@ import { useCheckout } from "./checkout-provider";
 import { useCart } from "../../../react-shopper-hooks";
 import { StatusButton } from "../../../components/button/StatusButton";
 
-export function SubmitCheckoutButton() {
+type SubmitCheckoutButtonProps = {
+  cart?: any;
+};
+
+export function SubmitCheckoutButton({ cart }: SubmitCheckoutButtonProps) {
   const { handleSubmit, completePayment, isCompleting } = useCheckout();
   const { state } = useCart();
+
+  const { meta } = cart?.data ? cart?.data : (state as any);
 
   if (!state) {
     return null;
@@ -21,7 +27,7 @@ export function SubmitCheckoutButton() {
         completePayment.mutate({ data: values });
       })}
     >
-      {`Pay ${state.meta?.display_price?.with_tax?.formatted}`}
+      {`Pay ${meta?.display_price?.with_tax?.formatted}`}
     </StatusButton>
   );
 }

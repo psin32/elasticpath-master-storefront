@@ -44,9 +44,13 @@ const CheckoutContext = createContext<CheckoutContext | null>(null);
 
 type CheckoutProviderProps = {
   children?: React.ReactNode;
+  cart?: any;
 };
 
-export function StripeCheckoutProvider({ children }: CheckoutProviderProps) {
+export function StripeCheckoutProvider({
+  children,
+  cart,
+}: CheckoutProviderProps) {
   const { state, useClearCart } = useCart();
 
   const { mutateAsync: mutateClearCart } = useClearCart();
@@ -70,16 +74,18 @@ export function StripeCheckoutProvider({ children }: CheckoutProviderProps) {
 
   const paymentComplete = usePaymentComplete(
     {
-      cartId: state?.id,
+      cartId: cart?.data?.id ? cart?.data?.id : state?.id,
       accountToken: selectedAccountToken?.token,
     },
     {
       onSuccess: async (data) => {
         setConfirmationData(data);
-        state?.id &&
-          (await mutateClearCart({
-            cartId: state.id,
-          }));
+        cart?.data?.id
+          ? cart?.data?.id
+          : state?.id &&
+            (await mutateClearCart({
+              cartId: cart?.data?.id ? cart?.data?.id : state?.id,
+            }));
       },
     },
   );
@@ -105,17 +111,20 @@ export function StripeCheckoutProvider({ children }: CheckoutProviderProps) {
   );
 }
 
-export function CheckoutProvider({ children }: CheckoutProviderProps) {
+export function CheckoutProvider({ children, cart }: CheckoutProviderProps) {
   const { state } = useCart();
 
   const options: StripeElementsOptions = {
     mode: "payment",
     currency: EP_CURRENCY_CODE.toLowerCase(),
     amount:
-      state?.meta?.display_price?.with_tax?.amount &&
-      state?.meta?.display_price?.with_tax?.amount > 0
-        ? state?.meta?.display_price?.with_tax?.amount
-        : 100,
+      cart?.meta?.display_price?.with_tax?.amount &&
+      cart?.meta?.display_price?.with_tax?.amount > 0
+        ? cart?.meta?.display_price?.with_tax?.amount
+        : state?.meta?.display_price?.with_tax?.amount &&
+            state?.meta?.display_price?.with_tax?.amount > 0
+          ? state?.meta?.display_price?.with_tax?.amount
+          : 100,
     capture_method: "automatic",
     payment_method_types: ["card"],
     appearance: {
@@ -125,7 +134,7 @@ export function CheckoutProvider({ children }: CheckoutProviderProps) {
 
   return (
     <Elements options={options} stripe={stripePromise}>
-      <StripeCheckoutProvider>{children}</StripeCheckoutProvider>
+      <StripeCheckoutProvider cart={cart}>{children}</StripeCheckoutProvider>
     </Elements>
   );
 }
