@@ -39,33 +39,39 @@ export default async function SearchPage({
   searchParams: SearchParams;
 }) {
   if (algoliaEnvData.enabled) {
-    return <Search />
+    return <Search />;
   } else {
     const client = getServerSideImplicitClient();
 
     const { limit, offset } = searchParams;
-  
+
     if (!params.node || params.node.length === 0) {
       const products = await client.ShopperCatalog.Products.With(["main_image"])
+        .Filter({
+          in: {
+            product_types: "standard,parent,bundle",
+          },
+        })
         .Limit(processLimit(limit))
         .Offset(processOffset(offset))
         .All();
+
       return <Search page={processResult(products)} />;
     }
-  
+
     const rootNodeSlug = params.node?.[0];
-  
+
     if (!rootNodeSlug) {
       return <Search />;
     }
-  
+
     const rootHierarchy = await findHierarchyFromSlug(client, rootNodeSlug);
-  
+
     if (!rootHierarchy) {
       console.warn("No root hierarchy found for slug: ", rootNodeSlug);
       return notFound();
     }
-  
+
     if (params.node.length === 1) {
       const products = await getNodeProducts(
         client,
@@ -73,26 +79,30 @@ export default async function SearchPage({
         limit,
         offset,
       );
-  
+
       return <Search page={processResult(products)} />;
     }
-  
+
     const lastNodeSlug = getLastArrayElement(params.node);
-  
+
     if (!lastNodeSlug) {
       console.warn("No last node slug found for node path: ", params.node);
       return notFound();
     }
-  
-    const leafNodeId = await findLeafNodeId(client, rootHierarchy, lastNodeSlug);
-  
+
+    const leafNodeId = await findLeafNodeId(
+      client,
+      rootHierarchy,
+      lastNodeSlug,
+    );
+
     if (!leafNodeId) {
       console.warn("No leaf node id found for slug: ", lastNodeSlug);
       return notFound();
     }
-  
+
     const products = await getNodeProducts(client, leafNodeId, limit, offset);
-  
+
     return <Search page={processResult(products)} />;
   }
 }

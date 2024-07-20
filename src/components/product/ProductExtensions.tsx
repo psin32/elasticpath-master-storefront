@@ -6,43 +6,42 @@ interface IProductExtensions {
 }
 
 const ProductExtensions = ({ extensions }: IProductExtensions): JSX.Element => {
-  const extensionsValues = Object.values(extensions ?? {}).flat();
   return (
-    <div className="flex flex-col gap-4 sm:gap-6">
-      <div>
-        <span className="mb-4 text-base font-medium uppercase text-gray-800 lg:text-lg">
-          More Info
-        </span>
-        <dl>
-          {extensionsValues.map((extension) => {
-            const extensionKeys = Object.keys(extension);
-            return extensionKeys.map((key) => {
-              const value = extension[key];
-
-              const EmptyEntry = (
-                <p key={`${key}`}>Unsupported product key: {key}</p>
-              );
+    <>
+      {Object.keys(extensions).map((extension: any) => {
+        const extensionKeys = Object.keys(extensions[extension]);
+        const regex = /\(([^)]+)\)/;
+        const match = extension.match(regex);
+        return (
+          <div className="flex flex-col w-full" key={extension}>
+            <div className="flex bg-gray-100 text-gray-800 font-bold">
+              <div className="w-1/4 p-3 basis-1/2 uppercase">
+                {match ? match[1] : null}
+              </div>
+            </div>
+            {extensionKeys.map((key) => {
+              const value = extensions[extension][key];
 
               if (!isSupportedExtension(value)) {
                 console.warn(
                   `Unsupported product extension unable to render "${key}" key`,
                   value,
                 );
-                return EmptyEntry;
+                return;
               }
 
               if (!value) {
-                return EmptyEntry;
+                return;
               }
 
               return (
                 <Extension key={`${key}-${value}`} extKey={key} value={value} />
               );
-            });
-          })}
-        </dl>
-      </div>
-    </div>
+            })}
+          </div>
+        );
+      })}
+    </>
   );
 };
 
@@ -59,10 +58,14 @@ function Extension({
   }
 
   return (
-    <>
-      <dt className="font-semibold capitalize">{extKey}</dt>
-      <dd className="mb-2">{decoratedValue}</dd>
-    </>
+    <div className="flex bg-white border-b border-gray-200" key={extKey}>
+      <div className="w-1/4 p-3 basis-1/3 capitalize text-sm font-normal text-gray-700">
+        {extKey.replaceAll("-", " ")}
+      </div>
+      <div className="w-1/4 p-3 basis-3/4 text-sm text-gray-700">
+        {decoratedValue}
+      </div>
+    </div>
   );
 }
 

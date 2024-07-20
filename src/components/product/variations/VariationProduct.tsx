@@ -16,6 +16,7 @@ import Reviews from "../../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 import { toast } from "react-toastify";
+import ProductExtensions from "../ProductExtensions";
 
 export const VariationProductDetail = ({
   variationProduct,
@@ -183,6 +184,7 @@ export function VariationProductContainer({
                 ADD TO CART
               </StatusButton>
               <ProductDetails product={response} />
+              {extensions && <ProductExtensions extensions={extensions} />}
               {extensions && <ProductHighlights extensions={extensions} />}
             </div>
           </form>

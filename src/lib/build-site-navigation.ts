@@ -51,6 +51,46 @@ function constructTree(
       // Fetch all nodes in each hierarchy (i.e. all 'child nodes' belonging to a hierarchy)
       const allNodes = await getHierarchyNodes(hierarchy.id, client);
 
+      // const response = directChildren
+      //   .map((node) =>
+      //     createNode({
+      //       name: node.attributes.name,
+      //       id: node.id,
+      //       slug: node.attributes.slug,
+      //     }),
+      //   )
+      //   .map((child: any) => {
+      //     const children: ISchema[] = allNodes
+      //       .filter((node) => node?.relationships?.parent.data.id === child.id)
+      //       .map((node) =>
+      //         createNode({
+      //           name: node.attributes.name,
+      //           id: node.id,
+      //           slug: node.attributes.slug,
+      //           hrefBase: `${child.slug}`,
+      //         }),
+      //       )
+      //       .map((superchild: any) => {
+      //         const data: ISchema[] = allNodes
+      //           .filter(
+      //             (node) =>
+      //               node?.relationships?.parent.data.id === superchild.id,
+      //           )
+      //           .map((node) =>
+      //             createNode({
+      //               name: node.attributes.name,
+      //               id: node.id,
+      //               slug: node.attributes.slug,
+      //               hrefBase: `/${hierarchy.slug}`,
+      //             }),
+      //           );
+
+      //         return { ...superchild, children: data };
+      //       });
+
+      //     return { ...child, children };
+      //   });
+
       // Build 2nd level by finding all 'child nodes' belonging to each first level featured-nodes
       const directs = directChildren.map((child) => {
         const children: ISchema[] = allNodes
