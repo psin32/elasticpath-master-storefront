@@ -6,7 +6,9 @@ interface IProductHighlights {
 }
 
 const ProductHighlights = ({ extensions }: IProductHighlights): JSX.Element => {
-  const highlights: (string | number | boolean)[] = extensions?.["products(highlights)"] && Object.values(extensions?.["products(highlights)"])?.flat();
+  const highlights: (string | number | boolean)[] =
+    extensions?.["products(highlights)"] &&
+    Object.values(extensions?.["products(highlights)"])?.flat();
   return (
     highlights && (
       <div className="flex flex-col gap-4 sm:gap-6">
@@ -15,12 +17,12 @@ const ProductHighlights = ({ extensions }: IProductHighlights): JSX.Element => {
             Product Highlights
           </span>
           <dl>
-            <ul className="list-disc ml-6 mt-4" key="highlights">
-              {highlights.map((highlight: string | number | boolean, index: number) => {
-                return (
-                  highlight && <li key={index}>{highlight}</li>
-                )
-              })}
+            <ul className="list-disc ml-6 mt-4 text-gray-700" key="highlights">
+              {highlights.map(
+                (highlight: string | number | boolean, index: number) => {
+                  return highlight && <li key={index}>{highlight}</li>;
+                },
+              )}
             </ul>
           </dl>
         </div>

@@ -14,6 +14,14 @@ import {
   getOtherImagesForProductResponse,
 } from "../../../../lib/file-lookup";
 import { algoliaEnvData } from "../../../../lib/resolve-algolia-env";
+import { cookies } from "next/headers";
+import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "../../../../lib/retrieve-account-member-credentials";
+import { resolveEpccCustomRuleHeaders } from "../../../../lib/custom-rule-headers";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -42,7 +50,28 @@ export default async function SearchPage({
     return <Search />;
   } else {
     const client = getServerSideImplicitClient();
-
+    const cookieStore = cookies();
+    const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
+    const accountMemberCookie = retrieveAccountMemberCredentials(
+      cookies(),
+      ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+    );
+    let accountToken = "";
+    if (accountMemberCookie) {
+      const selectedAccount = getSelectedAccount(accountMemberCookie);
+      accountToken = selectedAccount.token;
+    }
+    let customHeaders = resolveEpccCustomRuleHeaders();
+    if (customHeaders) {
+      customHeaders["EP-Account-Management-Authentication-Token"] =
+        accountToken;
+      customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+    } else {
+      customHeaders = {
+        "EP-Account-Management-Authentication-Token": accountToken,
+        "EP-Context-Tag": tagInCookie?.value || "",
+      };
+    }
     const { limit, offset } = searchParams;
 
     if (!params.node || params.node.length === 0) {
@@ -73,9 +102,10 @@ export default async function SearchPage({
     }
 
     if (params.node.length === 1) {
-      const products = await getNodeProducts(
+      const products = await getHierarchyProducts(
         client,
         rootHierarchy.id,
+        customHeaders,
         limit,
         offset,
       );
@@ -185,6 +215,25 @@ async function getNodeProducts(
     .Offset(processOffset(offset))
     .Limit(processLimit(limit))
     .GetNodeProducts({ nodeId });
+}
+
+async function getHierarchyProducts(
+  client: Moltin,
+  hierarchyId: string,
+  customHeaders: any,
+  limit?: string,
+  offset?: string,
+): Promise<any> {
+  return await client.request.send(
+    `catalog/hierarchies/${hierarchyId}/products?include=main_images&page[limit]=${processLimit(limit)}&page[offset]=${processOffset(offset)}`,
+    "GET",
+    undefined,
+    undefined,
+    client,
+    undefined,
+    "pcm",
+    customHeaders,
+  );
 }
 
 const DEFAULT_OFFSET = 0;

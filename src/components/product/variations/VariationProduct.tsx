@@ -184,8 +184,8 @@ export function VariationProductContainer({
                 ADD TO CART
               </StatusButton>
               <ProductDetails product={response} />
-              {extensions && <ProductExtensions extensions={extensions} />}
               {extensions && <ProductHighlights extensions={extensions} />}
+              {extensions && <ProductExtensions extensions={extensions} />}
             </div>
           </form>
         </div>

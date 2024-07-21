@@ -15,6 +15,7 @@ import Reviews from "../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 import { toast } from "react-toastify";
+import ProductExtensions from "./ProductExtensions";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
@@ -157,6 +158,7 @@ function SimpleProductContainer({
               </StatusButton>
               <ProductDetails product={response} />
               {extensions && <ProductHighlights extensions={extensions} />}
+              {extensions && <ProductExtensions extensions={extensions} />}
             </div>
           </form>
         </div>

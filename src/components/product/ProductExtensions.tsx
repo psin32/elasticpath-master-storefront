@@ -12,33 +12,42 @@ const ProductExtensions = ({ extensions }: IProductExtensions): JSX.Element => {
         const extensionKeys = Object.keys(extensions[extension]);
         const regex = /\(([^)]+)\)/;
         const match = extension.match(regex);
+        const extensionName = match ? match[1] : null;
+        const extensionConfig = process.env.NEXT_PUBLIC_EXTENSIONS || "";
+        const extensionList = extensionConfig.split(",");
         return (
-          <div className="flex flex-col w-full" key={extension}>
-            <div className="flex bg-gray-100 text-gray-800 font-bold">
-              <div className="w-1/4 p-3 basis-1/2 uppercase">
-                {match ? match[1] : null}
+          extensionList.includes(extensionName) && (
+            <div className="flex flex-col w-full" key={extension}>
+              <div className="flex bg-gray-100 text-gray-800 font-bold">
+                <div className="w-1/4 p-3 basis-1/2 uppercase">
+                  {extensionName}
+                </div>
               </div>
-            </div>
-            {extensionKeys.map((key) => {
-              const value = extensions[extension][key];
+              {extensionKeys.map((key) => {
+                const value = extensions[extension][key];
 
-              if (!isSupportedExtension(value)) {
-                console.warn(
-                  `Unsupported product extension unable to render "${key}" key`,
-                  value,
+                if (!isSupportedExtension(value)) {
+                  console.warn(
+                    `Unsupported product extension unable to render "${key}" key`,
+                    value,
+                  );
+                  return;
+                }
+
+                if (!value) {
+                  return;
+                }
+
+                return (
+                  <Extension
+                    key={`${key}-${value}`}
+                    extKey={key}
+                    value={value}
+                  />
                 );
-                return;
-              }
-
-              if (!value) {
-                return;
-              }
-
-              return (
-                <Extension key={`${key}-${value}`} extKey={key} value={value} />
-              );
-            })}
-          </div>
+              })}
+            </div>
+          )
         );
       })}
     </>
