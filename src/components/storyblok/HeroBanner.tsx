@@ -16,40 +16,40 @@ const HeroBanner = ({ blok }: any) => {
             src={blok.image_url?.filename}
             alt=""
           />
-          <div
-            className={
-              blok.container_style || "flex flex-col relative mt-auto h-[500px]"
-            }
-            style={{ width: blok.container_width || "100%" }}
-          >
-            <div className="flex-grow"></div>
-            <blockquote
-              className="mt-6 text-xl sm:text-xl sm:leading-8 p-8"
-              style={{
-                backgroundColor: blok.bg_color?.color,
-                color: blok.text_color?.color || "black",
-              }}
+          <div className={blok.container_style || "mt-32 -ml-[30px] text-left"}>
+            <div
+              className="relative"
+              style={{ width: blok.container_width || "100%" }}
             >
-              <div className="font-semibold text-6xl mb-4">{blok.title}</div>
-              <p>{blok.description}</p>
-              {blok.button_text && blok.link.url && (
-                <div className="mt-8">
-                  <a
-                    href={blok.link.url}
-                    role="button"
-                    data-te-ripple-init
-                    data-te-ripple-color="primary"
-                    className="rounded-full border-transparent px-8 py-4 text-sm font-medium uppercase leading-normal drop-shadow-2x"
-                    style={{
-                      backgroundColor: blok.button_color?.color || "black",
-                      color: blok.button_text_color?.color || "white",
-                    }}
-                  >
-                    {blok.button_text}
-                  </a>
-                </div>
-              )}
-            </blockquote>
+              <div className="flex-grow"></div>
+              <blockquote
+                className="mt-6 text-xl sm:text-xl sm:leading-8 p-8"
+                style={{
+                  backgroundColor: blok.bg_color?.color,
+                  color: blok.text_color?.color || "black",
+                }}
+              >
+                <div className="font-semibold text-6xl mb-4">{blok.title}</div>
+                <p>{blok.description}</p>
+                {blok.button_text && blok.link.url && (
+                  <div className="mt-8">
+                    <a
+                      href={blok.link.url}
+                      role="button"
+                      data-te-ripple-init
+                      data-te-ripple-color="primary"
+                      className="rounded-full border-transparent px-8 py-4 text-sm font-medium uppercase leading-normal drop-shadow-2x"
+                      style={{
+                        backgroundColor: blok.button_color?.color || "black",
+                        color: blok.button_text_color?.color || "white",
+                      }}
+                    >
+                      {blok.button_text}
+                    </a>
+                  </div>
+                )}
+              </blockquote>
+            </div>
           </div>
         </div>
       </div>
