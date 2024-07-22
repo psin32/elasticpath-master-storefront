@@ -19,6 +19,7 @@ import { useCart } from "../../react-shopper-hooks";
 import { toast } from "react-toastify";
 import { CartItemObject } from "@moltin/sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
+import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
 
 export default function HitsElasticPath(): JSX.Element {
   const { page } = useProducts();
@@ -202,10 +203,19 @@ export default function HitsElasticPath(): JSX.Element {
                       variation_matrix,
                       sale_id,
                     },
-                    attributes: { name, description, slug, sku, components },
+                    attributes: {
+                      name,
+                      description,
+                      slug,
+                      sku,
+                      components,
+                      tiers,
+                    },
                     id,
                   },
                 } = hit;
+
+                console.log("tiers", tiers);
 
                 const ep_main_image_url = main_image?.link.href;
 
@@ -298,6 +308,11 @@ export default function HitsElasticPath(): JSX.Element {
                           <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
                             {sale_id}
                           </span>
+                        )}
+                        {tiers && (
+                          <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-xs justify-center items-center w-40">
+                            <MultibuyOfferModal product={hit.response} />
+                          </div>
                         )}
                       </div>
                       <div className="col-span-2">

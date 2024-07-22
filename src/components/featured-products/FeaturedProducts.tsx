@@ -135,8 +135,7 @@ export default async function FeaturedProducts({
             </Link>
             <Ratings product={product} displayFromProduct={true} />
             {"tiers" in product.attributes && (
-              <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-sm">
-                <h4 className="basis-1/2">Bulk Save</h4>
+              <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-sm justify-center items-center">
                 <MultibuyOfferModal product={product} />
               </div>
             )}

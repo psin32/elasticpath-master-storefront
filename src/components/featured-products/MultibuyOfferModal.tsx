@@ -1,27 +1,33 @@
 "use client";
 
-import { Dialog, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
-import { ProductMultibuyOffer } from '../product/ProductMultibuyOffer';
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useState } from "react";
+import { ProductMultibuyOffer } from "../product/ProductMultibuyOffer";
 
 interface IMultibuyOfferModalProps {
   product: any;
 }
 
-export default function MultibuyOfferModal({ product }: IMultibuyOfferModalProps) {
-  let [isOpen, setIsOpen] = useState(false)
+export default function MultibuyOfferModal({
+  product,
+}: IMultibuyOfferModalProps) {
+  let [isOpen, setIsOpen] = useState(false);
 
   return (
     <div>
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className='uppercase underline font-semibold text-yellow-300'
+        className="uppercase font-semibold text-white"
       >
-        View Offer
+        View Bulk Offer
       </button>
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setIsOpen(false)}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setIsOpen(false)}
+        >
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
