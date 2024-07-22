@@ -200,6 +200,7 @@ export default function HitsElasticPath(): JSX.Element {
                       display_price,
                       original_display_price,
                       variation_matrix,
+                      sale_id,
                     },
                     attributes: { name, description, slug, sku, components },
                     id,
@@ -292,6 +293,11 @@ export default function HitsElasticPath(): JSX.Element {
                               size="text-xl"
                             />
                           </div>
+                        )}
+                        {original_display_price && (
+                          <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                            {sale_id}
+                          </span>
                         )}
                       </div>
                       <div className="col-span-2">
@@ -396,6 +402,7 @@ export default function HitsElasticPath(): JSX.Element {
                             display_price,
                             original_display_price,
                             child_variations,
+                            sale_id,
                           },
                           attributes: { name, slug, sku },
                           id,
@@ -490,6 +497,11 @@ export default function HitsElasticPath(): JSX.Element {
                                     size="text-xl"
                                   />
                                 </div>
+                              )}
+                              {original_display_price && (
+                                <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                                  {sale_id}
+                                </span>
                               )}
                             </div>
                             <div className="col-span-2">
