@@ -22,10 +22,13 @@ import {
   AlertTitle,
 } from "../../../components/alert/Alert";
 import { Skeleton } from "../../../components/skeleton/Skeleton";
+import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 
 export function DeliveryForm() {
   const { control } = useFormContext<CheckoutFormSchemaType>();
   const { data: deliveryOptions } = useShippingMethod();
+  const selectedCurrency = EP_CURRENCY_CODE;
+  const selectedLanguage = "en";
 
   return (
     <fieldset className="flex flex-col gap-6 self-stretch">
@@ -92,7 +95,14 @@ export function DeliveryForm() {
                             {option.label}
                           </Label>
                         </div>
-                        <span className="">{option.formatted}</span>
+                        <span className="">
+                          {option.amount === 0 && "FREE"}
+                          {option.amount > 0 &&
+                            new Intl.NumberFormat(selectedLanguage, {
+                              style: "currency",
+                              currency: selectedCurrency,
+                            }).format((option.amount || 0) / 100)}
+                        </span>
                       </div>
                     );
                   })}
