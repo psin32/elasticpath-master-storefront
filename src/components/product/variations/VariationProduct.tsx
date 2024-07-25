@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import ProductExtensions from "../ProductExtensions";
 import { useState } from "react";
 import QuantitySelector from "../QuantitySelector";
+import StoreLocator from "../StoreLocator";
 
 export const VariationProductDetail = ({
   variationProduct,
@@ -55,6 +56,17 @@ export function VariationProductContainer({
     meta: { original_display_price },
   } = response;
   const [quantity, setQuantity] = useState<number>(1);
+  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const enableClickAndCollect =
+    process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
+
+  const handleOverlay = (
+    event: React.FormEvent<HTMLFormElement>,
+    value: boolean,
+  ) => {
+    event.preventDefault();
+    setIsOverlayOpen(value);
+  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,6 +77,20 @@ export function VariationProductContainer({
         options: [],
       },
     };
+    if (enableClickAndCollect) {
+      const deliveryMode = formData.get("delivery_mode");
+      if (deliveryMode) {
+        data.custom_inputs.location = {};
+        data.custom_inputs.location.delivery_mode = deliveryMode;
+      }
+      const locationCode = formData.get("location_code");
+      const locationName = formData.get("location_name");
+      if (locationCode && locationName) {
+        data.custom_inputs.location.location_name = locationName;
+        data.custom_inputs.location.location_code = locationCode;
+      }
+    }
+
     response?.attributes?.custom_inputs &&
       Object.keys(response.attributes.custom_inputs).map((input) => {
         const value = formData.get(input);
@@ -116,8 +142,11 @@ export function VariationProductContainer({
     const price_type = formData.get("price_type")?.toString() || "";
     if (price_type === "" || price_type === "one_time") {
       mutateAddItem(
-        { productId: response.id, quantity: 1, data },
+        { productId: response.id, quantity, data },
         {
+          onSuccess: () => {
+            setIsOverlayOpen(false);
+          },
           onError: (response: any) => {
             if (response?.errors) {
               toast.error(response?.errors?.[0].detail, {
@@ -138,7 +167,7 @@ export function VariationProductContainer({
         data: {
           type: "subscription_item",
           id: price_type,
-          quantity: 1,
+          quantity,
           subscription_configuration: {
             plan: planId,
           },
@@ -164,6 +193,14 @@ export function VariationProductContainer({
           )}
           <form onSubmit={(e: any) => handleSubmit(e)}>
             <div className="flex flex-col gap-4 md:gap-6">
+              <input
+                type="text"
+                name="delivery_mode"
+                value="Home Delivery"
+                hidden
+                readOnly
+              ></input>
+
               <ProductSummary product={response} offerings={offerings} />
               <ProductVariations />
               {offerings && offerings.data.length > 0 && (
@@ -187,11 +224,29 @@ export function VariationProductContainer({
               >
                 ADD TO CART
               </StatusButton>
+              {offerings?.data?.length == 0 && enableClickAndCollect && (
+                <StatusButton
+                  disabled={product.kind === "base-product"}
+                  type="submit"
+                  onClick={(event: any) => handleOverlay(event, true)}
+                  className="uppercase"
+                >
+                  Click & Collect
+                </StatusButton>
+              )}
+
               <ProductDetails product={response} />
               {extensions && <ProductHighlights extensions={extensions} />}
               {extensions && <ProductExtensions extensions={extensions} />}
             </div>
           </form>
+          {isOverlayOpen && (
+            <StoreLocator
+              onClose={() => setIsOverlayOpen(false)}
+              product={response}
+              handleSubmit={handleSubmit}
+            />
+          )}
         </div>
       </div>
       <Reviews product={response} />
