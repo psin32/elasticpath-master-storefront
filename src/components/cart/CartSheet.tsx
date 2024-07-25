@@ -18,6 +18,7 @@ import { Fragment } from "react";
 import { AddPromotion } from "../checkout-sidebar/AddPromotion";
 import Link from "next/link";
 import { LoadingDots } from "../LoadingDots";
+import { CartItemsGrouped } from "./CartItemsGrouped";
 
 export function Cart() {
   const { state, useScopedRemoveCartItem } = useCart() as any;
@@ -31,6 +32,9 @@ export function Cart() {
       | { discount: { amount: number; formatted: string } }
       | undefined
   )?.discount;
+
+  const enableClickAndCollect =
+    process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
 
   return (
     <Sheet>
@@ -69,16 +73,20 @@ export function Cart() {
                 role="list"
                 className="flex flex-col items-start gap-5 self-stretch"
               >
-                {items.map((item: any) => {
-                  return (
-                    <Fragment key={item.id}>
-                      <li key={item.id} className="self-stretch">
-                        <CartItem item={item} />
-                      </li>
-                      <Separator />
-                    </Fragment>
-                  );
-                })}
+                {enableClickAndCollect && (
+                  <CartItemsGrouped items={items} isFullCart={false} />
+                )}
+                {!enableClickAndCollect &&
+                  items.map((item: any) => {
+                    return (
+                      <Fragment key={item.id}>
+                        <li key={item.id} className="self-stretch">
+                          <CartItem item={item} />
+                        </li>
+                        <Separator />
+                      </Fragment>
+                    );
+                  })}
               </ul>
             </div>
             {/* Bottom */}
