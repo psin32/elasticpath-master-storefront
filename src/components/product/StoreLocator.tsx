@@ -192,6 +192,11 @@ const StoreLocator: React.FC<StoreLocatorProps> = ({
                     <p className="text-gray-600 text-xs mt-1">
                       Branch Code: {location.location_code}
                     </p>
+                    {location?.stock || 0 > 0 ? (
+                      <p className="text-sm mt-1 text-green-700 font-semibold">
+                        {location?.stock} In Stock
+                      </p>
+                    ) : null}
                   </div>
                   <div>
                     <input
