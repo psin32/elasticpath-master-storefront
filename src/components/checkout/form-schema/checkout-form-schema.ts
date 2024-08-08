@@ -62,6 +62,8 @@ export const anonymousCheckoutFormSchema = z.object({
   shippingMethod: z
     .union([z.literal("__shipping_standard"), z.literal("__shipping_express")])
     .default("__shipping_standard"),
+  purchaseOrderNumber: z.string().optional(),
+  paymentMethod: z.string().optional(),
 });
 
 export type AnonymousCheckoutForm = z.TypeOf<
@@ -76,6 +78,8 @@ export const accountMemberCheckoutFormSchema = z.object({
   shippingMethod: z
     .union([z.literal("__shipping_standard"), z.literal("__shipping_express")])
     .default("__shipping_standard"),
+  purchaseOrderNumber: z.string().optional(),
+  paymentMethod: z.string().optional(),
 });
 
 export type AccountMemberCheckoutForm = z.TypeOf<

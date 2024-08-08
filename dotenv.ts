@@ -40,12 +40,87 @@ export const main = async () => {
     client_secret: clientSecret,
     host,
   });
+  await epcc.Authenticate().catch((err) => {
+    console.log("Invalid Credentials", err);
+    rl.close();
+    process.exit(1);
+  });
   const accountAuthSettings = await epcc.AccountAuthenticationSettings.Get();
   const realmId =
     accountAuthSettings.data.relationships.authentication_realm.data.id;
   const passwordProfileId = await generatePasswordProfile(realmId, epcc);
   await updateAccountAuthenticationSettings(epcc);
-  //   await getIntegrationHubAccessToken(epcc);
+
+  const purchaseOrderInput = await inputValue(
+    "Enable Purchase Order in Checkout: <true/false>, default value is false \nNote:- If you select true then manual payment will be enabled - ",
+  );
+  const purchaseOrder =
+    purchaseOrderInput.toLowerCase() === "true" ? true : false;
+
+  if (purchaseOrder) {
+    await epcc.Gateways.Enabled("manual", true);
+    const flows = await epcc.Flows.All();
+    const ordersFlow = flows.data.find((flow) => flow.slug === "orders");
+    let flowId = "";
+    if (ordersFlow?.name) {
+      flowId = ordersFlow.id;
+    } else {
+      const orders = await epcc.Flows.Create({
+        type: "flow",
+        slug: "orders",
+        name: "Orders Extension",
+        description: "Orders Extension",
+        enabled: true,
+      });
+      flowId = orders.data.id;
+    }
+    const fieldRequest: any = {
+      type: "field",
+      field_type: "string",
+      name: "Purchase Order Number",
+      slug: "purchase_order_number",
+      description: "Purchase Order Number",
+      validation_rules: [],
+      required: false,
+      default: "",
+      enabled: true,
+      order: 1,
+      omit_null: false,
+      relationships: {
+        flow: {
+          data: {
+            type: "flow",
+            id: flowId,
+          },
+        },
+      },
+    };
+    await epcc.Fields.Create(fieldRequest);
+  }
+
+  const clickAndCollectInput = await inputValue(
+    "Enable Click And Collect: <true/false>, default value is false - ",
+  );
+  const clickAndCollect =
+    clickAndCollectInput.toLowerCase() === "true" ? "true" : "false";
+
+  const plpInput = await inputValue(
+    "Select PLP View: <grid/list>, default value is grid - ",
+  );
+  let plpView = "grid";
+  if (plpInput.toLowerCase() === "list") {
+    plpView = "list";
+  }
+
+  const siteNameInput = await inputValue(
+    "Enter site name e.g. Clothing - Elastic Path, default value Elastic Path - ",
+  );
+  const siteName = siteNameInput || "Elastic Path";
+
+  const currencyInput = await inputValue(
+    "Enter currency e.g. USD, GBP, CAD, EUR etc., default is USD -  ",
+  );
+  const currency = currencyInput || "USD";
 
   const properties = new PropertiesEditor("");
   properties.insert("NEXT_PUBLIC_EPCC_CLIENT_ID", clientId);
@@ -53,7 +128,22 @@ export const main = async () => {
   properties.insert("NEXT_PUBLIC_EPCC_ENDPOINT_URL", host);
   properties.insert("NEXT_PUBLIC_AUTHENTICATION_REALM_ID", realmId);
   properties.insert("NEXT_PUBLIC_PASSWORD_PROFILE_ID", passwordProfileId);
+  properties.insert(
+    "NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT",
+    clickAndCollect.toString(),
+  );
+  properties.insert("NEXT_PUBLIC_DEFAULT_PLP_VIEW", plpView);
+  properties.insert("NEXT_PUBLIC_COOKIE_PREFIX_KEY", "_store");
+  properties.insert("NEXT_PUBLIC_DISABLE_IMAGE_OPTIMIZATION", "true");
+  properties.insert("SITE_NAME", siteName);
+  properties.insert("NEXT_PUBLIC_DEFAULT_CURRENCY_CODE", currency);
+  properties.insert(
+    "NEXT_PUBLIC_ENABLE_PURCHASE_ORDER_CHECKOUT",
+    purchaseOrder.toString(),
+  );
+  console.log("========================================================");
   console.log(properties.format());
+  console.log("========================================================");
   rl.close();
 };
 

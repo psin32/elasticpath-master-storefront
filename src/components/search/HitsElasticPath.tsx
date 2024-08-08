@@ -215,8 +215,6 @@ export default function HitsElasticPath(): JSX.Element {
                   },
                 } = hit;
 
-                console.log("tiers", tiers);
-
                 const ep_main_image_url = main_image?.link.href;
 
                 const currencyPrice =

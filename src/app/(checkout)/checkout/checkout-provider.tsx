@@ -23,6 +23,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { StripeElementsOptions } from "@stripe/stripe-js";
 import { epPaymentsEnvData } from "../../../lib/resolve-ep-stripe-env";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
+import { Toaster } from "../../../components/toast/toaster";
 
 const stripePromise = loadStripe(epPaymentsEnvData.publishableKey, {
   stripeAccount: epPaymentsEnvData.accountId,
@@ -134,6 +135,7 @@ export function CheckoutProvider({ children, cart }: CheckoutProviderProps) {
 
   return (
     <Elements options={options} stripe={stripePromise}>
+      <Toaster />
       <StripeCheckoutProvider cart={cart}>{children}</StripeCheckoutProvider>
     </Elements>
   );
