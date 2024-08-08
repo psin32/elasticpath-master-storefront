@@ -34,7 +34,7 @@ export type UsePaymentCompleteReq = {
 };
 
 export function usePaymentComplete(
-  { cartId, accountToken }: UsePaymentCompleteProps,
+  { cartId }: UsePaymentCompleteProps,
   options?: UseMutationOptions<
     {
       order: Resource<Order>;
