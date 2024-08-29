@@ -53,6 +53,8 @@ function BundleProductContainer({
   const {
     meta: { original_display_price },
   } = response;
+  const enableClickAndCollect =
+    process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
 
   const submit = useCallback(
     async (values: any) => {
@@ -61,19 +63,21 @@ function BundleProductContainer({
           additional_information: [],
         },
       };
-      {
-        response?.attributes?.custom_inputs &&
-          Object.keys(response?.attributes?.custom_inputs).map((input) => {
-            const value = values[input];
-            if (value) {
-              const info = {
-                key: response.attributes.custom_inputs[input].name,
-                value,
-              };
-              data.custom_inputs.additional_information.push(info);
-            }
-          });
+      if (enableClickAndCollect) {
+        data.custom_inputs.location = {};
+        data.custom_inputs.location.delivery_mode = "Home Delivery";
       }
+      response?.attributes?.custom_inputs &&
+        Object.keys(response?.attributes?.custom_inputs).map((input) => {
+          const value = values[input];
+          if (value) {
+            const info = {
+              key: response.attributes.custom_inputs[input].name,
+              value,
+            };
+            data.custom_inputs.additional_information.push(info);
+          }
+        });
       mutate({
         productId: configuredProduct.response.id,
         selectedOptions: formSelectedOptionsToData(values.selectedOptions),

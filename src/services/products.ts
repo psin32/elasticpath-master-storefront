@@ -65,7 +65,7 @@ export async function getSubscriptionOfferingById(
 export async function getProductByIds(
   productIds: string,
   client: EPCCClient,
-): Promise<ShopperCatalogResource<ProductResponse[]>> {
+): Promise<ShopperCatalogResourcePage<ProductResponse>> {
   return client.ShopperCatalog.Products.With([
     "main_image",
     "files",

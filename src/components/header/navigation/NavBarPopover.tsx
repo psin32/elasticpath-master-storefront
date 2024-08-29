@@ -21,7 +21,7 @@ export function NavBarPopover({
     return (
       <div key={item.id} className="flex flex-col gap-3 text-sm text-gray-500">
         <span className="font-semibold text-black">{item.name}</span>
-        {item.children.map((child: NavigationNode) => (
+        {item?.children?.map((child: NavigationNode) => (
           <Link
             key={child.id}
             href={`/search${child.href}`}

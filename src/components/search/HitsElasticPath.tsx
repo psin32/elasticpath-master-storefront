@@ -38,6 +38,9 @@ export default function HitsElasticPath(): JSX.Element {
     return <NoResults displayIcon={false} />;
   }
 
+  const enableClickAndCollect =
+    process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
+
   const toggleView = () => {
     setView(view === "list" ? "grid" : "list");
   };
@@ -60,8 +63,18 @@ export default function HitsElasticPath(): JSX.Element {
 
   const handleAddToCart = (productId: string) => {
     const item = items.find((item: any) => item.productId === productId);
+    const data: any = {
+      custom_inputs: {
+        additional_information: [],
+      },
+    };
+    if (enableClickAndCollect) {
+      data.custom_inputs.location = {};
+      data.custom_inputs.location.delivery_mode = "Home Delivery";
+    }
+
     mutate(
-      { productId: item.productId, quantity: item.quantity },
+      { productId: item.productId, quantity: item.quantity, data },
       {
         onError: (response: any) => {
           if (response?.errors) {
@@ -80,11 +93,20 @@ export default function HitsElasticPath(): JSX.Element {
     const cartItems: CartItemObject[] = items
       .filter((item: any) => item.productId && item.quantity > 0)
       .map((item: any) => {
-        return {
+        const data: any = {
           type: "cart_item",
           id: item.productId,
           quantity: item.quantity,
+          custom_inputs: {
+            additional_information: [],
+          },
         };
+        if (enableClickAndCollect) {
+          data.custom_inputs.location = {};
+          data.custom_inputs.location.delivery_mode = "Home Delivery";
+        }
+
+        return data;
       });
     mutateBulkOrder(cartItems, {
       onSuccess: (response: any) => {

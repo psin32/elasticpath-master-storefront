@@ -12,6 +12,9 @@ import { CART_COOKIE_NAME } from "../../lib/cookie-constants";
 import { useRouter } from "next/navigation";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { useCart } from "../../react-shopper-hooks";
+import { StatusButton } from "../button/StatusButton";
+import { TrashIcon } from "@heroicons/react/24/outline";
+import { upsertCart } from "./actions";
 
 export type ManageCartsProps = {
   token: string;
@@ -26,10 +29,22 @@ export function ManageCarts({ token }: ManageCartsProps) {
   const client = getEpccImplicitClient();
   const [accountCarts, setAccountCarts] = useState<any>();
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
-  const [name, setName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
   const [newCart, setNewCart] = useState<boolean>(false);
   const [cartId, setCartId] = useState<string | undefined>(undefined);
+  const [cartRequest, setCartRequest] = useState<any>();
+  const [customFields, setCustomFields] = useState([
+    {
+      fieldName: "",
+      fieldType: "string",
+      fieldValue: "",
+    },
+  ]);
+
+  const handleDeleteRow = (index: number) => {
+    const newCustomFields = customFields.slice();
+    newCustomFields.splice(index, 1);
+    setCustomFields(newCustomFields);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -76,17 +91,18 @@ export function ManageCarts({ token }: ManageCartsProps) {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (newCart) {
-      await client.Cart().CreateCart({
-        name,
-        description,
-      });
-    } else {
-      await client.Cart(cartId).UpdateCart({
-        name,
-        description,
-      });
-    }
+    const customFieldRequest: any = { custom_attributes: {} };
+
+    customFields?.forEach(({ fieldName, fieldType, fieldValue }) => {
+      if (fieldName) {
+        customFieldRequest.custom_attributes[fieldName] = {
+          type: fieldType,
+          value: fieldType === "integer" ? Number(fieldValue) : fieldValue,
+        };
+      }
+    });
+    const updatedCartRequest = { ...cartRequest, ...customFieldRequest };
+    await upsertCart(newCart, updatedCartRequest, cartId);
 
     setIsOverlayOpen(false);
     await refreshCart();
@@ -94,20 +110,51 @@ export function ManageCarts({ token }: ManageCartsProps) {
   };
 
   const handleOpenOverlay = (newCart: boolean, cartId?: string) => {
-    setName("");
-    setDescription("");
+    setCartRequest({});
     setNewCart(newCart);
     setCartId(cartId);
     if (cartId) {
       const cart = accountCarts.data.find((cart: any) => cart.id == cartId);
-      setName(cart.name);
-      setDescription(cart.description);
+      setCartRequest(cart);
+      const fields =
+        cart?.custom_attributes &&
+        Object.keys(cart?.custom_attributes).map((fieldName) => {
+          return {
+            fieldName,
+            fieldType: cart.custom_attributes[fieldName].type,
+            fieldValue: cart.custom_attributes[fieldName].value,
+          };
+        });
+      setCustomFields(fields);
     }
     setIsOverlayOpen(true);
   };
 
   const handleCloseOverlay = () => {
     setIsOverlayOpen(false);
+  };
+
+  const handleCartRequest = (field: string, value: any) => {
+    const request = { ...cartRequest };
+    request[field] = value;
+    setCartRequest(request);
+  };
+
+  const addNewFieldRow = () => {
+    if (customFields) {
+      setCustomFields([
+        ...customFields,
+        { fieldName: "", fieldType: "string", fieldValue: "" },
+      ]);
+    } else {
+      setCustomFields([{ fieldName: "", fieldType: "string", fieldValue: "" }]);
+    }
+  };
+
+  const handleInputChange = (index: number, field: any, value: any) => {
+    const newItems: any = customFields.slice();
+    newItems[index][field] = value;
+    setCustomFields(newItems);
   };
 
   return (
@@ -121,7 +168,7 @@ export function ManageCarts({ token }: ManageCartsProps) {
               <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                 <button
                   type="button"
-                  className="block rounded-md bg-brand-primary px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-highlight focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
+                  className="block rounded-md bg-brand-primary px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
                   onClick={() => handleOpenOverlay(true)}
                 >
                   Create New Cart
@@ -342,7 +389,7 @@ export function ManageCarts({ token }: ManageCartsProps) {
       </div>
       {isOverlayOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md relative">
+          <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-4xl relative">
             <button
               onClick={handleCloseOverlay}
               className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
@@ -364,8 +411,8 @@ export function ManageCarts({ token }: ManageCartsProps) {
                   type="text"
                   id="name"
                   name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={cartRequest?.name}
+                  onChange={(e) => handleCartRequest("name", e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
                 />
               </div>
@@ -379,17 +426,136 @@ export function ManageCarts({ token }: ManageCartsProps) {
                 <textarea
                   id="description"
                   name="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  value={cartRequest?.description}
+                  onChange={(e) =>
+                    handleCartRequest("description", e.target.value)
+                  }
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-primary focus:border-brand-primary sm:text-sm"
                 />
               </div>
-              <button
-                type="submit"
-                className="w-full bg-brand-primary text-white py-2 px-4 rounded-md hover:bg-brand-highlight focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary"
-              >
-                Submit
-              </button>
+              {/* New Field Section */}
+              <div>
+                {customFields?.length > 0 && (
+                  <span className="text-sm font-medium text-gray-700">
+                    Custom Attributes:
+                  </span>
+                )}
+                <div className="grid grid-cols-1 gap-4">
+                  {customFields?.map((field, index) => (
+                    <div key={index}>
+                      <div className="flex space-x-4 mt-1">
+                        <input
+                          type="text"
+                          placeholder="Field Name"
+                          name="fieldName"
+                          className="basis-1/3 block w-full border-gray-300 rounded-md shadow-sm p-2 border border-input focus:ring-brand-primary focus:border-brand-primary"
+                          value={field.fieldName}
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              "fieldName",
+                              e.target.value,
+                            )
+                          }
+                        />
+                        <select
+                          id={`fieldType-${index}`}
+                          name="fieldType"
+                          value={field.fieldType}
+                          onChange={(e) =>
+                            handleInputChange(
+                              index,
+                              "fieldType",
+                              e.target.value,
+                            )
+                          }
+                          className="basis-1/3 block w-full border-gray-300 rounded-md shadow-sm p-2 border border-input focus:ring-brand-primary focus:border-brand-primary"
+                        >
+                          <option value="string">String</option>
+                          <option value="integer">Integer</option>
+                          <option value="boolean">Boolean</option>
+                        </select>
+                        {(field.fieldType === "integer" ||
+                          field.fieldType === "string") && (
+                          <input
+                            placeholder="Field Value"
+                            type={
+                              field.fieldType === "integer" ? "number" : "text"
+                            }
+                            id={`fieldValue-${index}`}
+                            name="fieldValue"
+                            value={field.fieldValue}
+                            onChange={(e) =>
+                              handleInputChange(
+                                index,
+                                "fieldValue",
+                                e.target.value,
+                              )
+                            }
+                            className="block w-full border-gray-300 rounded-md shadow-sm p-2 border border-input focus:ring-brand-primary focus:border-brand-primary"
+                          />
+                        )}
+
+                        {field.fieldType === "boolean" && (
+                          <div
+                            onClick={() =>
+                              handleInputChange(
+                                index,
+                                "fieldValue",
+                                !field.fieldValue,
+                              )
+                            }
+                            className={`${
+                              field.fieldValue ? "bg-green-500" : "bg-gray-300"
+                            } mt-1 relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer transition-all`}
+                          >
+                            <span
+                              className={`${
+                                field.fieldValue
+                                  ? "translate-x-6"
+                                  : "translate-x-1"
+                              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-start">
+                          <TrashIcon
+                            className="h-6 w-6 mt-2"
+                            onClick={() => handleDeleteRow(index)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="mt-4 text-sm">
+                  <b>Note:</b> Adding custom fields in this storefront is only
+                  for demo perspective. Customers won&apos;t able to add/edit
+                  custom fields as this require{" "}
+                  <a
+                    className="text-blue-800"
+                    href="https://elasticpath.dev/docs/authentication/Tokens/client-credential-token"
+                    target="_blank"
+                  >
+                    client credentials token.
+                  </a>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-between">
+                <StatusButton
+                  variant="secondary"
+                  type="button"
+                  onClick={addNewFieldRow}
+                  className="text-md hover:bg-gray-100"
+                >
+                  Add Custom Fields
+                </StatusButton>
+                <StatusButton variant="primary" type="submit">
+                  {newCart ? "Create Cart" : "Update Cart"}
+                </StatusButton>
+              </div>
             </form>
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
   Moltin,
   PasswordProfileBody,
 } from "@moltin/sdk";
+import { createAdminApiClient } from "@builder.io/admin-sdk";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -16,7 +17,150 @@ const inputValue = (text: string) => {
   return new Promise<string>((resolve) => rl.question(text, resolve));
 };
 
+const mutation = `
+  mutation {
+    addModel(
+      body: {
+        id: "58726043578943c09a70996b8dc546c7",
+        name: "navigation",
+        kind: "data",
+        showTargeting: true,
+        allowHeatmap: true,
+        showMetrics: true,
+        publicReadable: true,
+        helperText: "Navigation",
+        bigData: false,
+        strictPrivateWrite: false,
+        showScheduling: true,
+        showAbTests: true,
+        pathPrefix: "/",
+        componentsOnlyMode: false,
+        fields: [
+          {
+            type: "list",
+            name: "data",
+            required: false,
+            subFields: [
+              {
+                type: "text",
+                name: "name",
+              },
+              {
+                type: "text",
+                name: "slug",
+              },
+              {
+                type: "url",
+                name: "href",
+              },
+              {
+                type: "boolean",
+                name: "enabled",
+                defaultValue: true,
+              },
+              {
+                type: "file",
+                name: "image",
+              },
+              {
+                type: "list",
+                name: "children",
+                subFields: [
+                  {
+                    type: "text",
+                    name: "name",
+                  },
+                  {
+                    type: "text",
+                    name: "slug",
+                  },
+                  {
+                    type: "boolean",
+                    name: "enabled",
+                    defaultValue: true,
+                  },
+                  {
+                    type: "url",
+                    name: "href",
+                  },
+                  {
+                    type: "file",
+                    name: "image",
+                  },
+                  {
+                    type: "list",
+                    name: "children",
+                    subFields: [
+                      {
+                        type: "text",
+                        name: "name",
+                      },
+                      {
+                        type: "text",
+                        name: "slug",
+                      },
+                      {
+                        type: "boolean",
+                        name: "enabled",
+                        defaultValue: true,
+                      },
+                      {
+                        type: "url",
+                        name: "href",
+                      },
+                      {
+                        type: "file",
+                        name: "image",
+                      },
+                      {
+                        type: "list",
+                        name: "children",
+                        subFields: [
+                          {
+                            type: "text",
+                            name: "name",
+                          },
+                          {
+                            type: "text",
+                            name: "slug",
+                          },
+                          {
+                            type: "boolean",
+                            name: "enabled",
+                            defaultValue: true,
+                          },
+                          {
+                            type: "url",
+                            name: "href",
+                          },
+                          {
+                            type: "file",
+                            name: "image",
+                          },
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+      }
+    ) {
+      id
+      name
+      kind
+      publicReadable
+    }
+  }`;
+
 export const main = async () => {
+  const builderIOPrivateAPIKey = await inputValue(
+    "Enter Builder.IO private key - ",
+  );
+  await createModel(builderIOPrivateAPIKey);
+
   const region = await inputValue(
     "Enter Elastic Path Store Region: <EU/US> - ",
   );
@@ -189,6 +333,29 @@ const getIntegrationHubAccessToken = async (epcc: Moltin) => {
     "v2",
   );
   console.log("response", response);
+};
+
+const createModel = async (apiKey: string) => {
+  try {
+    const response = await fetch("https://builder.io/api/v2/admin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ query: mutation }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log("Response:", data);
+    } else {
+      console.error("Error:", data);
+    }
+  } catch (error) {
+    console.error("Error:", error.message);
+  }
 };
 
 main();
