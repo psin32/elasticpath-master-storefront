@@ -1,10 +1,9 @@
 import { cookies } from "next/headers";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../../lib/cookie-constants";
 import { redirect } from "next/navigation";
-import { gateway, SubscriptionsStateAction } from "@moltin/sdk";
 import { retrieveAccountMemberCredentials } from "../../../../../lib/retrieve-account-member-credentials";
-import { epccEnv } from "../../../../../lib/resolve-epcc-env";
 import { SubscriptionDetails } from "./SubscriptionDetails";
+import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../../lib/epcc-server-side-credentials-client";
 
 export const dynamic = "force-dynamic";
 
@@ -24,12 +23,7 @@ export default async function SubscriptionItems({
     return redirect("/login");
   }
 
-  const { client_id, host, client_secret } = epccEnv;
-  const client = gateway({
-    client_id,
-    client_secret,
-    host,
-  });
+  const client = getServerSideCredentialsClientWihoutAccountToken();
 
   const include: any = ["plans", "products"];
   let subscription: any = await client.Subscriptions.With(include).Get(

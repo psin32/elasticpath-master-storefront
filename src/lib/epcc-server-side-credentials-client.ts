@@ -3,9 +3,15 @@ import { gateway, StorageFactory } from "@moltin/sdk";
 import { epccEnv } from "./resolve-epcc-env";
 import { resolveEpccCustomRuleHeaders } from "./custom-rule-headers";
 import { COOKIE_PREFIX_KEY } from "./resolve-cart-env";
-import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME, CREDENTIALS_COOKIE_NAME } from "./cookie-constants";
+import {
+  ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  CREDENTIALS_COOKIE_NAME,
+} from "./cookie-constants";
 import { cookies } from "next/headers";
-import { getSelectedAccount, retrieveAccountMemberCredentials } from "./retrieve-account-member-credentials";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "./retrieve-account-member-credentials";
 
 let customHeaders = resolveEpccCustomRuleHeaders();
 
@@ -21,20 +27,20 @@ export function getServerSideCredentialsClient() {
     cookies(),
     ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
   );
-  let accountToken = ""
+  let accountToken = "";
   if (accountMemberCookie) {
     const selectedAccount = getSelectedAccount(accountMemberCookie);
-    accountToken = selectedAccount.token
+    accountToken = selectedAccount.token;
   }
 
   if (customHeaders) {
-    customHeaders["EP-Account-Management-Authentication-Token"] = accountToken
-    customHeaders["EP-Context-Tag"] = tagInCookie?.value || ""
+    customHeaders["EP-Account-Management-Authentication-Token"] = accountToken;
+    customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
   } else {
     customHeaders = {
       "EP-Account-Management-Authentication-Token": accountToken,
-      "EP-Context-Tag": tagInCookie?.value || ""
-    }
+      "EP-Context-Tag": tagInCookie?.value || "",
+    };
   }
 
   return gateway({
@@ -42,7 +48,37 @@ export function getServerSideCredentialsClient() {
     client_id,
     client_secret,
     host,
-    currency: currencyInCookie?.value ? currencyInCookie?.value : process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE,
+    currency: currencyInCookie?.value
+      ? currencyInCookie?.value
+      : process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE,
+    ...(customHeaders ? { headers: customHeaders } : {}),
+    reauth: false,
+    storage: createServerSideNextCookieStorageFactory(credentialsCookie?.value),
+  });
+}
+
+export function getServerSideCredentialsClientWihoutAccountToken() {
+  const cookieStore = cookies();
+  const credentialsCookie = cookieStore.get(CREDENTIALS_COOKIE_NAME);
+  const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
+
+  if (customHeaders) {
+    customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+  } else {
+    customHeaders = {
+      "EP-Context-Tag": tagInCookie?.value || "",
+    };
+  }
+
+  return gateway({
+    name: `${COOKIE_PREFIX_KEY}_creds`,
+    client_id,
+    client_secret,
+    host,
+    currency: currencyInCookie?.value
+      ? currencyInCookie?.value
+      : process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE,
     ...(customHeaders ? { headers: customHeaders } : {}),
     reauth: false,
     storage: createServerSideNextCookieStorageFactory(credentialsCookie?.value),
