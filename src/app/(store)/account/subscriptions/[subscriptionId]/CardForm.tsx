@@ -11,8 +11,6 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import { epPaymentsEnvData } from "../../../../../lib/resolve-ep-stripe-env";
 
 interface CardFormProps {
   subscription: any;
@@ -58,6 +56,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       if (customer_id) {
         const response = await getSavedCard(customer_id);
         setSavedCards(response);
+        setSelectedCard(response[0]?.id);
       }
     };
     init();

@@ -3,7 +3,7 @@
 import Stripe from "stripe";
 import { epPaymentsEnvData } from "../../../../../lib/resolve-ep-stripe-env";
 import { gateway, SubscriptionsStateAction } from "@moltin/sdk";
-import { epccEnv } from "../../../../../lib/resolve-epcc-env";
+import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../../lib/epcc-server-side-credentials-client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-06-20",
@@ -19,12 +19,7 @@ export const associateCardWithSubscription = async (
   subscriptionId: string,
   cardId: string,
 ) => {
-  const { client_id, host, client_secret } = epccEnv;
-  const client = gateway({
-    client_id,
-    client_secret,
-    host,
-  });
+  const client = getServerSideCredentialsClientWihoutAccountToken();
   const request: any = {
     id: subscriptionId,
     type: "subscription",
@@ -84,12 +79,6 @@ export const changeState = async (
   subscriptionId: string,
   state: SubscriptionsStateAction,
 ) => {
-  const { client_id, host, client_secret } = epccEnv;
-  const client = gateway({
-    client_id,
-    client_secret,
-    host,
-  });
-
+  const client = getServerSideCredentialsClientWihoutAccountToken();
   await client.Subscriptions.CreateState(subscriptionId, state);
 };
