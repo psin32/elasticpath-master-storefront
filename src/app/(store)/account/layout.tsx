@@ -9,7 +9,7 @@ export default function AccountLayout({ children }: { children: ReactNode }) {
           <div className="hidden xl:block">
             <AccountNavigation />
           </div>
-          <div className="w-full sm:w-[39rem]">{children}</div>
+          <div className="w-full sm:w-2/3">{children}</div>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
 } from "../../../components/checkout/form-schema/checkout-form-schema";
 import {
   CartState,
+  RefinedCartItem,
   useAuthedAccountMember,
   useCart,
 } from "../../../react-shopper-hooks";
@@ -114,7 +115,11 @@ export function StripeCheckoutProvider({
 
 export function CheckoutProvider({ children, cart }: CheckoutProviderProps) {
   const { state } = useCart();
-
+  const subscriptionItems = state?.items.filter(
+    (item: RefinedCartItem) => item.subscription_offering_id,
+  );
+  const hasSubscriptionItem =
+    subscriptionItems && subscriptionItems?.length > 0;
   const options: StripeElementsOptions = {
     mode: "payment",
     currency: EP_CURRENCY_CODE.toLowerCase(),
@@ -132,6 +137,9 @@ export function CheckoutProvider({ children, cart }: CheckoutProviderProps) {
       theme: "stripe",
     },
   };
+  if (hasSubscriptionItem) {
+    options.paymentMethodCreation = "manual";
+  }
 
   return (
     <Elements options={options} stripe={stripePromise}>

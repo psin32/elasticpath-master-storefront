@@ -152,6 +152,23 @@ export function AccountMenu() {
                       <div>
                         <Popover.Button
                           as={Link}
+                          href="/account/subscriptions"
+                          className={`${
+                            pathname.startsWith("/account/subscriptions")
+                              ? "font-semibold"
+                              : "text-gray-900"
+                          } group flex w-full items-center rounded-md px-2 py-2 text-sm hover:bg-brand-primary hover:text-white transition-color ease-in-out duration-100`}
+                        >
+                          <ClipboardDocumentListIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                          Subscription
+                        </Popover.Button>
+                      </div>
+                      <div>
+                        <Popover.Button
+                          as={Link}
                           href="/account/addresses"
                           className={`${
                             pathname.startsWith("/account/addresses")

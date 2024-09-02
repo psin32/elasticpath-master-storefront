@@ -16,7 +16,7 @@ export function OrderItemWithDetails(props: Omit<OrderItemProps, "children">) {
             </li>
           ))}
         </ul>
-        <div className="w-full border-t border-black/10" />
+        <div className="w-full" />
         <div className="flex flex-col">
           <span className="text-black/60 text-sm">Ordered</span>
           <time

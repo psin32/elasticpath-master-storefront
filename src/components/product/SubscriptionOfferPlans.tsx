@@ -147,7 +147,11 @@ export default function SubscriptionOfferPlans({
                                 {plan.attributes.description}
                               </span>
                               <span>
-                                Frequency: {plan.attributes.plan_length}{" "}
+                                Frequency: {plan.attributes.billing_frequency}{" "}
+                                {plan.attributes.billing_interval_type}
+                              </span>
+                              <span>
+                                Length: {plan.attributes.plan_length}{" "}
                                 {plan.attributes.billing_interval_type}
                               </span>
                               <span>

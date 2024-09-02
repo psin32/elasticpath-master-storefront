@@ -46,7 +46,8 @@ export default async function Orders({
 
   const client = getServerSideImplicitClient();
 
-  const result: Awaited<ReturnType<typeof client.Orders.All>> = await client.Orders.With("items").Limit(limit).Offset(offset).All()
+  const result: Awaited<ReturnType<typeof client.Orders.All>> =
+    await client.Orders.With("items").Limit(limit).Offset(offset).All();
 
   const mappedOrders = result.included
     ? resolveShopperOrder(result.data, result.included)
@@ -59,7 +60,7 @@ export default async function Orders({
       <div className="flex self-stretch">
         <h1 className="text-2xl">Order history</h1>
       </div>
-      <div className="flex self-stretch">
+      <div className="w-full">
         <ul role="list">
           {mappedOrders.map(({ raw: order, items }) => (
             <li key={order.id}>
@@ -103,9 +104,9 @@ function resolveShopperOrder(
   return data.map((order) => {
     const orderItems = order.relationships?.items?.data
       ? resolveOrderItemsFromRelationship(
-        order.relationships.items.data,
-        itemMap,
-      )
+          order.relationships.items.data,
+          itemMap,
+        )
       : [];
 
     return {

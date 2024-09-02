@@ -156,10 +156,10 @@ const mutation = `
   }`;
 
 export const main = async () => {
-  const builderIOPrivateAPIKey = await inputValue(
-    "Enter Builder.IO private key - ",
-  );
-  await createModel(builderIOPrivateAPIKey);
+  // const builderIOPrivateAPIKey = await inputValue(
+  //   "Enter Builder.IO private key - ",
+  // );
+  // await createModel(builderIOPrivateAPIKey);
 
   const region = await inputValue(
     "Enter Elastic Path Store Region: <EU/US> - ",
