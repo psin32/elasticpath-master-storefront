@@ -1,6 +1,5 @@
 "use client";
 import { Popover } from "@headlessui/react";
-import { ReactNode } from "react";
 import {
   ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
@@ -14,11 +13,14 @@ import {
 import Link from "next/link";
 import { logout } from "../../../app/(auth)/actions";
 import { useAuthedAccountMember } from "../../../react-shopper-hooks";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useFloating } from "@floating-ui/react";
+import { getCookie } from "cookies-next";
+import { ADMIN_TOKEN_COOKIE_NAME } from "../../../lib/cookie-constants";
 
 export function AccountMenu() {
+  const router = useRouter();
   const { data } = useAuthedAccountMember();
 
   const pathname = usePathname();
@@ -29,11 +31,14 @@ export function AccountMenu() {
     placement: "bottom-end",
   });
 
+  const adminCookie = getCookie(ADMIN_TOKEN_COOKIE_NAME);
+
   return (
     <Popover className="relative">
       {({ close }) => {
         async function logoutAction() {
           await logout();
+          adminCookie && router.push("/admin/login");
           close();
         }
 
@@ -197,7 +202,7 @@ export function AccountMenu() {
                               className="mr-2 h-5 w-5"
                               aria-hidden="true"
                             />
-                            Logout
+                            {adminCookie ? "Back To Admin" : "Logout"}
                           </button>
                         </form>
                       </div>
