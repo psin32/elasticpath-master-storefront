@@ -31,8 +31,12 @@ export async function impersonateUser(accountMemberId: string) {
     const params: any = {
       eq: { id: accountMemberId },
     };
-    const userAuthInfo =
-      await client.UserAuthenticationInfo.Filter(params).All(realmId);
+    const userAuthInfo = await client.UserAuthenticationInfo.Filter(params)
+      .All(realmId)
+      .catch((err: any) => {
+        console.error("Error in UserAuthenticationInfo All", err);
+        return err;
+      });
     const request: UserAuthenticationPasswordProfileBody = {
       type: "user_authentication_password_profile_info",
       password_profile_id: passwordProfileID,
@@ -44,33 +48,52 @@ export async function impersonateUser(accountMemberId: string) {
         realmId,
         userAuthInfo.data[0].id,
         { data: request },
-      );
+      ).catch((err: any) => {
+        console.error("Error in UserAuthenticationPasswordProfile Create", err);
+        return err;
+      });
     const result = await client.AccountMembers.GenerateAccountToken({
       type: "account_management_authentication_token",
       authentication_mechanism: "password",
       password_profile_id: passwordProfileID,
-      username: userAuthInfo.data[0].email.toLowerCase(), // Known bug for uppercase usernames so we force lowercase.
+      username: userAuthInfo.data[0].email,
       password,
+    }).catch((err: any) => {
+      console.error("Error in GenerateAccountToken", err);
+      return err;
     });
     const cookieStore = cookies();
-    cookieStore.set(createCookieFromGenerateTokenResponse(result));
+    cookieStore.set(
+      createCookieFromGenerateTokenResponse(
+        result,
+        userAuthInfo.data[0].email,
+        userAuthInfo.data[0].name,
+      ),
+    );
     await client.UserAuthenticationPasswordProfile.Delete(
       realmId,
       userAuthInfo.data[0].id,
       userAuthenticationPasswordProfile.data.id,
-    );
+    ).catch((err: any) => {
+      console.error("Error in UserAuthenticationPasswordProfile Delete", err);
+    });
   }
 }
 
 function createCookieFromGenerateTokenResponse(
   response: ResourcePage<AccountTokenBase>,
+  email: string,
+  name: string,
 ): ResponseCookie {
   const { expires } = response.data[0]; // assuming all tokens have shared expiration date/time
+  const memberId = (response.meta as unknown as { account_member_id: string })
+    .account_member_id;
 
   const cookieValue = createAccountMemberCredentialsCookieValue(
     response.data,
-    (response.meta as unknown as { account_member_id: string })
-      .account_member_id, // TODO update sdk types
+    memberId,
+    email,
+    name,
   );
 
   return {
@@ -85,6 +108,8 @@ function createCookieFromGenerateTokenResponse(
 function createAccountMemberCredentialsCookieValue(
   responseTokens: AccountTokenBase[],
   accountMemberId: string,
+  email: string,
+  name: string,
 ): AccountMemberCredentials {
   return {
     accounts: responseTokens.reduce(
@@ -102,5 +127,7 @@ function createAccountMemberCredentialsCookieValue(
     ),
     selected: responseTokens[0].account_id,
     accountMemberId,
+    email,
+    name,
   };
 }

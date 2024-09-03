@@ -26,7 +26,7 @@ export default async function SubscriptionItems({
   const client = getServerSideCredentialsClientWihoutAccountToken();
 
   const include: any = ["plans", "products"];
-  let subscription: any = await client.Subscriptions.With(include).Get(
+  const subscription: any = await client.Subscriptions.With(include).Get(
     params.subscriptionId,
   );
   const invoices = await client.request
@@ -44,6 +44,9 @@ export default async function SubscriptionItems({
     });
 
   return (
-    <SubscriptionDetails subscription={subscription} invoices={invoices} />
+    subscription?.data?.attributes?.payment_authority?.customer_id &&
+    invoices && (
+      <SubscriptionDetails subscription={subscription} invoices={invoices} />
+    )
   );
 }

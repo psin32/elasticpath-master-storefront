@@ -1,17 +1,18 @@
-import EpLogo from "../../../../components/icons/ep-logo";
+import EpLogo from "../../../components/icons/ep-logo";
 import { cookies } from "next/headers";
-import { isAccountMemberAuthenticated } from "../../../../lib/is-account-member-authenticated";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { AdminLoginForm } from "./AdminLoginForm";
-import { useTranslation } from "../../../i18n";
-import { ADMIN_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
+import { useTranslation } from "../../i18n";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../../lib/auth";
 
 export default async function Login({
   searchParams,
 }: {
   searchParams: { returnUrl?: string };
 }) {
+  const session = await getServerSession(authOptions);
   const { returnUrl } = searchParams;
 
   const cookieStore = cookies();
@@ -21,8 +22,7 @@ export default async function Login({
     {},
   );
 
-  const adminToken = cookieStore.get(ADMIN_TOKEN_COOKIE_NAME);
-  if (adminToken?.value) {
+  if (session?.user) {
     redirect("/admin/dashboard");
   }
 

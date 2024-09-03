@@ -16,12 +16,12 @@ import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { useFloating } from "@floating-ui/react";
-import { getCookie } from "cookies-next";
-import { ADMIN_TOKEN_COOKIE_NAME } from "../../../lib/cookie-constants";
+import { useSession } from "next-auth/react";
 
 export function AccountMenu() {
   const router = useRouter();
   const { data } = useAuthedAccountMember();
+  const { data: session, status } = useSession();
 
   const pathname = usePathname();
 
@@ -31,14 +31,14 @@ export function AccountMenu() {
     placement: "bottom-end",
   });
 
-  const adminCookie = getCookie(ADMIN_TOKEN_COOKIE_NAME);
-
   return (
     <Popover className="relative">
       {({ close }) => {
         async function logoutAction() {
           await logout();
-          adminCookie && router.push("/admin/login");
+          session?.user &&
+            status == "authenticated" &&
+            router.push("/admin/dashboard");
           close();
         }
 
@@ -202,7 +202,9 @@ export function AccountMenu() {
                               className="mr-2 h-5 w-5"
                               aria-hidden="true"
                             />
-                            {adminCookie ? "Back To Admin" : "Logout"}
+                            {session?.user && status == "authenticated"
+                              ? "Back To Admin"
+                              : "Logout"}
                           </button>
                         </form>
                       </div>

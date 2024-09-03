@@ -16,6 +16,8 @@ export const accountMemberCredentialsSchema = z.object({
   accounts: z.record(z.string(), accountMemberCredentialSchema),
   selected: z.string(),
   accountMemberId: z.string(),
+  email: z.string().optional(),
+  name: z.string().optional(),
 });
 
 export type AccountMemberCredentials = z.infer<

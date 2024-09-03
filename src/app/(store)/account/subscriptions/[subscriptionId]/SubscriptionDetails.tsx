@@ -32,17 +32,13 @@ export function SubscriptionDetails({
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
   const [resumeLoading, setResumeLoading] = useState<boolean>(false);
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
-  const [cardData, setCardData] = useState<any>();
-  const [expMonth, setExpMonth] = useState<number>();
-  const [expYear, setExpYear] = useState<number>();
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
   const {
     data: {
       id,
       meta: { paused, canceled },
       attributes: {
-        payment_authority: { card_id, customer_id },
+        payment_authority: { customer_id },
       },
     },
     included: { plans },

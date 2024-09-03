@@ -79,7 +79,7 @@ export function getServerSideCredentialsClientWihoutAccountToken() {
     currency: currencyInCookie?.value
       ? currencyInCookie?.value
       : process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE,
-    ...(customHeaders ? { headers: customHeaders } : {}),
+    ...{},
     reauth: false,
     storage: createServerSideNextCookieStorageFactory(credentialsCookie?.value),
   });

@@ -2,7 +2,6 @@
 
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { ADMIN_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
 import { redirect } from "next/navigation";
 
 const loginSchema = z.object({
@@ -43,7 +42,7 @@ export async function login(props: FormData) {
   const result = await response.json();
   const cookieStore = cookies();
   cookieStore.set({
-    name: ADMIN_TOKEN_COOKIE_NAME,
+    name: "",
     value: result.access_token,
     path: "/",
     sameSite: "strict",
