@@ -180,7 +180,6 @@ export function usePaymentComplete(
       if (
         !("guest" in data) &&
         stripe_customer_id &&
-        subsItem?.length > 0 &&
         paymentMethod === "ep_payment"
       ) {
         const { error, paymentMethod } = await stripe?.createPaymentMethod({
@@ -207,9 +206,6 @@ export function usePaymentComplete(
         };
       }
 
-      if (subsItem?.length == 0 && paymentMethod === "ep_payment") {
-        paymentRequest.payment.payment_method_types = ["card"];
-      }
       /**
        * 2. Start payment against the order
        */
@@ -225,7 +221,7 @@ export function usePaymentComplete(
         },
       });
 
-      if (paymentMethod === "ep_payment" && subsItem?.length == 0) {
+      if (paymentMethod === "klarna" && subsItem?.length == 0) {
         /**
          * 3. Confirm the payment with Stripe
          */
@@ -262,9 +258,6 @@ export function usePaymentComplete(
           transactionId: confirmedPayment.data.id,
           options: {},
         });
-      }
-
-      if (paymentMethod === "manual") {
       }
 
       return {

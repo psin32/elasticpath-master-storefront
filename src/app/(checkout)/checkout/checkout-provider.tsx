@@ -136,10 +136,8 @@ export function CheckoutProvider({ children, cart }: CheckoutProviderProps) {
     appearance: {
       theme: "stripe",
     },
+    paymentMethodCreation: "manual",
   };
-  if (hasSubscriptionItem) {
-    options.paymentMethodCreation = "manual";
-  }
 
   return (
     <Elements options={options} stripe={stripePromise}>
