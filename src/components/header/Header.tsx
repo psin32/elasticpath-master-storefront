@@ -16,7 +16,7 @@ import BulkOrderButton from "./BulkOrderButton";
 import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
-import AdminAccountLogout from "./AdminAccountLogout";
+import AdminAccountBanner from "./AdminAccountBanner";
 
 const Header = async () => {
   const content = await getBanner();
@@ -34,7 +34,7 @@ const Header = async () => {
   return (
     <>
       <div className="sticky z-10 border-b border-gray-200 bg-white">
-        <AdminAccountLogout accountMemberCookie={accountMemberCookie} />
+        <AdminAccountBanner accountMemberCookie={accountMemberCookie} />
         <Content content={catalogMenu}></Content>
         <Content content={content}></Content>
         <Suspense>

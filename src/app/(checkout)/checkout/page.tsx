@@ -12,6 +12,7 @@ import { COOKIE_PREFIX_KEY } from "../../../lib/resolve-cart-env";
 import { CheckoutProvider } from "./checkout-provider";
 import { CheckoutViews } from "./CheckoutViews";
 import { getServerSideCredentialsClient } from "../../../lib/epcc-server-side-credentials-client";
+import AdminAccountBanner from "../../../components/header/AdminAccountBanner";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -53,6 +54,7 @@ export default async function CheckoutPage() {
   return (
     <CheckoutProvider>
       <CheckoutViews>
+        <AdminAccountBanner accountMemberCookie={accountMemberCookie} />
         {!accountMemberCookie ? (
           <GuestCheckout />
         ) : (

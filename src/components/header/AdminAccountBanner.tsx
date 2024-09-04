@@ -4,7 +4,7 @@ import { StatusButton } from "../button/StatusButton";
 import { AccountMemberCredentials } from "../../app/(auth)/account-member-credentials-schema";
 import { logout } from "../../app/(auth)/actions";
 
-const AdminAccountLogout = ({
+const AdminAccountBanner = ({
   accountMemberCookie,
 }: {
   accountMemberCookie: AccountMemberCredentials | undefined;
@@ -35,4 +35,4 @@ const AdminAccountLogout = ({
   );
 };
 
-export default AdminAccountLogout;
+export default AdminAccountBanner;
