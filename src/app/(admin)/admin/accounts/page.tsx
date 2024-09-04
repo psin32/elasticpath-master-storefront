@@ -77,16 +77,12 @@ export default function AccountsPage() {
     if (selectedMemberId === null) return;
 
     setIsOverlayOpen(false);
-    setLoading(true);
 
     try {
       await impersonateUser(selectedMemberId);
-      alert("Redirecting to shopping experience...");
       router.push("/");
-      setLoading(false);
     } catch (error) {
       setError("Failed to impersonate user.");
-      setLoading(false);
     }
   };
 

@@ -4,6 +4,7 @@ import { getStoreInitialState } from "../../lib/get-store-initial-state";
 import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit-client";
 import { Providers } from "../providers";
 import clsx from "clsx";
+import NextAuthSessionProvider from "../../components/header/admin/SessionProviders";
 
 const { SITE_NAME } = process.env;
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -37,15 +38,17 @@ export default async function CheckoutLayout({
   const initialState = await getStoreInitialState(client);
 
   return (
-    <html lang="en" className={clsx(inter.variable, "h-full bg-white")}>
-      <body className="h-full">
-        {/* headless ui needs this div - https://github.com/tailwindlabs/headlessui/issues/2752#issuecomment-1745272229 */}
-        <div className="h-full">
-          <Providers initialState={initialState}>
-            <main className="h-full">{children}</main>
-          </Providers>
-        </div>
-      </body>
-    </html>
+    <NextAuthSessionProvider>
+      <html lang="en" className={clsx(inter.variable, "h-full bg-white")}>
+        <body className="h-full">
+          {/* headless ui needs this div - https://github.com/tailwindlabs/headlessui/issues/2752#issuecomment-1745272229 */}
+          <div className="h-full">
+            <Providers initialState={initialState}>
+              <main className="h-full">{children}</main>
+            </Providers>
+          </div>
+        </body>
+      </html>
+    </NextAuthSessionProvider>
   );
 }

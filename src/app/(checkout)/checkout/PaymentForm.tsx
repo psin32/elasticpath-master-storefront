@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PaymentElement } from "@stripe/react-stripe-js";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
 import { useFormContext } from "react-hook-form";
@@ -12,14 +12,42 @@ import {
   FormMessage,
 } from "../../../components/form/Form";
 import { Input } from "../../../components/input/Input";
+import { useSession } from "next-auth/react";
+import { getSavedCard } from "../../(store)/account/subscriptions/[subscriptionId]/actions";
 
-export function PaymentForm() {
+type PaymentFormProps = {
+  stripeCustomerId?: string | undefined;
+};
+
+export function PaymentForm({ stripeCustomerId }: PaymentFormProps) {
   const [openTab, setOpenTab] = useState(1);
+  const { data: session, status } = useSession();
   const { control, setValue } = useFormContext<CheckoutFormSchemaType>();
+  const [savedCards, setSavedCards] = useState<any>([]);
+  const [selectedCard, setSelectedCard] = useState<string>("");
 
   const toggleTab = (tab: number) => {
-    setValue("paymentMethod", tab === 1 ? "ep_payment" : "manual");
+    setValue(
+      "paymentMethod",
+      tab === 1 ? "ep_payment" : tab === 2 ? "manual" : "saved_card",
+    );
     setOpenTab(openTab === tab ? 0 : tab);
+  };
+
+  useEffect(() => {
+    const fetchSavedCards = async () => {
+      if (stripeCustomerId) {
+        const response = await getSavedCard(stripeCustomerId);
+        setSavedCards(response);
+        setCardId(response?.[0]?.id);
+      }
+    };
+    fetchSavedCards();
+  }, []);
+
+  const setCardId = (cardId: string) => {
+    setSelectedCard(cardId);
+    setValue("cardId", cardId);
   };
 
   const enablePurchaseOrderCheckout =
@@ -78,18 +106,18 @@ export function PaymentForm() {
             <div className="border rounded-lg overflow-hidden shadow-md">
               <div
                 className="cursor-pointer p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition"
-                onClick={() => toggleTab(3)}
+                onClick={() => toggleTab(2)}
               >
                 <h2 className="text-lg font-medium text-gray-800">
                   Purchase Order
                 </h2>
-                {openTab === 3 ? (
+                {openTab === 2 ? (
                   <ChevronUpIcon className="h-5 w-5 text-gray-800" />
                 ) : (
                   <ChevronDownIcon className="h-5 w-5 text-gray-800" />
                 )}
               </div>
-              {openTab === 3 && (
+              {openTab === 2 && (
                 <div className="p-4 bg-gray-50">
                   <form>
                     <FormField
@@ -114,6 +142,45 @@ export function PaymentForm() {
               )}
             </div>
           )}
+          {session?.user && status === "authenticated" && stripeCustomerId && (
+            <div className="border rounded-lg overflow-hidden shadow-md">
+              <div
+                className="cursor-pointer p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition"
+                onClick={() => toggleTab(3)}
+              >
+                <h2 className="text-lg font-medium text-gray-800">
+                  Saved Cards
+                </h2>
+                {openTab === 3 ? (
+                  <ChevronUpIcon className="h-5 w-5 text-gray-800" />
+                ) : (
+                  <ChevronDownIcon className="h-5 w-5 text-gray-800" />
+                )}
+              </div>
+              {openTab === 3 && (
+                <div className="p-4 bg-gray-50">
+                  <form>
+                    {savedCards.length > 0 ? (
+                      <select
+                        className="block w-full p-2 border border-gray-300 rounded-md"
+                        value={selectedCard || ""}
+                        onChange={(e) => setCardId(e.target.value)}
+                      >
+                        {savedCards.map((card: any) => (
+                          <option key={card.id} value={card.id}>
+                            {card.card.brand} **** **** **** {card.card.last4} -{" "}
+                            {card.card.exp_month}/{card.card.exp_year}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-gray-600">No saved cards available</p>
+                    )}
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <FormField
@@ -129,6 +196,21 @@ export function PaymentForm() {
           </FormItem>
         )}
       />
+      {selectedCard && (
+        <FormField
+          control={control}
+          name="cardId"
+          defaultValue={selectedCard}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input {...field} sizeKind="mediumUntilSm" type="hidden" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
     </fieldset>
   );
 }

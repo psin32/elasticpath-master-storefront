@@ -56,7 +56,7 @@ export const CardForm: React.FC<CardFormProps> = ({
       if (customer_id) {
         const response = await getSavedCard(customer_id);
         setSavedCards(response);
-        setSelectedCard(response[0]?.id);
+        setSelectedCard(response?.[0]?.id);
       }
     };
     init();

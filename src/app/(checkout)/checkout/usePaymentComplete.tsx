@@ -67,6 +67,7 @@ export function usePaymentComplete(
         shippingMethod,
         purchaseOrderNumber,
         paymentMethod,
+        cardId,
       } = data;
 
       const client = getEpccImplicitClient();
@@ -151,7 +152,7 @@ export function usePaymentComplete(
         };
       }
 
-      if (paymentMethod === "ep_payment") {
+      if (paymentMethod != "manual") {
         paymentRequest = {
           orderId: createdOrder.data.id,
           payment: {
@@ -165,7 +166,20 @@ export function usePaymentComplete(
         (item: any) => item.subscription_offering_id,
       );
 
-      if (!("guest" in data) && stripe_customer_id && subsItem?.length > 0) {
+      if (cardId && paymentMethod === "saved_card") {
+        paymentRequest.payment.payment = cardId;
+        paymentRequest.payment.options = {
+          customer: stripe_customer_id,
+          setup_future_usage: "off_session",
+        };
+      }
+
+      if (
+        !("guest" in data) &&
+        stripe_customer_id &&
+        subsItem?.length > 0 &&
+        paymentMethod === "ep_payment"
+      ) {
         const { error, paymentMethod } = await stripe?.createPaymentMethod({
           elements,
           params: {
@@ -190,7 +204,7 @@ export function usePaymentComplete(
         };
       }
 
-      if (subsItem?.length == 0) {
+      if (subsItem?.length == 0 && paymentMethod === "ep_payment") {
         paymentRequest.payment.payment_method_types = ["card"];
       }
       /**

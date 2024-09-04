@@ -10,10 +10,14 @@ import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
 
 type AccountCheckoutProps = {
+  stripeCustomerId?: string | undefined;
   cart?: any;
 };
 
-export function AccountCheckout({ cart }: AccountCheckoutProps) {
+export function AccountCheckout({
+  cart,
+  stripeCustomerId,
+}: AccountCheckoutProps) {
   return (
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
@@ -38,7 +42,7 @@ export function AccountCheckout({ cart }: AccountCheckoutProps) {
             <ShippingSelector />
           </div>
           <DeliveryForm />
-          <PaymentForm />
+          <PaymentForm stripeCustomerId={stripeCustomerId} />
           <div className="flex flex-1">
             <BillingForm />
           </div>

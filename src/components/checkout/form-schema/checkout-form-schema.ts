@@ -64,6 +64,7 @@ export const anonymousCheckoutFormSchema = z.object({
     .default("__shipping_standard"),
   purchaseOrderNumber: z.string().optional(),
   paymentMethod: z.string().optional(),
+  cardId: z.string().optional(),
 });
 
 export type AnonymousCheckoutForm = z.TypeOf<
@@ -80,6 +81,7 @@ export const accountMemberCheckoutFormSchema = z.object({
     .default("__shipping_standard"),
   purchaseOrderNumber: z.string().optional(),
   paymentMethod: z.string().optional(),
+  cardId: z.string().optional(),
 });
 
 export type AccountMemberCheckoutForm = z.TypeOf<
