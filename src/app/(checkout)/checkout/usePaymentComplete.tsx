@@ -168,6 +168,9 @@ export function usePaymentComplete(
 
       if (cardId && paymentMethod === "saved_card") {
         paymentRequest.payment.payment = cardId;
+      }
+
+      if (stripe_customer_id) {
         paymentRequest.payment.options = {
           customer: stripe_customer_id,
           setup_future_usage: "off_session",
