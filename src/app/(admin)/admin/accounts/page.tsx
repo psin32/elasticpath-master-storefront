@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { StatusButton } from "../../../../components/button/StatusButton";
 import { Overlay } from "../../../../components/overlay/Overlay";
 import { useSession } from "next-auth/react";
+import AdminSpinner from "../../../../components/AdminSpinner";
 
 export default function AccountsPage() {
   const router = useRouter();
@@ -77,12 +78,15 @@ export default function AccountsPage() {
     if (selectedMemberId === null) return;
 
     setIsOverlayOpen(false);
+    setLoading(true);
 
     try {
       await impersonateUser(selectedMemberId);
       router.push("/");
+      setLoading(false);
     } catch (error) {
       setError("Failed to impersonate user.");
+      setLoading(false);
     }
   };
 
@@ -116,8 +120,6 @@ export default function AccountsPage() {
             Clear Search
           </StatusButton>
         </div>
-
-        {loading && <div className="p-4">Loading...</div>}
 
         {error && (
           <div className="p-4 mb-4 text-red-600 bg-red-100 border border-red-200 rounded-lg">
@@ -187,6 +189,12 @@ export default function AccountsPage() {
           onClose={handleCancel}
           onConfirm={handleConfirm}
         />
+
+        {loading && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+            <AdminSpinner />
+          </div>
+        )}
       </div>
     )
   );

@@ -6,6 +6,7 @@ import { getAllOrders } from "./actions";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import AdminSpinner from "../../../../components/AdminSpinner";
 
 export default function OrderPage() {
   const { status } = useSession();
@@ -92,8 +93,6 @@ export default function OrderPage() {
             Clear Search
           </StatusButton>
         </div>
-
-        {loading && <div className="p-4">Loading...</div>}
 
         {error && (
           <div className="p-4 mb-4 text-red-600 bg-red-100 border border-red-200 rounded-lg">
@@ -222,6 +221,12 @@ export default function OrderPage() {
 
         {!loading && orders.length === 0 && !error && (
           <div className="p-4 text-gray-600">No orders found.</div>
+        )}
+
+        {loading && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+            <AdminSpinner />
+          </div>
         )}
       </div>
     )
