@@ -9,6 +9,8 @@ import {
   UserIcon,
   UserPlusIcon,
   ShoppingBagIcon,
+  CreditCardIcon,
+  ArrowPathRoundedSquareIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { logout } from "../../../app/(auth)/actions";
@@ -164,11 +166,28 @@ export function AccountMenu() {
                               : "text-gray-900"
                           } group flex w-full items-center rounded-md px-2 py-2 text-sm hover:bg-brand-primary hover:text-white transition-color ease-in-out duration-100`}
                         >
-                          <ClipboardDocumentListIcon
+                          <ArrowPathRoundedSquareIcon
                             className="mr-2 h-5 w-5"
                             aria-hidden="true"
                           />
                           Subscription
+                        </Popover.Button>
+                      </div>
+                      <div>
+                        <Popover.Button
+                          as={Link}
+                          href="/account/cards"
+                          className={`${
+                            pathname.startsWith("/account/cards")
+                              ? "font-semibold"
+                              : "text-gray-900"
+                          } group flex w-full items-center rounded-md px-2 py-2 text-sm hover:bg-brand-primary hover:text-white transition-color ease-in-out duration-100`}
+                        >
+                          <CreditCardIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                          Cards
                         </Popover.Button>
                       </div>
                       <div>

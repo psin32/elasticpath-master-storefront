@@ -27,7 +27,7 @@ export function AccountNavigation() {
             asChild
             reversed={!pathname.startsWith("/account/orders")}
           >
-            <Link href="/account/orders">My Orders</Link>
+            <Link href="/account/orders">Orders</Link>
           </Button>
         </li>
         <li>
@@ -37,6 +37,15 @@ export function AccountNavigation() {
             reversed={!pathname.startsWith("/account/subscriptions")}
           >
             <Link href="/account/subscriptions">Subscriptions</Link>
+          </Button>
+        </li>
+        <li>
+          <Button
+            className="w-full justify-start"
+            asChild
+            reversed={!pathname.startsWith("/account/cards")}
+          >
+            <Link href="/account/cards">Cards</Link>
           </Button>
         </li>
         <li>
