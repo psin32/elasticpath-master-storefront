@@ -10,7 +10,7 @@ import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useInstantSearch, useSortBy } from "react-instantsearch";
 import { sortByItems } from "../../lib/sort-by-items";
 import { EP_ROUTE_PRICE } from "../../lib/search-constants";
-import NodeMenu from "./NodeMenu";
+import NodeMenuAlgolia from "./NodeMenuAlgolia";
 import { useStore } from "../../react-shopper-hooks";
 import HitsAlgolia from "./HitsAlgolia";
 import PaginationAlgolia from "./PaginationAlgolia";
@@ -26,7 +26,9 @@ function resolveTitle(slugArray: string[], lookup?: BreadcrumbLookup): string {
   );
 }
 
-export default function SearchResultsAlgolia({ lookup }: ISearchResults): JSX.Element {
+export default function SearchResultsAlgolia({
+  lookup,
+}: ISearchResults): JSX.Element {
   const { uiState } = useInstantSearch();
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav } = useStore();
@@ -101,7 +103,7 @@ export default function SearchResultsAlgolia({ lookup }: ISearchResults): JSX.El
       <div className="grid grid-cols-[auto_1fr] gap-8">
         <div className="hidden w-[14rem] md:block lg:w-[16rem]">
           <h3 className="font-semibold">Category</h3>
-          {nav && <NodeMenu nav={nav} />}
+          {nav && <NodeMenuAlgolia nav={nav} />}
           <PriceRangeSlider attribute={EP_ROUTE_PRICE} />
           <ProductSpecification />
         </div>

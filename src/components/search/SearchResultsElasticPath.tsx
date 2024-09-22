@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
-import NodeMenu from "./NodeMenu";
+import NodeMenu from "./NodeMenuAlgolia";
 import { ProductsProvider } from "./ProductsProvider";
 import { ShopperCatalogResourcePage } from "@moltin/sdk";
 import { BreadcrumbLookup } from "../../lib/types/breadcrumb-lookup";

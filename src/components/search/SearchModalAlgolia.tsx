@@ -244,7 +244,7 @@ const Hits = () => {
   return <NoResults />;
 };
 
-export const SearchModal = (): JSX.Element => {
+export const SearchModalAlgolia = (): JSX.Element => {
   const [searchValue, setSearchValue] = useState("");
   let [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -303,4 +303,4 @@ export const SearchModal = (): JSX.Element => {
   );
 };
 
-export default SearchModal;
+export default SearchModalAlgolia;

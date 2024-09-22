@@ -22,6 +22,7 @@ import {
   retrieveAccountMemberCredentials,
 } from "../../../../lib/retrieve-account-member-credentials";
 import { resolveEpccCustomRuleHeaders } from "../../../../lib/custom-rule-headers";
+import SearchResultsKlevu from "../../../../components/search/SearchResultsKlevu";
 
 export const metadata: Metadata = {
   title: "Search",
@@ -46,8 +47,12 @@ export default async function SearchPage({
   params: Params;
   searchParams: SearchParams;
 }) {
+  const enabledKlevu: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
   if (algoliaEnvData.enabled) {
     return <Search />;
+  } else if (enabledKlevu) {
+    return <SearchResultsKlevu />;
   } else {
     const client = getServerSideImplicitClient();
     const cookieStore = cookies();

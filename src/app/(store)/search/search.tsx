@@ -27,6 +27,7 @@ import { usePathname } from "next/navigation";
 import { ShopperCatalogResourcePage } from "@moltin/sdk";
 import SearchResultsAlgolia from "../../../components/search/SearchResultsAlgolia";
 import SearchResultsElasticPath from "../../../components/search/SearchResultsElasticPath";
+import SearchResultsKlevu from "../../../components/search/SearchResultsKlevu";
 
 export function Search({
   page,
@@ -37,31 +38,32 @@ export function Search({
   const lookup = buildBreadcrumbLookup(nav ?? []);
   const pathname = usePathname();
   const nodes = pathname.split("/search/")?.[1]?.split("/");
-
-  return (
-    algoliaEnvData.enabled ? (
-      <InstantSearchNext
-        indexName={algoliaEnvData.indexName}
-        searchClient={searchClient}
-        routing={resolveAlgoliaRouting()}
-        insights={true}
-        future={{
-          preserveSharedStateOnUnmount: true,
-        }}
-      >
-        {/* Virtual widgets are here as a workaround for this issue https://github.com/algolia/instantsearch/issues/5890 */}
-        <VirtualSearchBox autoCapitalize="off" />
-        <VirtualPagination />
-        <VirtualSortBy items={sortByItems} />
-        <VirtualRangeInput attribute="ep_price" />
-        <VirtualRefinementList attribute="price" />
-        <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
-        <SearchResultsAlgolia lookup={lookup} />
-        <Configure filters="is_child:0" />
-      </InstantSearchNext>
-    ) : (
-      <SearchResultsElasticPath page={page} nodes={nodes} />
-    )
+  const enabledKlevu: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
+  return algoliaEnvData.enabled ? (
+    <InstantSearchNext
+      indexName={algoliaEnvData.indexName}
+      searchClient={searchClient}
+      routing={resolveAlgoliaRouting()}
+      insights={true}
+      future={{
+        preserveSharedStateOnUnmount: true,
+      }}
+    >
+      {/* Virtual widgets are here as a workaround for this issue https://github.com/algolia/instantsearch/issues/5890 */}
+      <VirtualSearchBox autoCapitalize="off" />
+      <VirtualPagination />
+      <VirtualSortBy items={sortByItems} />
+      <VirtualRangeInput attribute="ep_price" />
+      <VirtualRefinementList attribute="price" />
+      <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
+      <SearchResultsAlgolia lookup={lookup} />
+      <Configure filters="is_child:0" />
+    </InstantSearchNext>
+  ) : enabledKlevu ? (
+    <SearchResultsKlevu />
+  ) : (
+    <SearchResultsElasticPath page={page} nodes={nodes} />
   );
 }
 

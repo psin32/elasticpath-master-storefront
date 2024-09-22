@@ -1966,6 +1966,11 @@
     iterall "^1.1.3"
     uuid "^3.1.0"
 
+"@klevu/core@^5.4.0":
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/@klevu/core/-/core-5.4.0.tgz#cbc6ef607e955afac3f5c14e0313068c68b8b26e"
+  integrity sha512-d+rvOPhoWuZ5sGSvh2kag0tAKC1oh8nScyg+zSjnYKoMNtD+3L4PhMF8W9J/Jnx4iMqUZDZA1s/N0vxKM/oVPw==
+
 "@messageformat/core@^3.0.1":
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/@messageformat/core/-/core-3.3.0.tgz#31edd52a5f7d017adad85c929809f07741dcfd3f"

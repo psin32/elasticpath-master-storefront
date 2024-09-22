@@ -9,7 +9,7 @@ import { getBanner, getCatalogMenu } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
-import SearchModal from "../search/SearchModal";
+import { SearchModalAlgolia } from "../search/SearchModalAlgolia";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { SelectedAccount } from "./account/SelectedAccount";
 import BulkOrderButton from "./BulkOrderButton";
@@ -17,6 +17,7 @@ import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
 import AdminAccountBanner from "./AdminAccountBanner";
+import SearchModalKlevu from "../search/SearchModalKlevu";
 
 const Header = async () => {
   const content = await getBanner();
@@ -30,6 +31,8 @@ const Header = async () => {
 
   const accountMemberTokens = accountMemberCookie?.accounts;
   const selectedAccountId = accountMemberCookie?.selected;
+  const enabledKlevu: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
 
   return (
     <>
@@ -55,7 +58,8 @@ const Header = async () => {
             {process.env.NEXT_PUBLIC_DISABLE_BULK_ORDER_LINK != "true" && (
               <BulkOrderButton />
             )}
-            {algoliaEnvData.enabled && <SearchModal />}
+            {algoliaEnvData.enabled && <SearchModalAlgolia />}
+            {enabledKlevu && <SearchModalKlevu />}
             {accountMemberTokens &&
               Object.keys(accountMemberTokens).length > 1 &&
               Object.keys(accountMemberTokens).map((tokenKey) => {

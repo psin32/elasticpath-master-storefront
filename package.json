@@ -32,6 +32,7 @@
     "@heroicons/react": "^2.0.18",
     "@hookform/error-message": "^2.0.1",
     "@hookform/resolvers": "^3.3.2",
+    "@klevu/core": "^5.4.0",
     "@moltin/sdk": "^32.0.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",

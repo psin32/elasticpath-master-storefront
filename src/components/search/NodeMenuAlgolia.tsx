@@ -68,7 +68,7 @@ type NodeMenuProps = {
   nav: NavigationNode[];
 };
 
-export default function NodeMenu({ nav }: NodeMenuProps): JSX.Element {
+export default function NodeMenuAlgolia({ nav }: NodeMenuProps): JSX.Element {
   return (
     <div className={clsx("ais-HierarchicalMenu block")}>
       <MenuList items={nav} />
