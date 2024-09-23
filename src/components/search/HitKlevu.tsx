@@ -7,10 +7,10 @@ import { KlevuRecord } from "@klevu/core";
 import { basename } from "path";
 
 function formatCurrency(price: string, currency: string) {
-  return Intl.NumberFormat(undefined, {
+  return Intl.NumberFormat("en", {
     style: "currency",
     currency,
-  }).format(parseFloat(price));
+  }).format(Number(price));
 }
 
 export default function HitComponentKlevu({
@@ -61,12 +61,13 @@ export default function HitComponentKlevu({
           </div>
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
-              <Link href={`/products/${id}`} passHref legacyBehavior>
+              <Link href={`/products/${slug}`} passHref legacyBehavior>
                 <h3 className="text-sm font-bold">{name}</h3>
               </Link>
-              <span className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500">
-                {description}
-              </span>
+              <span
+                className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
+                dangerouslySetInnerHTML={{ __html: description }}
+              ></span>
             </div>
             <div>
               {price && (

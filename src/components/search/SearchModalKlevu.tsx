@@ -14,6 +14,13 @@ import { fetchProducts } from "../../lib/klevu";
 import { KlevuRecord } from "@klevu/core";
 import { basename } from "path";
 
+function formatCurrency(price: string, currency: string) {
+  return Intl.NumberFormat("en", {
+    style: "currency",
+    currency,
+  }).format(Number(price));
+}
+
 const SearchBox = ({
   onChange,
   onSearchEnd,
@@ -80,7 +87,7 @@ const HitComponent = ({
   hit: KlevuRecord;
   closeModal: () => void;
 }) => {
-  const { price, image, name, sku, id, url } = hit;
+  const { price, image, name, sku, url, currency, salePrice } = hit;
   const slug: string = basename(url);
   return (
     <Link className="cursor-pointer" href={`/products/${slug}`} legacyBehavior>
@@ -114,7 +121,18 @@ const HitComponent = ({
           </span>
         </div>
         <div className="col-span-2">
-          {price && <span className="text-sm font-semibold">{price}</span>}
+          <div className="flex items-center">
+            {Number(salePrice) < Number(price) && (
+              <div className={`text-lg text-gray-900 line-through`}>
+                {formatCurrency(salePrice, currency)}
+              </div>
+            )}
+            <span
+              className={`font-light text-gray-900 ${Number(salePrice) < Number(price) ? "text-red-500 ml-1" : "text-gray-900"}`}
+            >
+              {formatCurrency(price, currency)}
+            </span>
+          </div>
         </div>
       </div>
     </Link>
@@ -190,7 +208,7 @@ export const SearchModalKlevu = (): JSX.Element => {
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-md transform rounded-md bg-white text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-xl transform rounded-md bg-white text-left align-middle shadow-xl transition-all">
                   <SearchBox
                     onChange={(value: string) => {
                       setSearchValue(value);
