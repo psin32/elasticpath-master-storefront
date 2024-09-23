@@ -123,7 +123,7 @@ const HitComponent = ({
         <div className="col-span-2">
           <div className="flex items-center">
             {Number(salePrice) < Number(price) && (
-              <div className={`text-lg text-gray-900 line-through`}>
+              <div className="text-lg text-gray-900 line-through">
                 {formatCurrency(salePrice, currency)}
               </div>
             )}
