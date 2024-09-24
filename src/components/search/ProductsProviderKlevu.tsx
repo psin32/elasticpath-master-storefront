@@ -92,6 +92,7 @@ export const ProductsProvider = ({ children }: ProductsProviderProps) => {
     priceRange: [DEFAULT_MIN_VAL, DEFAULT_MAX_VAL],
     sortBy: undefined,
   };
+  const query = searchParams.get("q") || "*";
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [page, setPage] = useState<{
     data: KlevuResponseObject | undefined;
@@ -103,7 +104,7 @@ export const ProductsProvider = ({ children }: ProductsProviderProps) => {
     try {
       const data = await fetchProducts(
         searchSettings(settings),
-        undefined,
+        query,
         manager,
       );
       const priceRangeFilter: any = data
@@ -166,7 +167,7 @@ export const ProductsProvider = ({ children }: ProductsProviderProps) => {
 
   useEffect(() => {
     fetchProductsData();
-  }, [settings]);
+  }, [settings, query]);
 
   return (
     <ProductsProviderContext.Provider
