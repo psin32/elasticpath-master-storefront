@@ -6,7 +6,6 @@ import {
   Moltin,
   PasswordProfileBody,
 } from "@moltin/sdk";
-import { createAdminApiClient } from "@builder.io/admin-sdk";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -202,9 +201,14 @@ export const main = async () => {
     purchaseOrderInput.toLowerCase() === "true" ? true : false;
 
   if (purchaseOrder) {
-    await epcc.Gateways.Enabled("manual", true);
-    const flows = await epcc.Flows.All();
-    const ordersFlow = flows.data.find((flow) => flow.slug === "orders");
+    await epcc.Gateways.Enabled("manual", true).catch((err) => {
+      console.error("Error while enabled manual gateway", err);
+    });
+    const flows = await epcc.Flows.All().catch((err) => {
+      console.error("Error while getting all flows", err);
+      return err;
+    });
+    const ordersFlow = flows.data.find((flow: any) => flow.slug === "orders");
     let flowId = "";
     if (ordersFlow?.name) {
       flowId = ordersFlow.id;
@@ -215,6 +219,9 @@ export const main = async () => {
         name: "Orders Extension",
         description: "Orders Extension",
         enabled: true,
+      }).catch((err) => {
+        console.error("Error while creating flow", err);
+        return err;
       });
       flowId = orders.data.id;
     }
@@ -239,7 +246,9 @@ export const main = async () => {
         },
       },
     };
-    await epcc.Fields.Create(fieldRequest);
+    await epcc.Fields.Create(fieldRequest).catch((err) => {
+      console.error("Error while creating fields", err);
+    });
   }
 
   const clickAndCollectInput = await inputValue(
@@ -255,6 +264,20 @@ export const main = async () => {
   if (plpInput.toLowerCase() === "list") {
     plpView = "list";
   }
+
+  const stripeAccountId = await inputValue("Enter Stripe Account ID - ");
+
+  const stripePublishableKey = await inputValue(
+    "Enter Stripe Publishable Key - ",
+  );
+
+  await epcc.Gateways.Update("elastic_path_payments_stripe", {
+    enabled: true,
+    stripe_account: stripeAccountId,
+    test: true,
+  }).catch((err) => {
+    console.error("Error while enabling stripe account", err);
+  });
 
   const siteNameInput = await inputValue(
     "Enter site name e.g. Clothing - Elastic Path, default value Elastic Path - ",
@@ -285,6 +308,14 @@ export const main = async () => {
     "NEXT_PUBLIC_ENABLE_PURCHASE_ORDER_CHECKOUT",
     purchaseOrder.toString(),
   );
+  properties.insert("NEXT_PUBLIC_STRIPE_ACCOUNT_ID", stripeAccountId);
+  properties.insert("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", stripePublishableKey);
+  properties.insert("NEXTAUTH_URL", "http://localhost:3000");
+  properties.insert("NEXTAUTH_SECRET", "your-secret-key");
+  properties.insert("NEXT_PUBLIC_ENABLE_KLEVU", "false");
+  properties.insert("NEXT_PUBLIC_ENABLE_YOTPO", "false");
+  properties.insert("NEXT_PUBLIC_ENABLE_RATING", "false");
+  properties.insert("NEXT_PUBLIC_ENABLE_ALGOLIA", "false");
   console.log("========================================================");
   console.log(properties.format());
   console.log("========================================================");
