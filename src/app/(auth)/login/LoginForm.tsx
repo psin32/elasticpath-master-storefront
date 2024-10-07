@@ -122,13 +122,13 @@ export function LoginForm({ returnUrl }: { returnUrl?: string }) {
         oidcProfiles.data.map((profile: any) => {
           return (
             <>
-              <StatusButton
+              <FormStatusButton
                 type="button"
-                className="w-full mt-4 bg-brand-primary text-black hover:bg-brand-highlight"
+                className="w-full mt-4"
                 onClick={() => handleOidcButtonClicked(profile, clientId)}
               >
                 {t("login.button.login-with")} {profile.name}
-              </StatusButton>
+              </FormStatusButton>
             </>
           );
         })}
