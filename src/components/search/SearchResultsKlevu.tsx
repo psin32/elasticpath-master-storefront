@@ -14,13 +14,23 @@ import PriceRangeSlider from "./price-range-slider/PriceRangeSliderWrapperKlevu"
 import { Popover, Transition } from "@headlessui/react";
 import { sortByItems } from "../../lib/sort-by-items";
 import NodeMenuKlevu from "./NodeMenuKlevu";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { cmsConfig } from "../../lib/resolve-cms-env";
+import { builder } from "@builder.io/sdk";
+import { builderComponent } from "../../components/builder-io/BuilderComponents";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 type sortBySetting = {
   sortBy: string;
   setSortBy: (value: string | undefined) => void;
 };
 
-export default function SearchResultsKlevu(): JSX.Element {
+export default function SearchResultsKlevu({
+  content,
+}: {
+  content: any;
+}): JSX.Element {
+  const { enableBuilderIO } = cmsConfig;
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   // const title = nodes ? resolveTitle(nodes, lookup) : "All Categories";
   const title = "Catalog";
@@ -49,6 +59,14 @@ export default function SearchResultsKlevu(): JSX.Element {
           </div>
         </div>
         <hr />
+        {enableBuilderIO && (
+          <BuilderContent
+            model="page"
+            content={content}
+            apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+            customComponents={builderComponent}
+          />
+        )}
         <div className="grid grid-cols-[auto_1fr] gap-8">
           <div className="hidden w-[14rem] md:block lg:w-[16rem]">
             <h3 className="font-semibold">Category</h3>

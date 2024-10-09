@@ -31,8 +31,10 @@ import SearchResultsKlevu from "../../../components/search/SearchResultsKlevu";
 
 export function Search({
   page,
+  content,
 }: {
   page?: ShopperCatalogResourcePage<ShopperProduct>;
+  content: any;
 }) {
   const { nav } = useStore();
   const lookup = buildBreadcrumbLookup(nav ?? []);
@@ -57,13 +59,13 @@ export function Search({
       <VirtualRangeInput attribute="ep_price" />
       <VirtualRefinementList attribute="price" />
       <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
-      <SearchResultsAlgolia lookup={lookup} />
+      <SearchResultsAlgolia lookup={lookup} content={content} />
       <Configure filters="is_child:0" />
     </InstantSearchNext>
   ) : enabledKlevu ? (
-    <SearchResultsKlevu />
+    <SearchResultsKlevu content={content} />
   ) : (
-    <SearchResultsElasticPath page={page} nodes={nodes} />
+    <SearchResultsElasticPath page={page} nodes={nodes} content={content} />
   );
 }
 

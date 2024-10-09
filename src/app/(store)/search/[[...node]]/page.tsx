@@ -23,6 +23,9 @@ import {
 } from "../../../../lib/retrieve-account-member-credentials";
 import { resolveEpccCustomRuleHeaders } from "../../../../lib/custom-rule-headers";
 import SearchResultsKlevu from "../../../../components/search/SearchResultsKlevu";
+import { builder } from "@builder.io/sdk";
+import { cmsConfig } from "../../../../lib/resolve-cms-env";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const metadata: Metadata = {
   title: "Search",
@@ -47,12 +50,26 @@ export default async function SearchPage({
   params: Params;
   searchParams: SearchParams;
 }) {
+  const { enableBuilderIO } = cmsConfig;
+  const contentData = async () => {
+    if (enableBuilderIO && params?.node) {
+      const content = await builder
+        .get("page", {
+          userAttributes: { urlPath: `/search/${params.node.join("/")}` },
+          prerender: false,
+        })
+        .toPromise();
+      return content;
+    }
+  };
+  const content = await contentData();
+
   const enabledKlevu: boolean =
     process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
   if (algoliaEnvData.enabled) {
-    return <Search />;
+    return <Search content={content} />;
   } else if (enabledKlevu) {
-    return <SearchResultsKlevu />;
+    return <SearchResultsKlevu content={content} />;
   } else {
     const client = getServerSideImplicitClient();
     const cookieStore = cookies();
@@ -90,13 +107,13 @@ export default async function SearchPage({
         .Offset(processOffset(offset))
         .All();
 
-      return <Search page={processResult(products)} />;
+      return <Search page={processResult(products)} content={content} />;
     }
 
     const rootNodeSlug = params.node?.[0];
 
     if (!rootNodeSlug) {
-      return <Search />;
+      return <Search content={content} />;
     }
 
     const rootHierarchy = await findHierarchyFromSlug(client, rootNodeSlug);
@@ -115,7 +132,7 @@ export default async function SearchPage({
         offset,
       );
 
-      return <Search page={processResult(products)} />;
+      return <Search page={processResult(products)} content={content} />;
     }
 
     const lastNodeSlug = getLastArrayElement(params.node);
@@ -138,7 +155,7 @@ export default async function SearchPage({
 
     const products = await getNodeProducts(client, leafNodeId, limit, offset);
 
-    return <Search page={processResult(products)} />;
+    return <Search page={processResult(products)} content={content} />;
   }
 }
 

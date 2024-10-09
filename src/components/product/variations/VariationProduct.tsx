@@ -20,26 +20,36 @@ import ProductExtensions from "../ProductExtensions";
 import { useState } from "react";
 import QuantitySelector from "../QuantitySelector";
 import StoreLocator from "../StoreLocator";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { cmsConfig } from "../../../lib/resolve-cms-env";
+import { builder } from "@builder.io/sdk";
+import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const VariationProductDetail = ({
   variationProduct,
   offerings,
+  content,
 }: {
   variationProduct: VariationProduct;
   offerings: ResourcePage<SubscriptionOffering, never>;
+  content: any;
 }): JSX.Element => {
   return (
     <VariationProductProvider variationProduct={variationProduct}>
-      <VariationProductContainer offerings={offerings} />
+      <VariationProductContainer offerings={offerings} content={content} />
     </VariationProductProvider>
   );
 };
 
 export function VariationProductContainer({
   offerings,
+  content,
 }: {
   offerings: ResourcePage<SubscriptionOffering, never>;
+  content: any;
 }): JSX.Element {
+  const { enableBuilderIO } = cmsConfig;
   const { product, selectedOptions } = useVariationProduct() as any;
   const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } =
     useCart();
@@ -249,6 +259,14 @@ export function VariationProductContainer({
           )}
         </div>
       </div>
+      {enableBuilderIO && content && (
+        <BuilderContent
+          model="page"
+          content={content}
+          apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+          customComponents={builderComponent}
+        />
+      )}
       <Reviews product={response} />
     </div>
   );

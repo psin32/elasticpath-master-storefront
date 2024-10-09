@@ -39,12 +39,14 @@ const ProductView: React.FC<{
     productId: productDetails?.attributes?.slug,
   };
   const breadcrumb: any = [];
+  const content = null;
   return (
     shopperProduct && (
       <ProductDetailsComponent
         product={shopperProduct}
         breadcrumb={breadcrumb}
         offerings={offerings}
+        content={content}
       />
     )
   );

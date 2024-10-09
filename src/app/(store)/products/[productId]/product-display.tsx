@@ -29,35 +29,63 @@ export function ProductProvider({
 
 export function resolveProductDetailComponent(
   product: ShopperProduct,
-  offerings: ResourcePage<SubscriptionOffering, never>
+  offerings: ResourcePage<SubscriptionOffering, never>,
+  content: any,
 ): JSX.Element {
   switch (product.kind) {
     case "base-product":
-      return <VariationProductDetail variationProduct={product} offerings={offerings} />;
+      return (
+        <VariationProductDetail
+          variationProduct={product}
+          offerings={offerings}
+          content={content}
+        />
+      );
     case "child-product":
-      return <VariationProductDetail variationProduct={product} offerings={offerings} />;
+      return (
+        <VariationProductDetail
+          variationProduct={product}
+          offerings={offerings}
+          content={content}
+        />
+      );
     case "simple-product":
-      return <SimpleProductDetail simpleProduct={product} offerings={offerings} />;
+      return (
+        <SimpleProductDetail
+          simpleProduct={product}
+          offerings={offerings}
+          content={content}
+        />
+      );
     case "bundle-product":
-      return <BundleProductDetail bundleProduct={product} offerings={offerings} />;
+      return (
+        <BundleProductDetail
+          bundleProduct={product}
+          offerings={offerings}
+          content={content}
+        />
+      );
   }
 }
 
 export function ProductDetailsComponent({
   product,
   breadcrumb,
-  offerings
+  offerings,
+  content,
 }: {
   product: ShopperProduct;
   breadcrumb: Node[];
-  offerings: ResourcePage<SubscriptionOffering, never>
+  offerings: ResourcePage<SubscriptionOffering, never>;
+  content: any;
 }) {
   return (
     <div className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] lg:max-w-[80rem] w-full">
-      <Breadcrumb breadcrumb={breadcrumb} productName={product.response.attributes.name}></Breadcrumb>
-      <div>
-        {resolveProductDetailComponent(product, offerings)}
-      </div>
+      <Breadcrumb
+        breadcrumb={breadcrumb}
+        productName={product.response.attributes.name}
+      ></Breadcrumb>
+      <div>{resolveProductDetailComponent(product, offerings, content)}</div>
     </div>
-  )
+  );
 }

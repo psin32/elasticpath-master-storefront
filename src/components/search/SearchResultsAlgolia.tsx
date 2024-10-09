@@ -14,9 +14,15 @@ import NodeMenuAlgolia from "./NodeMenuAlgolia";
 import { useStore } from "../../react-shopper-hooks";
 import HitsAlgolia from "./HitsAlgolia";
 import PaginationAlgolia from "./PaginationAlgolia";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { cmsConfig } from "../../lib/resolve-cms-env";
+import { builder } from "@builder.io/sdk";
+import { builderComponent } from "../../components/builder-io/BuilderComponents";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface ISearchResults {
   lookup?: BreadcrumbLookup;
+  content: any;
 }
 
 function resolveTitle(slugArray: string[], lookup?: BreadcrumbLookup): string {
@@ -28,7 +34,9 @@ function resolveTitle(slugArray: string[], lookup?: BreadcrumbLookup): string {
 
 export default function SearchResultsAlgolia({
   lookup,
+  content,
 }: ISearchResults): JSX.Element {
+  const { enableBuilderIO } = cmsConfig;
   const { uiState } = useInstantSearch();
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav } = useStore();
@@ -100,6 +108,15 @@ export default function SearchResultsAlgolia({
         </div>
       </div>
       <hr />
+      {enableBuilderIO && (
+        <BuilderContent
+          model="page"
+          content={content}
+          apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+          customComponents={builderComponent}
+        />
+      )}
+
       <div className="grid grid-cols-[auto_1fr] gap-8">
         <div className="hidden w-[14rem] md:block lg:w-[16rem]">
           <h3 className="font-semibold">Category</h3>
