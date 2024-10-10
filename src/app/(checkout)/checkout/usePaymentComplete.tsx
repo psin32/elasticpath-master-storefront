@@ -221,7 +221,7 @@ export function usePaymentComplete(
         },
       });
 
-      if (paymentMethod === "klarna" && subsItem?.length == 0) {
+      if (paymentMethod === "ep_payment" && subsItem?.length == 0) {
         /**
          * 3. Confirm the payment with Stripe
          */
