@@ -18,9 +18,14 @@ import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-mem
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
 import AdminAccountBanner from "./AdminAccountBanner";
 import SearchModalKlevu from "../search/SearchModalKlevu";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import { builder } from "@builder.io/sdk";
+import { cmsConfig } from "../../lib/resolve-cms-env";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 const Header = async () => {
-  const content = await getBanner();
+  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
   const catalogMenu = await getCatalogMenu();
 
   const cookieStore = cookies();
@@ -34,12 +39,36 @@ const Header = async () => {
   const enabledKlevu: boolean =
     process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
 
+  const contentData = async () => {
+    if (enableBuilderIO) {
+      const content = await builder
+        .get("announcement", {
+          prerender: false,
+        })
+        .toPromise();
+      return content;
+    }
+
+    if (enabledStoryblok) {
+      return await getBanner();
+    }
+  };
+  const content = await contentData();
+
   return (
     <>
       <div className="sticky z-10 border-b border-gray-200 bg-white">
         <AdminAccountBanner accountMemberCookie={accountMemberCookie} />
         <Content content={catalogMenu}></Content>
-        <Content content={content}></Content>
+        {enabledStoryblok && <Content content={content}></Content>}
+        {enableBuilderIO && (
+          <BuilderContent
+            model="announcement"
+            content={content}
+            apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+            customComponents={builderComponent}
+          />
+        )}
         <Suspense>
           <MobileNavBar />
         </Suspense>
