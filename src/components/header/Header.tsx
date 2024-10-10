@@ -61,7 +61,7 @@ const Header = async () => {
         <AdminAccountBanner accountMemberCookie={accountMemberCookie} />
         <Content content={catalogMenu}></Content>
         {enabledStoryblok && <Content content={content}></Content>}
-        {enableBuilderIO && (
+        {enableBuilderIO && content.data.enabled && (
           <BuilderContent
             model="announcement"
             content={content}
