@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import type { ProductResponse } from "@moltin/sdk";
 import { useEffect } from "react";
@@ -32,14 +32,17 @@ const Ratings = ({ product, displayFromProduct }: IRatings): JSX.Element => {
         <>
           <StarRatings
             rating={Number(
-              product.attributes.extensions?.["products(ratings)"]
-                ?.average_rating || ""
+              product.attributes?.extensions?.["products(ratings)"]
+                ?.average_rating || "",
             )}
             starDimension="18px"
             starSpacing="0px"
             starRatedColor="orange"
           />{" "}
-          ({product.attributes.extensions?.["products(ratings)"]?.review_count || 0})
+          (
+          {product.attributes?.extensions?.["products(ratings)"]
+            ?.review_count || 0}
+          )
         </>
       </div>
     ) : (
@@ -47,7 +50,7 @@ const Ratings = ({ product, displayFromProduct }: IRatings): JSX.Element => {
     );
   }
   return yotpoEnv.enable ? (
-    <div>
+    <div className="mt-2">
       <Script
         id="yotpo-reviews"
         src={`//staticw2.yotpo.com/${yotpoEnv.appKey}/widget.js`}

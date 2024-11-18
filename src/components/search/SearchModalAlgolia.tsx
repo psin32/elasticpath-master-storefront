@@ -283,7 +283,7 @@ export const SearchModalAlgolia = (): JSX.Element => {
                 onSearchEnd={(query) => {
                   setIsOpen(false);
                   setSearchValue("");
-                  router.push("/search/" + query);
+                  router.push(`/search?q=${query}`);
                 }}
               />
             </div>

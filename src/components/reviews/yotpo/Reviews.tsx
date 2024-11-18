@@ -39,11 +39,16 @@ const Reviews = ({ product }: IReviews): JSX.Element => {
         style={{ marginTop: "20px" }}
         data-product-id={id}
         data-price={
-          display_price?.without_tax.amount
-            ? display_price?.without_tax.amount / 100
-            : 0
+          display_price?.without_tax?.amount
+            ? display_price?.without_tax?.amount / 100
+            : display_price?.with_tax?.amount
+              ? display_price?.with_tax?.amount / 100
+              : 0
         }
-        data-currency={display_price?.without_tax.currency}
+        data-currency={
+          display_price?.without_tax?.currency ||
+          display_price?.with_tax?.currency
+        }
         data-name={attributes.name}
       ></div>
     </div>

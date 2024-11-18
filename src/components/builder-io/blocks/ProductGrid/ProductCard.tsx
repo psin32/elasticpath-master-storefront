@@ -5,6 +5,7 @@ import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/outline";
 import StrikePrice from "../../../product/StrikePrice";
 import Price from "../../../product/Price";
+import Ratings from "../../../reviews/yotpo/Ratings";
 
 export interface ProductCardProps {
   product: any;
@@ -69,6 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </p>
               </Link>
             </div>
+            <Ratings product={product.response} displayFromProduct={true} />
             <div>
               {currencyPrice && (
                 <div className="mt-1 flex items-center">
