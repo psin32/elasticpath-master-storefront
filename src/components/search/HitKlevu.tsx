@@ -4,33 +4,29 @@ import StrikePrice from "../product/StrikePrice";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
 import { KlevuRecord } from "@klevu/core";
-import { basename } from "path";
-
-function formatCurrency(price: string, currency: string) {
-  return Intl.NumberFormat("en", {
-    style: "currency",
-    currency,
-  }).format(Number(price));
-}
+import { ProductResponse } from "@moltin/sdk";
 
 export default function HitComponentKlevu({
   hit,
   clickEvent,
+  product,
 }: {
   hit: KlevuRecord;
   clickEvent?: (params: { productId: string }) => void;
+  product: ProductResponse;
 }): JSX.Element {
   const {
     image: ep_main_image_url,
     price,
-    salePrice,
     id,
     name,
     shortDesc: description,
-    currency,
-    url,
   } = hit;
-  const slug: string = basename(url);
+
+  const {
+    attributes: { slug },
+    meta: { display_price, original_display_price },
+  } = product;
 
   return (
     <>
@@ -72,15 +68,35 @@ export default function HitComponentKlevu({
             <div>
               {price && (
                 <div className="mt-1 flex items-center">
-                  <Price
-                    price={formatCurrency(salePrice || price, currency)}
-                    currency={currency}
-                  />
-                  {price && price !== salePrice && (
+                  {original_display_price && (
                     <StrikePrice
-                      price={formatCurrency(price, currency)}
-                      currency={currency}
-                      size="text-lg"
+                      price={
+                        original_display_price?.without_tax?.formatted
+                          ? original_display_price?.without_tax?.formatted
+                          : original_display_price.with_tax.formatted
+                      }
+                      currency={
+                        original_display_price.without_tax?.currency
+                          ? original_display_price?.without_tax?.currency
+                          : original_display_price.with_tax.currency
+                      }
+                      size="text-xl"
+                    />
+                  )}
+                  {display_price && (
+                    <Price
+                      price={
+                        display_price?.without_tax?.formatted
+                          ? display_price?.without_tax?.formatted
+                          : display_price.with_tax.formatted
+                      }
+                      currency={
+                        display_price?.without_tax?.currency
+                          ? display_price?.without_tax?.currency
+                          : display_price.with_tax.currency
+                      }
+                      original_display_price={original_display_price}
+                      size="text-xl"
                     />
                   )}
                 </div>

@@ -24,6 +24,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import { RecommendedProducts } from "../../recommendations/RecommendationProducts";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const VariationProductDetail = ({
@@ -63,6 +64,7 @@ export function VariationProductContainer({
   const { response, main_image, otherImages } = product;
   const { extensions } = response.attributes;
   const {
+    id,
     meta: { original_display_price },
   } = response;
   const [quantity, setQuantity] = useState<number>(1);
@@ -259,6 +261,7 @@ export function VariationProductContainer({
           )}
         </div>
       </div>
+      <RecommendedProducts productId={id} />
       {enableBuilderIO && content && (
         <BuilderContent
           model="page"

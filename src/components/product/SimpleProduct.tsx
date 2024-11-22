@@ -23,6 +23,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import { RecommendedProducts } from "../recommendations/RecommendationProducts";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface ISimpleProductDetail {
@@ -66,6 +67,7 @@ function SimpleProductContainer({
   const { main_image, response, otherImages } = product;
   const { extensions } = response.attributes;
   const {
+    id,
     meta: { original_display_price },
   } = response;
   const enableClickAndCollect =
@@ -229,6 +231,7 @@ function SimpleProductContainer({
           )}
         </div>
       </div>
+      <RecommendedProducts productId={id} />
       {enableBuilderIO && (
         <BuilderContent
           model="page"

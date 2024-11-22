@@ -18,6 +18,8 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import { KlevuFilterResultSlider } from "@klevu/core";
+import { useRouter } from "next/navigation";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 type sortBySetting = {
@@ -32,6 +34,8 @@ export default function SearchResultsKlevu({
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   let [showFilterMenu, setShowFilterMenu] = useState(false);
+  // const pageContext = usePageContext();
+  // const filters = pageContext?.filters || [];
   // const title = nodes ? resolveTitle(nodes, lookup) : "All Categories";
   const title = "Catalog";
 
@@ -67,18 +71,7 @@ export default function SearchResultsKlevu({
             customComponents={builderComponent}
           />
         )}
-        <div className="grid grid-cols-[auto_1fr] gap-8">
-          <div className="hidden w-[14rem] md:block lg:w-[16rem]">
-            <h3 className="font-semibold">Category</h3>
-            <NodeMenuKlevu />
-            {
-              // attribute={EP_ROUTE_PRICE}
-            }
-            <PriceRangeSlider />
-          </div>
-
-          <HitsUI />
-        </div>
+        <HitsUI />
       </div>
     </ProductsProvider>
   );
@@ -86,20 +79,34 @@ export default function SearchResultsKlevu({
 
 const HitsUI = (): JSX.Element => {
   const pageContext = usePageContext();
+  const router = useRouter();
+  const filters = pageContext?.filters || [];
+  let priceFilter = (
+    filters ? filters.find((filter) => filter.key === "klevu_price") : []
+  ) as KlevuFilterResultSlider;
+
   return (
-    <div>
-      {pageContext?.records && (
-        <>
-          <HitsKlevu
-            data={pageContext.records}
-            clickEvent={pageContext.searchClickEvent?.bind(pageContext)}
-          />
-          <div className="py-10">
-            <Pagination page={pageContext} />
-          </div>
-        </>
-      )}
-      {!pageContext?.records && <NoResults />}
+    <div className="grid grid-cols-[auto_1fr] gap-8">
+      <div className="hidden w-[14rem] md:block lg:w-[16rem]">
+        <h3 className="font-semibold">Category</h3>
+        <NodeMenuKlevu />
+        <PriceRangeSlider min={priceFilter?.min} max={priceFilter?.max} />
+      </div>
+
+      <div>
+        {pageContext?.records && (
+          <>
+            <HitsKlevu
+              data={pageContext.records}
+              clickEvent={pageContext.searchClickEvent?.bind(pageContext)}
+            />
+            <div className="py-10">
+              <Pagination page={pageContext} />
+            </div>
+          </>
+        )}
+        {!pageContext?.records && <NoResults />}
+      </div>
     </div>
   );
 };

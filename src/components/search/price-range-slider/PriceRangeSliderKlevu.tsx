@@ -1,5 +1,5 @@
 import { MinusIcon } from "@heroicons/react/24/solid";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import { useSettings } from "../ProductsProviderKlevu";
@@ -15,11 +15,17 @@ type PriceRangeSetting = {
   setPriceRange: (value: number | number[]) => void;
 };
 
-const PriceRangeSlider = () => {
+const PriceRangeSlider = ({ min, max }: { min?: string; max?: string }) => {
   const { priceRange, setPriceRange } = useSettings(
     "priceRange",
   ) as PriceRangeSetting;
   const [range, setRange] = useState(priceRange);
+
+  useEffect(() => {
+    if (min && max) {
+      setRange([Number(min), Number(max)]);
+    }
+  }, [min, max]);
 
   const throttledSetPriceRange = useCallback(
     throttle((minVal: number, maxVal: number) => {
@@ -63,8 +69,8 @@ const PriceRangeSlider = () => {
 
       <Slider
         range={true}
-        min={DEFAULT_MIN_VAL}
-        max={DEFAULT_MAX_VAL}
+        min={Number(min) || DEFAULT_MIN_VAL}
+        max={Number(max) || DEFAULT_MAX_VAL}
         value={range}
         onChange={(val) => {
           handleSliderChange(val as number[]);
