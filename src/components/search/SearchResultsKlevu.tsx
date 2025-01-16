@@ -20,6 +20,7 @@ import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { KlevuFilterResultSlider } from "@klevu/core";
 import { useRouter } from "next/navigation";
+import FilterKlevuOptions from "./product-specification/FilterKlevuOptions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 type sortBySetting = {
@@ -84,6 +85,11 @@ const HitsUI = (): JSX.Element => {
   let priceFilter = (
     filters ? filters.find((filter) => filter.key === "klevu_price") : []
   ) as KlevuFilterResultSlider;
+  let allFilters = filters
+    ? filters.filter(
+        (filter) => filter.key != "klevu_price" && filter.key != "category",
+      )
+    : [];
 
   return (
     <div className="grid grid-cols-[auto_1fr] gap-8">
@@ -91,6 +97,14 @@ const HitsUI = (): JSX.Element => {
         <h3 className="font-semibold">Category</h3>
         <NodeMenuKlevu />
         <PriceRangeSlider min={priceFilter?.min} max={priceFilter?.max} />
+        {allFilters &&
+          allFilters.map((filter) => (
+            <FilterKlevuOptions
+              filters={allFilters}
+              filter={filter}
+              key={filter.key}
+            />
+          ))}
       </div>
 
       <div>
