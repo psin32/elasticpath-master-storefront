@@ -1,9 +1,9 @@
-import type { Variation } from "@moltin/sdk"
-import { describe, test, expect } from "vitest"
-import { getProductIdFromOptions } from "../../../product/variation/util/get-product-id-from-options"
-import { getOptionsFromProductId } from "../../../product/variation/util/get-options-from-product-id"
-import { mapOptionsToVariation } from "../../../product/variation/util/map-options-to-variations"
-import { allVariationsHaveSelectedOption } from "../../../product/variation/util/all-variations-have-selected-option"
+import type { Variation } from "@elasticpath/js-sdk";
+import { describe, test, expect } from "vitest";
+import { getProductIdFromOptions } from "../../../product/variation/util/get-product-id-from-options";
+import { getOptionsFromProductId } from "../../../product/variation/util/get-options-from-product-id";
+import { mapOptionsToVariation } from "../../../product/variation/util/map-options-to-variations";
+import { allVariationsHaveSelectedOption } from "../../../product/variation/util/all-variations-have-selected-option";
 
 describe("variation-helpers", () => {
   test("getProductIdFromOptions should return the id of the sku for the provided options.", () => {
@@ -30,18 +30,18 @@ describe("variation-helpers", () => {
             "42aef769-c97e-48a8-a3c4-2af8ad504ebb",
         },
       },
-    }
+    };
 
     const options = [
       "693b16b8-a3b3-4419-ad03-61007a381c56",
       "45e2612f-6bbf-4bc9-8803-80c5cf78ed89",
       "217883ce-55f1-4c34-8e00-e86c743f4dff",
-    ]
+    ];
 
     expect(getProductIdFromOptions(options, variationMatrixSample)).toEqual(
       "2d864c10-146f-4905-859f-86e63c18abf4",
-    )
-  })
+    );
+  });
   test("getProductIdFromOptions should return undefined when proveded valid but not found options.", () => {
     const variationMatrixSample = {
       "4252d475-2d0e-4cd2-99d3-19fba34ef211": {
@@ -66,21 +66,21 @@ describe("variation-helpers", () => {
             "42aef769-c97e-48a8-a3c4-2af8ad504ebb",
         },
       },
-    }
+    };
 
-    const options = ["4252d475-2d0e-4cd2-99d3-19fba34ef211", "456", "789"]
+    const options = ["4252d475-2d0e-4cd2-99d3-19fba34ef211", "456", "789"];
 
     expect(getProductIdFromOptions(options, variationMatrixSample)).toEqual(
       undefined,
-    )
-  })
+    );
+  });
   test("getProductIdFromOptions should return undefined when proveded empty options.", () => {
-    const variationMatrixSample = {}
+    const variationMatrixSample = {};
 
     expect(getProductIdFromOptions([], variationMatrixSample)).toEqual(
       undefined,
-    )
-  })
+    );
+  });
 
   test("getOptionsFromProductId should return a list of options for given sku id and matrix.", () => {
     const variationMatrixSample = {
@@ -100,17 +100,17 @@ describe("variation-helpers", () => {
           "option-6": "42aef769-c97e-48a8-a3c4-2af8ad504ebb",
         },
       },
-    }
+    };
 
-    const expectedOutput = ["option-2", "option-3", "option-6"]
+    const expectedOutput = ["option-2", "option-3", "option-6"];
 
     expect(
       getOptionsFromProductId(
         "42aef769-c97e-48a8-a3c4-2af8ad504ebb",
         variationMatrixSample,
       ),
-    ).toEqual(expectedOutput)
-  })
+    ).toEqual(expectedOutput);
+  });
 
   test("mapOptionsToVariation should return the object mapping varitions to the selected option.", () => {
     const variations: Partial<Variation>[] = [
@@ -150,19 +150,19 @@ describe("variation-helpers", () => {
           },
         ],
       },
-    ]
+    ];
 
-    const selectedOptions = ["option-2", "option-3"]
+    const selectedOptions = ["option-2", "option-3"];
 
     const expectedOutput = {
       "variation-1": "option-2",
       "variation-2": "option-3",
-    }
+    };
 
     expect(
       mapOptionsToVariation(selectedOptions, variations as Variation[]),
-    ).toEqual(expectedOutput)
-  })
+    ).toEqual(expectedOutput);
+  });
 
   test("allVariationsHaveSelectedOption should return true if all variations keys have a defined value for their key value pair.", () => {
     const variations: Partial<Variation>[] = [
@@ -202,15 +202,15 @@ describe("variation-helpers", () => {
           },
         ],
       },
-    ]
+    ];
 
     const optionDict = {
       "variation-1": "option-2",
       "variation-2": "option-3",
-    }
+    };
 
     expect(
       allVariationsHaveSelectedOption(optionDict, variations as Variation[]),
-    ).toEqual(true)
-  })
-})
+    ).toEqual(true);
+  });
+});

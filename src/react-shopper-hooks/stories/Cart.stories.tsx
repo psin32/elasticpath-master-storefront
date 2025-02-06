@@ -1,20 +1,20 @@
-import { Meta } from "@storybook/react"
-import React from "react"
+import { Meta } from "@storybook/react";
+import React from "react";
 
-import Layout from "./components/Layout"
-import { useGetCart } from "../cart/hooks/use-get-cart"
-import { CartProvider, useCart } from "../cart"
-import { CartItem } from "@moltin/sdk"
+import Layout from "./components/Layout";
+import { useGetCart } from "../cart/hooks/use-get-cart";
+import { CartProvider, useCart } from "../cart";
+import { CartItem } from "@elasticpath/js-sdk";
 
 const Cart = ({ showHookData, id }: { showHookData: boolean; id: string }) => {
-  const { data, isLoading } = useGetCart(id) // TODO add real token
+  const { data, isLoading } = useGetCart(id); // TODO add real token
   return (
     <Layout showHookData={showHookData} data={data}>
       <h3>Cart: {id}</h3>
       <p>{data?.id}</p>
     </Layout>
-  )
-}
+  );
+};
 
 const meta: Meta = {
   title: "Cart",
@@ -32,13 +32,13 @@ const meta: Meta = {
   parameters: {
     controls: { expanded: true },
   },
-}
+};
 
-export default meta
+export default meta;
 
 export const GetOne = (args: { showHookData: boolean; id: string }) => (
   <Cart {...args} />
-)
+);
 
 GetOne.argTypes = {
   id: {
@@ -48,14 +48,14 @@ GetOne.argTypes = {
     name: "cart id",
     defaultValue: "f0341e8e-4962-4245-9748-aaa84615c2f6",
   },
-}
+};
 
 function Item({ item }: { item: CartItem }) {
-  const { useScopedUpdateCartItem, useScopedRemoveCartItem } = useCart()
+  const { useScopedUpdateCartItem, useScopedRemoveCartItem } = useCart();
   const { mutate: mutateUpdate, isPending: isUpdateItemPending } =
-    useScopedUpdateCartItem()
+    useScopedUpdateCartItem();
   const { mutate: mutateRemove, isPending: isRemovePending } =
-    useScopedRemoveCartItem()
+    useScopedRemoveCartItem();
   return (
     <li key={item.id}>
       {item.name} - {item.quantity} -{" "}
@@ -91,34 +91,34 @@ function Item({ item }: { item: CartItem }) {
       {isUpdateItemPending && <p>Updating...</p>}
       {isRemovePending && <p>Removing...</p>}
     </li>
-  )
+  );
 }
 
 const CartUsingProvider = ({
   showHookData,
   id,
 }: {
-  showHookData: boolean
-  id: string
+  showHookData: boolean;
+  id: string;
 }) => {
-  const { state } = useCart()
+  const { state } = useCart();
   return (
     <Layout showHookData={showHookData}>
       <h3>Cart: {id}</h3>
       <ul>
         {(state as any)?.items?.map((item: CartItem) => {
-          return <Item item={item} key={item.id} />
+          return <Item item={item} key={item.id} />;
         })}
       </ul>
     </Layout>
-  )
-}
+  );
+};
 
 export const CartProv = (args: { showHookData: boolean; id: string }) => (
   <CartProvider cartId={args.id}>
     <CartUsingProvider {...args} />
   </CartProvider>
-)
+);
 
 CartProv.argTypes = {
   id: {
@@ -128,4 +128,4 @@ CartProv.argTypes = {
     name: "cart id",
     defaultValue: "f0341e8e-4962-4245-9748-aaa84615c2f6",
   },
-}
+};

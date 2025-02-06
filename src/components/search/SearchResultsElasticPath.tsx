@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import NodeMenu from "./NodeMenuAlgolia";
 import { ProductsProvider } from "./ProductsProvider";
-import { ShopperCatalogResourcePage } from "@moltin/sdk";
+import { ShopperCatalogResourcePage } from "@elasticpath/js-sdk";
 import { BreadcrumbLookup } from "../../lib/types/breadcrumb-lookup";
 import { buildBreadcrumbLookup } from "../../lib/build-breadcrumb-lookup";
 import MobileFilters from "./MobileFilters";

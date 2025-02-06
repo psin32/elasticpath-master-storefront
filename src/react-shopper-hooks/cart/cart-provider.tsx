@@ -5,7 +5,7 @@ import {
   ResourceIncluded,
   CartItem,
   CartItemsResponse,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 import { CartState } from "./types/cart-types";
 import { enhanceCartResponse } from "./util/enhance-cart-response";
 import { StoreEvent } from "../shared";

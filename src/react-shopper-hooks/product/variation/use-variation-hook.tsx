@@ -1,26 +1,26 @@
-import { useCallback, useContext } from "react"
-import { VariationProductContext } from "../../product/variation/variation-provider"
+import { useCallback, useContext } from "react";
+import { VariationProductContext } from "../../product/variation/variation-provider";
 import {
   VariationProduct,
   MatrixObjectEntry,
-} from "../../../shopper-common/src"
-import { CatalogsProductVariation } from "@moltin/sdk"
+} from "../../../shopper-common/src";
+import { CatalogsProductVariation } from "@elasticpath/js-sdk";
 
 export function useVariationProduct(): {
-  product: VariationProduct
-  isBaseProduct: boolean
-  variations: CatalogsProductVariation[]
-  variationsMatrix: MatrixObjectEntry
-  selectedOptions: Record<string, string>
-  updateSelectedOptions: (variationId: string, optionId: string) => void
-  getSelectedOption: (variationId: string) => string
+  product: VariationProduct;
+  isBaseProduct: boolean;
+  variations: CatalogsProductVariation[];
+  variationsMatrix: MatrixObjectEntry;
+  selectedOptions: Record<string, string>;
+  updateSelectedOptions: (variationId: string, optionId: string) => void;
+  getSelectedOption: (variationId: string) => string;
 } {
-  const ctx = useContext(VariationProductContext)
+  const ctx = useContext(VariationProductContext);
 
   if (!ctx) {
     throw new Error(
       "Variation Product Context was unexpectedly null, make sure you are using the useVariationProduct hook inside a VariationProductProvider!",
-    )
+    );
   }
 
   const {
@@ -30,7 +30,7 @@ export function useVariationProduct(): {
     variationsMatrix,
     selectedOptions,
     setSelectedOptions,
-  } = ctx
+  } = ctx;
 
   const updateSelectedOptions = useCallback(
     (variationId: string, optionId: string) => {
@@ -39,20 +39,20 @@ export function useVariationProduct(): {
           setSelectedOptions({
             ...selectedOptions,
             [selectedOptionKey]: optionId,
-          })
-          break
+          });
+          break;
         }
       }
     },
     [setSelectedOptions, selectedOptions],
-  )
+  );
 
   const getSelectedOption = useCallback(
     (variationId: string): string => {
-      return selectedOptions[variationId]
+      return selectedOptions[variationId];
     },
     [selectedOptions],
-  )
+  );
 
   return {
     product,
@@ -62,5 +62,5 @@ export function useVariationProduct(): {
     selectedOptions,
     updateSelectedOptions,
     getSelectedOption,
-  }
+  };
 }

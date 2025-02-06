@@ -7,7 +7,7 @@ import type {
   BundleComponent,
   ShopperProduct,
 } from "../../../react-shopper-hooks";
-import { ProductComponentOption, ProductResponse } from "@moltin/sdk";
+import { ProductComponentOption, ProductResponse } from "@elasticpath/js-sdk";
 import { sortByOrder } from "./sort-by-order";
 import { useField, useFormikContext } from "formik";
 

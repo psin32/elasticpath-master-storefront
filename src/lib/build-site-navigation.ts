@@ -1,4 +1,4 @@
-import type { Hierarchy, Moltin as EPCCClient } from "@moltin/sdk";
+import type { Hierarchy, ElasticPath as EPCCClient } from "@elasticpath/js-sdk";
 import {
   getHierarchies,
   getHierarchyChildren,

@@ -1,8 +1,8 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query"
-import { useElasticPath } from "../../elasticpath"
-import { CartItemsResponse } from "@moltin/sdk"
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import { useElasticPath } from "../../elasticpath";
+import { CartItemsResponse } from "@elasticpath/js-sdk";
 
-type CartDeleteCartItemsReq = {}
+type CartDeleteCartItemsReq = {};
 
 export const useDeleteCartItems = (
   cartId: string,
@@ -12,11 +12,11 @@ export const useDeleteCartItems = (
     CartDeleteCartItemsReq
   >,
 ) => {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
   return useMutation({
     mutationFn: async () => {
-      return client.Cart(cartId).RemoveAllItems()
+      return client.Cart(cartId).RemoveAllItems();
     },
     ...options,
-  })
-}
+  });
+};

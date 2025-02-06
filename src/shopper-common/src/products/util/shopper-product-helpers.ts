@@ -1,10 +1,9 @@
 import type {
-  ShopperCatalogResource,
-  Moltin as EPCCClient,
+  ElasticPath as EPCCClient,
   ShopperCatalogResourcePage,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 import { sortAlphabetically } from "./sort-alphabetically";
-import { ProductResponse } from "@moltin/sdk";
+import { ProductResponse } from "@elasticpath/js-sdk";
 import {
   BaseProduct,
   BaseProductResponse,

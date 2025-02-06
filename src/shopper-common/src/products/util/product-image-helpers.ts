@@ -1,4 +1,4 @@
-import type { File } from "@moltin/sdk"
+import type { File } from "@elasticpath/js-sdk";
 
 export function processImageFiles(files: File[], mainImageId?: string) {
   // filters out main image and keeps server order
@@ -8,28 +8,29 @@ export function processImageFiles(files: File[], mainImageId?: string) {
     "image/png",
     "image/webp",
     "image/svg+xml",
-  ]
+  ];
 
   if (!mainImageId) {
-    return files
+    return files;
   }
 
   return files.filter(
     (fileEntry) =>
       fileEntry.id !== mainImageId &&
-      (supportedMimeTypes.some((type) => fileEntry.mime_type === type) || fileEntry.link.href.startsWith("http")),
-  )
+      (supportedMimeTypes.some((type) => fileEntry.mime_type === type) ||
+        fileEntry.link.href.startsWith("http")),
+  );
 }
 
 export function getProductOtherImageUrls(
   files: File[] | undefined,
   mainImageFile: File | undefined,
 ): File[] {
-  return files ? processImageFiles(files, mainImageFile?.id) : []
+  return files ? processImageFiles(files, mainImageFile?.id) : [];
 }
 
 export function getProductMainImage(
   mainImages: File[] | undefined,
 ): File | null {
-  return mainImages?.[0] || null
+  return mainImages?.[0] || null;
 }

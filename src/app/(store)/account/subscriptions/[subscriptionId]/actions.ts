@@ -2,7 +2,7 @@
 
 import Stripe from "stripe";
 import { epPaymentsEnvData } from "../../../../../lib/resolve-ep-stripe-env";
-import { gateway, SubscriptionsStateAction } from "@moltin/sdk";
+import { gateway, SubscriptionsStateAction } from "@elasticpath/js-sdk";
 import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../../lib/epcc-server-side-credentials-client";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {

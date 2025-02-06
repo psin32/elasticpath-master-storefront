@@ -1,6 +1,6 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useElasticPath } from "../../elasticpath";
-import { ConfirmPaymentResponse } from "@moltin/sdk";
+import { ConfirmPaymentResponse } from "@elasticpath/js-sdk";
 
 export type UsePaymentsReq = {
   orderId: string;

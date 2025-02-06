@@ -4,7 +4,7 @@ import StrikePrice from "../product/StrikePrice";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
 import { KlevuRecord } from "@klevu/core";
-import { ProductResponse } from "@moltin/sdk";
+import { ProductResponse } from "@elasticpath/js-sdk";
 
 export default function HitComponentKlevu({
   hit,

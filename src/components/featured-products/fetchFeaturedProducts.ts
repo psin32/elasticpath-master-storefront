@@ -1,12 +1,12 @@
 import { getProducts } from "../../services/products";
-import { Moltin } from "@moltin/sdk";
+import { ElasticPath, ProductResponse } from "@elasticpath/js-sdk";
 import { ProductResponseWithImage } from "../../lib/types/product-types";
 import { connectProductsWithMainImages } from "../../lib/connect-products-with-main-images";
 
 // Fetching the first 4 products of in the catalog to display in the featured-products component
 export const fetchFeaturedProducts = async (
-  client: Moltin,
-): Promise<ProductResponseWithImage[]> => {
+  client: ElasticPath,
+): Promise<ProductResponse[] | ProductResponseWithImage[]> => {
   const { data: productsResponse, included: productsIncluded } =
     await getProducts(client);
 

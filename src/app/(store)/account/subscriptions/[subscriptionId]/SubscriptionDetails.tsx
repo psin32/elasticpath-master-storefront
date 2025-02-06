@@ -6,7 +6,7 @@ import { StatusButton } from "../../../../../components/button/StatusButton";
 import { Button } from "../../../../../components/button/Button";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { changeState } from "./actions";
-import { SubscriptionsStateAction } from "@moltin/sdk";
+import { SubscriptionsStateAction } from "@elasticpath/js-sdk";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

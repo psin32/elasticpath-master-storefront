@@ -1,5 +1,5 @@
-import type { Moltin as EPCCClient } from "@moltin/sdk";
-import { Cart, CartIncluded, ResourceIncluded } from "@moltin/sdk";
+import type { ElasticPath as EPCCClient } from "@elasticpath/js-sdk";
+import { Cart, CartIncluded, ResourceIncluded } from "@elasticpath/js-sdk";
 
 export async function getCart(
   cartId: string,
@@ -14,17 +14,16 @@ export async function addSubscriptionItem(
   planId: string | undefined,
   client: EPCCClient,
 ): Promise<any> {
-
   const body = {
     data: {
       type: "subscription_item",
       id: offeringId,
       quantity: 1,
       subscription_configuration: {
-        plan: planId
-      }
-    }
-  }
+        plan: planId,
+      },
+    },
+  };
 
   return await client.request.send(
     `carts/${cartId}/items`,
@@ -33,6 +32,6 @@ export async function addSubscriptionItem(
     undefined,
     client,
     false,
-    "v2"
+    "v2",
   );
 }

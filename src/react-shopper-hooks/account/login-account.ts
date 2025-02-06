@@ -1,16 +1,21 @@
-import { AccountMember, AccountTokenBase, Moltin, Resource } from "@moltin/sdk"
-import Cookies from "js-cookie"
-import jwtDecode from "jwt-decode"
+import {
+  AccountMember,
+  AccountTokenBase,
+  ElasticPath,
+  Resource,
+} from "@elasticpath/js-sdk";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 
 export type CookieTokenStore = {
-  __type: "cookie"
-  name: string
-  getToken(): string | undefined
-  setToken(token: string): void
-  deleteToken(): void
-}
+  __type: "cookie";
+  name: string;
+  getToken(): string | undefined;
+  setToken(token: string): void;
+  deleteToken(): void;
+};
 
-export type TokenStore = CookieTokenStore
+export type TokenStore = CookieTokenStore;
 
 export function createCookieTokenStore(
   name: string = "_store_ep_account_member_token",
@@ -19,23 +24,23 @@ export function createCookieTokenStore(
     __type: "cookie",
     name,
     getToken() {
-      return Cookies.get(name)
+      return Cookies.get(name);
     },
     setToken(token: string) {
-      Cookies.set(name, token)
+      Cookies.set(name, token);
     },
     deleteToken() {
-      Cookies.remove(name)
+      Cookies.remove(name);
     },
-  }
+  };
 }
 
 export async function loginUsernamePassword(
-  client: Moltin,
+  client: ElasticPath,
   details: {
-    passwordProfileId: string
-    email: string
-    password: string
+    passwordProfileId: string;
+    email: string;
+    password: string;
   },
 ) {
   return client.AccountMembers.GenerateAccountToken({
@@ -44,34 +49,34 @@ export async function loginUsernamePassword(
     password_profile_id: details.passwordProfileId,
     username: details.email.toLowerCase(), // Known bug for uppercase usernames so we force lowercase.
     password: details.password,
-  })
+  });
 }
 
 export async function resolveAccountMember(
-  client: Moltin,
+  client: ElasticPath,
   tokenStore: TokenStore,
 ) {
-  const token = tokenStore.getToken()
+  const token = tokenStore.getToken();
 
   if (!token) {
-    return undefined
+    return undefined;
   }
 
   const parsedToken: AccountTokenBase & { account_member_id: string } =
-    JSON.parse(token)
+    JSON.parse(token);
 
   const decodedToken = parsedToken?.token
     ? jwtDecode<{ sub?: string }>(parsedToken.token)
-    : undefined
+    : undefined;
 
   if (!decodedToken) {
-    return undefined
+    return undefined;
   }
 
-  const { sub: accountMemberId } = decodedToken
+  const { sub: accountMemberId } = decodedToken;
 
   if (!accountMemberId) {
-    return undefined
+    return undefined;
   }
 
   try {
@@ -86,11 +91,11 @@ export async function resolveAccountMember(
       {
         "EP-Account-Management-Authentication-Token": token,
       },
-    )
+    );
 
-    return result
+    return result;
   } catch (error) {
-    console.error(error)
-    return undefined
+    console.error(error);
+    return undefined;
   }
 }

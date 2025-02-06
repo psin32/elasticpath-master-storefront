@@ -1,5 +1,4 @@
 "use client";
-import { CartItem as CartItemType } from "@moltin/sdk";
 import { CartItem } from "../../app/(store)/cart/CartItem";
 import { Fragment } from "react";
 import { Separator } from "../separator/Separator";

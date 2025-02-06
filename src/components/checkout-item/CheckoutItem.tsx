@@ -1,7 +1,7 @@
 "use client";
 import { ProductThumbnail } from "../../app/(store)/account/orders/[orderId]/ProductThumbnail";
 import Link from "next/link";
-import { CartItem } from "@moltin/sdk";
+import { CartItem } from "@elasticpath/js-sdk";
 import { CartAdditionalData } from "../cart/CartAdditionalData";
 import { CartComponentData } from "../cart/CartComponentData";
 import Image from "next/image";

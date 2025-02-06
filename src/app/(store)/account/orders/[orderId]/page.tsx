@@ -7,10 +7,8 @@ import {
   OrderIncluded,
   OrderItem,
   RelationshipToMany,
-} from "@moltin/sdk";
-import {
-  retrieveAccountMemberCredentials,
-} from "../../../../../lib/retrieve-account-member-credentials";
+} from "@elasticpath/js-sdk";
+import { retrieveAccountMemberCredentials } from "../../../../../lib/retrieve-account-member-credentials";
 import { Button } from "../../../../../components/button/Button";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -40,7 +38,7 @@ export default async function Orders({
   let result: Awaited<ReturnType<typeof client.Orders.Get>> | undefined =
     undefined;
   try {
-    result = await client.Orders.With("items").Get(params.orderId)
+    result = await client.Orders.With("items").Get(params.orderId);
   } catch (e: any) {
     if (
       "errors" in e &&
@@ -119,7 +117,9 @@ export default async function Orders({
           <div className="flex justify-between items-baseline self-stretch">
             <span className="text-sm">Subtotal</span>
             <span className="font-medium">
-              {shopperOrder.raw.meta.display_price?.without_tax?.formatted ? shopperOrder.raw.meta.display_price?.without_tax?.formatted : shopperOrder.raw.meta.display_price?.with_tax?.formatted}
+              {shopperOrder.raw.meta.display_price?.without_tax?.formatted
+                ? shopperOrder.raw.meta.display_price?.without_tax?.formatted
+                : shopperOrder.raw.meta.display_price?.with_tax?.formatted}
             </span>
           </div>
           <div className="flex justify-between items-baseline self-stretch">

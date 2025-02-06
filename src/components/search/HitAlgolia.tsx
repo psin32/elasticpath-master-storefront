@@ -4,7 +4,7 @@ import Price from "../product/Price";
 import StrikePrice from "../product/StrikePrice";
 import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
-import { ProductResponse } from "@moltin/sdk";
+import { ProductResponse } from "@elasticpath/js-sdk";
 import Ratings from "../reviews/yotpo/Ratings";
 import { SendEventForHits } from "instantsearch.js/es/lib/utils";
 

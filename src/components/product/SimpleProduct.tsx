@@ -12,7 +12,7 @@ import { StatusButton } from "../button/StatusButton";
 import PersonalisedInfo from "./PersonalisedInfo";
 import ProductHighlights from "./ProductHighlights";
 import Reviews from "../reviews/yotpo/Reviews";
-import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 import { toast } from "react-toastify";
 import ProductExtensions from "./ProductExtensions";
@@ -24,22 +24,29 @@ import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { RecommendedProducts } from "../recommendations/RecommendationProducts";
+import ProductRelationship from "./related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
+  relationship: any[];
 }
 
 function SimpleProductDetail({
   simpleProduct,
   offerings,
   content,
+  relationship,
 }: ISimpleProductDetail): JSX.Element {
   return (
     <SimpleProductProvider simpleProduct={simpleProduct}>
-      <SimpleProductContainer offerings={offerings} content={content} />
+      <SimpleProductContainer
+        offerings={offerings}
+        content={content}
+        relationship={relationship}
+      />
     </SimpleProductProvider>
   );
 }
@@ -47,9 +54,11 @@ function SimpleProductDetail({
 function SimpleProductContainer({
   offerings,
   content,
+  relationship,
 }: {
   offerings: any;
   content: any;
+  relationship: any[];
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { product } = useSimpleProduct() as any;
@@ -232,6 +241,18 @@ function SimpleProductContainer({
         </div>
       </div>
       <RecommendedProducts productId={id} />
+      {relationship &&
+        relationship.map((rel: any) => {
+          return (
+            <ProductRelationship
+              productId={id}
+              baseProductId={null}
+              slug={rel.slug}
+              relationship={relationship}
+              key={rel.slug}
+            />
+          );
+        })}
       {enableBuilderIO && (
         <BuilderContent
           model="page"

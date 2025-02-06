@@ -20,11 +20,11 @@ import type {
   AccountAuthenticationSettings,
   AccountTokenBase,
   ResourcePage,
-  Moltin as EPCCClient,
+  ElasticPath as EPCCClient,
   Profile,
   ProfileResponse,
   Resource,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 
 const loginSchema = z.object({
   email: z.string().email(),

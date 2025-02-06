@@ -1,5 +1,4 @@
-import { Extensions } from "@moltin/sdk";
-import { isSupportedExtension } from "../../lib/is-supported-extension";
+import { Extensions } from "@elasticpath/js-sdk";
 
 interface IProductHighlights {
   extensions: Extensions;

@@ -3,12 +3,11 @@ import { Metadata } from "next";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
 import {
   Hierarchy,
-  Moltin,
+  ElasticPath,
   ProductResponse,
   ShopperCatalogResourcePage,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 import { notFound } from "next/navigation";
-import { ShopperProduct } from "@elasticpath/shopper-common";
 import {
   getMainImageForProductResponse,
   getOtherImagesForProductResponse,
@@ -25,6 +24,7 @@ import { resolveEpccCustomRuleHeaders } from "../../../../lib/custom-rule-header
 import SearchResultsKlevu from "../../../../components/search/SearchResultsKlevu";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../../../lib/resolve-cms-env";
+import { ShopperProduct } from "../../../../react-shopper-hooks";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const metadata: Metadata = {
@@ -164,7 +164,7 @@ export default async function SearchPage({
  * Behavior for more than 25 hierarchies is unpredictable.
  */
 async function findHierarchyFromSlug(
-  client: Moltin,
+  client: ElasticPath,
   slug: string,
 ): Promise<Hierarchy | undefined> {
   const allHierarchies = await client.ShopperCatalog.Hierarchies.All();
@@ -206,7 +206,7 @@ function processResult(
  * Behavior for more than 25 Child Nodes is unpredictable.
  */
 async function findLeafNodeId(
-  client: Moltin,
+  client: ElasticPath,
   rootHierarchy: Hierarchy,
   leafNodeSlug: string,
 ): Promise<string | undefined> {
@@ -228,7 +228,7 @@ function getLastArrayElement<T>(array: T[]): T | undefined {
 }
 
 async function getNodeProducts(
-  client: Moltin,
+  client: ElasticPath,
   nodeId: string,
   limit?: string,
   offset?: string,
@@ -240,7 +240,7 @@ async function getNodeProducts(
 }
 
 async function getHierarchyProducts(
-  client: Moltin,
+  client: ElasticPath,
   hierarchyId: string,
   customHeaders: any,
   limit?: string,

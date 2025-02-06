@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { gateway } from "@moltin/sdk";
+import { gateway } from "@elasticpath/js-sdk";
 import { buildSiteNavigation } from "../src/lib/build-site-navigation";
 
 const host = process.env.NEXT_PUBLIC_EPCC_ENDPOINT_URL;
@@ -34,7 +34,7 @@ test("should be able to use quick view to view full product details", async ({
     );
   }
 
-  await page.getByRole("button", {name: "Shop Now"}).click();
+  await page.getByRole("button", { name: "Shop Now" }).click();
 
   /* Check to make sure the page has navigated to the product list page for Men's / T-Shirts */
   await expect(page).toHaveURL(`/search`);

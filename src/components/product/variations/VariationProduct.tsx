@@ -13,7 +13,7 @@ import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
-import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 import { toast } from "react-toastify";
 import ProductExtensions from "../ProductExtensions";
@@ -25,20 +25,27 @@ import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
 import { RecommendedProducts } from "../../recommendations/RecommendationProducts";
+import ProductRelationship from "../related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const VariationProductDetail = ({
   variationProduct,
   offerings,
   content,
+  relationship,
 }: {
   variationProduct: VariationProduct;
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
+  relationship: any[];
 }): JSX.Element => {
   return (
     <VariationProductProvider variationProduct={variationProduct}>
-      <VariationProductContainer offerings={offerings} content={content} />
+      <VariationProductContainer
+        offerings={offerings}
+        content={content}
+        relationship={relationship}
+      />
     </VariationProductProvider>
   );
 };
@@ -46,9 +53,11 @@ export const VariationProductDetail = ({
 export function VariationProductContainer({
   offerings,
   content,
+  relationship,
 }: {
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
+  relationship: any[];
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { product, selectedOptions } = useVariationProduct() as any;
@@ -61,12 +70,13 @@ export function VariationProductContainer({
     isPending: isPendingSubscriptionItem,
   } = useScopedAddSubscriptionItemToCart();
 
-  const { response, main_image, otherImages } = product;
+  const { response, main_image, otherImages, baseProduct } = product;
   const { extensions } = response.attributes;
   const {
     id,
     meta: { original_display_price },
   } = response;
+
   const [quantity, setQuantity] = useState<number>(1);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const enableClickAndCollect =
@@ -262,6 +272,18 @@ export function VariationProductContainer({
         </div>
       </div>
       <RecommendedProducts productId={id} />
+      {relationship &&
+        relationship.map((rel: any) => {
+          return (
+            <ProductRelationship
+              productId={id}
+              baseProductId={baseProduct?.id}
+              slug={rel.slug}
+              relationship={relationship}
+              key={rel.slug}
+            />
+          );
+        })}
       {enableBuilderIO && content && (
         <BuilderContent
           model="page"

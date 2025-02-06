@@ -1,6 +1,6 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useElasticPath } from "../../elasticpath";
-import { CartItemObject, CartItemsResponse } from "@moltin/sdk";
+import { CartItemObject, CartItemsResponse } from "@elasticpath/js-sdk";
 
 export const useAddBulkProductToCart = (
   cartId: string,

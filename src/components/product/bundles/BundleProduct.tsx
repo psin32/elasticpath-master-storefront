@@ -21,27 +21,34 @@ import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
-import { ResourcePage, SubscriptionOffering } from "@moltin/sdk";
+import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import ProductRelationship from "../related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface IBundleProductDetail {
   bundleProduct: BundleProduct;
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
+  relationship: any[];
 }
 
 const BundleProductDetail = ({
   bundleProduct,
   offerings,
   content,
+  relationship,
 }: IBundleProductDetail): JSX.Element => {
   return (
     <BundleProductProvider bundleProduct={bundleProduct}>
-      <BundleProductContainer offerings={offerings} content={content} />
+      <BundleProductContainer
+        offerings={offerings}
+        content={content}
+        relationship={relationship}
+      />
     </BundleProductProvider>
   );
 };
@@ -49,9 +56,11 @@ const BundleProductDetail = ({
 function BundleProductContainer({
   offerings,
   content,
+  relationship,
 }: {
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
+  relationship: any[];
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { configuredProduct, selectedOptions, components } = useBundle();
@@ -61,6 +70,7 @@ function BundleProductContainer({
   const { response, main_image, otherImages } = configuredProduct as any;
   const { extensions } = response.attributes;
   const {
+    id,
     meta: { original_display_price },
   } = response;
   const enableClickAndCollect =
@@ -144,6 +154,18 @@ function BundleProductContainer({
             </Form>
           </div>
         </div>
+        {relationship &&
+          relationship.map((rel: any) => {
+            return (
+              <ProductRelationship
+                productId={id}
+                baseProductId={null}
+                slug={rel.slug}
+                relationship={relationship}
+                key={rel.slug}
+              />
+            );
+          })}
         {enableBuilderIO && content && (
           <BuilderContent
             model="page"

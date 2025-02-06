@@ -1,21 +1,21 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query"
-import { useElasticPath } from "../../elasticpath"
-import { CartItemsResponse } from "@moltin/sdk"
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import { useElasticPath } from "../../elasticpath";
+import { CartItemsResponse } from "@elasticpath/js-sdk";
 
 type CartAddPromotionReq = {
-  code: string
-  token?: string
-}
+  code: string;
+  token?: string;
+};
 
 export const useAddPromotionToCart = (
   cartId: string,
   options?: UseMutationOptions<CartItemsResponse, Error, CartAddPromotionReq>,
 ) => {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
   return useMutation({
     mutationFn: async ({ code, token }: CartAddPromotionReq) => {
-      return client.Cart(cartId).AddPromotion(code, token)
+      return client.Cart(cartId).AddPromotion(code, token);
     },
     ...options,
-  })
-}
+  });
+};

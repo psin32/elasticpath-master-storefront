@@ -1,10 +1,10 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query"
-import { useElasticPath } from "../../elasticpath"
-import { CartItemsResponse } from "@moltin/sdk"
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import { useElasticPath } from "../../elasticpath";
+import { CartItemsResponse } from "@elasticpath/js-sdk";
 
 type CartRemovePromotionCodeReq = {
-  code: string
-}
+  code: string;
+};
 
 export const useRemovePromotionCode = (
   cartId: string,
@@ -14,7 +14,7 @@ export const useRemovePromotionCode = (
     CartRemovePromotionCodeReq
   >,
 ) => {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
   return useMutation({
     mutationFn: async ({ code }: CartRemovePromotionCodeReq) => {
       return client.request.send(
@@ -25,8 +25,8 @@ export const useRemovePromotionCode = (
         client,
         undefined,
         "v2",
-      )
+      );
     },
     ...options,
-  })
-}
+  });
+};

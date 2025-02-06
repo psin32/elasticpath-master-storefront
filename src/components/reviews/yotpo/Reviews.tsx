@@ -1,4 +1,4 @@
-import type { ProductResponse } from "@moltin/sdk";
+import type { ProductResponse } from "@elasticpath/js-sdk";
 import { useEffect } from "react";
 import Script from "next/script";
 import { yotpoEnv } from "../../../lib/resolve-yotpo-env";

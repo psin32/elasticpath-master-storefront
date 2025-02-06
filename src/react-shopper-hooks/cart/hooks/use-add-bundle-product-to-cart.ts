@@ -1,17 +1,17 @@
-import { useMutation, UseMutationOptions } from "@tanstack/react-query"
-import { CartAdditionalHeaders, CartItemsResponse } from "@moltin/sdk"
-import { useElasticPath } from "../../elasticpath"
-import { SelectedOptions } from "../types/bundle.type"
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
+import { CartAdditionalHeaders, CartItemsResponse } from "@elasticpath/js-sdk";
+import { useElasticPath } from "../../elasticpath";
+import { SelectedOptions } from "../types/bundle.type";
 
 export type CartAddBundleProductReq = {
-  productId: string
-  selectedOptions: SelectedOptions
-  quantity?: number
-  data?: any
-  isSku?: boolean
-  token?: string
-  additionalHeaders?: CartAdditionalHeaders
-}
+  productId: string;
+  selectedOptions: SelectedOptions;
+  quantity?: number;
+  data?: any;
+  isSku?: boolean;
+  token?: string;
+  additionalHeaders?: CartAdditionalHeaders;
+};
 
 export const useAddBundleProductToCart = (
   cartId: string,
@@ -21,7 +21,7 @@ export const useAddBundleProductToCart = (
     CartAddBundleProductReq
   >,
 ) => {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
   return useMutation({
     mutationFn: async ({
       productId,
@@ -44,8 +44,8 @@ export const useAddBundleProductToCart = (
         isSku,
         token,
         additionalHeaders,
-      )
+      );
     },
     ...options,
-  })
-}
+  });
+};

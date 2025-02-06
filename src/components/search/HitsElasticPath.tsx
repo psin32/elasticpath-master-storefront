@@ -17,7 +17,7 @@ import { StatusButton } from "../button/StatusButton";
 import Link from "next/link";
 import { useCart } from "../../react-shopper-hooks";
 import { toast } from "react-toastify";
-import { CartItemObject } from "@moltin/sdk";
+import { CartItemObject } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
 

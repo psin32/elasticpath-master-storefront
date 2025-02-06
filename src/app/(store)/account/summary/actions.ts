@@ -3,9 +3,7 @@
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
-import {
-  retrieveAccountMemberCredentials,
-} from "../../../../lib/retrieve-account-member-credentials";
+import { retrieveAccountMemberCredentials } from "../../../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
 import { revalidatePath } from "next/cache";
 import { getServerSideCredentialsClient } from "../../../../lib/epcc-server-side-credentials-client";
@@ -44,13 +42,13 @@ export async function updateAccount(formData: FormData) {
   const { name, id } = validatedFormData.data;
 
   const body = {
-      type: "account",
-      name,
-      legal_name: name,
+    type: "account",
+    name,
+    legal_name: name,
   };
 
   try {
-    await client.Accounts.Update(id, body)
+    await client.Accounts.Update(id, body);
     revalidatePath("/accounts/summary");
   } catch (error) {
     console.error(getErrorMessage(error));
@@ -134,15 +132,19 @@ export async function updateUserAuthenticationPasswordProfile(
   }
 
   const body: any = {
-      type: "user_authentication_password_profile_info",
-      id: userAuthenticationPasswordProfileInfo.id,
-      password_profile_id: PASSWORD_PROFILE_ID,
-      ...(username && { username }),
-      ...(newPassword && { password: newPassword }),
+    type: "user_authentication_password_profile_info",
+    id: userAuthenticationPasswordProfileInfo.id,
+    password_profile_id: PASSWORD_PROFILE_ID,
+    ...(username && { username }),
+    ...(newPassword && { password: newPassword }),
   };
 
   try {
-    await client.UserAuthenticationInfo.Update(AUTHENTICATION_REALM_ID, accountMemberCreds.accountMemberId, body)
+    await client.UserAuthenticationInfo.Update(
+      AUTHENTICATION_REALM_ID,
+      accountMemberCreds.accountMemberId,
+      body,
+    );
     revalidatePath("/accounts");
   } catch (error) {
     console.error(error);
@@ -151,7 +153,7 @@ export async function updateUserAuthenticationPasswordProfile(
 }
 
 // async function getOneTimePasswordToken(
-//   client: Moltin,
+//   client: ElasticPath,
 //   username: string,
 // ): Promise<string> {
 //   const response = await client.OneTimePasswordTokenRequest.Create(

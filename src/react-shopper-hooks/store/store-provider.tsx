@@ -1,24 +1,24 @@
-import { StoreProviderProps } from "./types/store-context-types"
-import { emitter } from "../event/event-context"
-import { CartProvider } from "../cart"
-import React, { createContext } from "react"
-import type { Moltin as EPCCClient } from "@moltin/sdk"
-import { NavigationNode } from "../../shopper-common/src"
-import { useElasticPath } from "../elasticpath"
+import { StoreProviderProps } from "./types/store-context-types";
+import { emitter } from "../event/event-context";
+import { CartProvider } from "../cart";
+import React, { createContext } from "react";
+import type { ElasticPath as EPCCClient } from "@elasticpath/js-sdk";
+import { NavigationNode } from "../../shopper-common/src";
+import { useElasticPath } from "../elasticpath";
 
 interface StoreState {
-  client: EPCCClient
-  nav?: NavigationNode[]
+  client: EPCCClient;
+  nav?: NavigationNode[];
 }
 
-export const StoreProviderContext = createContext<StoreState | null>(null)
+export const StoreProviderContext = createContext<StoreState | null>(null);
 
 export const StoreProvider = ({
   children,
   initialState,
   cartId,
 }: StoreProviderProps) => {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
 
   return (
     <StoreProviderContext.Provider value={{ client, nav: initialState?.nav }}>
@@ -32,5 +32,5 @@ export const StoreProvider = ({
         {children}
       </CartProvider>
     </StoreProviderContext.Provider>
-  )
-}
+  );
+};

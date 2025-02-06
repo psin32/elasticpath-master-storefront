@@ -24,7 +24,7 @@ import {
 import { sortByItems } from "../../../lib/sort-by-items";
 import { hierarchicalAttributes } from "../../../lib/hierarchical-attributes";
 import { usePathname } from "next/navigation";
-import { ShopperCatalogResourcePage } from "@moltin/sdk";
+import { ShopperCatalogResourcePage } from "@elasticpath/js-sdk";
 import SearchResultsAlgolia from "../../../components/search/SearchResultsAlgolia";
 import SearchResultsElasticPath from "../../../components/search/SearchResultsElasticPath";
 import SearchResultsKlevu from "../../../components/search/SearchResultsKlevu";

@@ -1,44 +1,44 @@
-import { gateway, Moltin as ElasticPath } from "@moltin/sdk"
+import { gateway, ElasticPath } from "@elasticpath/js-sdk";
 import {
   QueryClientProvider,
   QueryClientProviderProps,
-} from "@tanstack/react-query"
-import React, { ReactElement } from "react"
+} from "@tanstack/react-query";
+import React, { ReactElement } from "react";
 
 interface ElasticPathContextState {
-  client: ElasticPath
+  client: ElasticPath;
 }
 
 const ElasticPathContext = React.createContext<ElasticPathContextState | null>(
   null,
-)
+);
 
 export const useElasticPath = () => {
-  const context = React.useContext(ElasticPathContext)
+  const context = React.useContext(ElasticPathContext);
   if (!context) {
-    throw new Error("useElasticPath must be used within a ElasticPathProvider")
+    throw new Error("useElasticPath must be used within a ElasticPathProvider");
   }
-  return context
-}
+  return context;
+};
 
 export type ElasticPathProviderPropsBase = {
-  queryClientProviderProps: QueryClientProviderProps
-  children: React.ReactNode
-}
+  queryClientProviderProps: QueryClientProviderProps;
+  children: React.ReactNode;
+};
 
 export type ElasticPathProviderPropsWithClient =
   ElasticPathProviderPropsBase & {
-    clientId: string
-    host?: string
-  }
+    clientId: string;
+    host?: string;
+  };
 
 export type ElasticPathProviderPropsCustom = ElasticPathProviderPropsBase & {
-  client: ElasticPath
-}
+  client: ElasticPath;
+};
 
 export type ElasticPathProviderProps =
   | ElasticPathProviderPropsWithClient
-  | ElasticPathProviderPropsCustom
+  | ElasticPathProviderPropsCustom;
 
 export function ElasticPathProvider(
   props: ElasticPathProviderProps,
@@ -49,7 +49,7 @@ export function ElasticPathProvider(
       : gateway({
           client_id: props.clientId,
           host: props.host,
-        })
+        });
 
   return (
     <QueryClientProvider {...props.queryClientProviderProps}>
@@ -61,5 +61,5 @@ export function ElasticPathProvider(
         {props.children}
       </ElasticPathContext.Provider>
     </QueryClientProvider>
-  )
+  );
 }

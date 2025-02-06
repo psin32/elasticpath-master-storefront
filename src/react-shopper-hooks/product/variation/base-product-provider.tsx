@@ -4,30 +4,33 @@ import React, {
   ReactNode,
   SetStateAction,
   useState,
-} from "react"
-import { CatalogsProductVariation, Moltin as EpccClient } from "@moltin/sdk"
-import { BaseProduct, MatrixObjectEntry } from "../../../shopper-common/src"
+} from "react";
+import {
+  CatalogsProductVariation,
+  ElasticPath as EpccClient,
+} from "@elasticpath/js-sdk";
+import { BaseProduct, MatrixObjectEntry } from "../../../shopper-common/src";
 
 interface BaseProductState {
-  product: BaseProduct
-  setProduct: Dispatch<SetStateAction<BaseProduct>>
-  variationsMatrix: MatrixObjectEntry
-  variations: CatalogsProductVariation[]
-  client: EpccClient
+  product: BaseProduct;
+  setProduct: Dispatch<SetStateAction<BaseProduct>>;
+  variationsMatrix: MatrixObjectEntry;
+  variations: CatalogsProductVariation[];
+  client: EpccClient;
 }
 
-export const BaseProductContext = createContext<BaseProductState | null>(null)
+export const BaseProductContext = createContext<BaseProductState | null>(null);
 
 export function BaseProductProvider({
   children,
   baseProduct,
   client,
 }: {
-  baseProduct: BaseProduct
-  children: ReactNode
-  client: EpccClient
+  baseProduct: BaseProduct;
+  children: ReactNode;
+  client: EpccClient;
 }) {
-  const [product, setProduct] = useState<BaseProduct>(baseProduct)
+  const [product, setProduct] = useState<BaseProduct>(baseProduct);
 
   return (
     <BaseProductContext.Provider
@@ -41,5 +44,5 @@ export function BaseProductProvider({
     >
       {children}
     </BaseProductContext.Provider>
-  )
+  );
 }

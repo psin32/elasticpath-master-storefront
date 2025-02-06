@@ -3,9 +3,9 @@ import { PropertiesEditor } from "properties-file/editor";
 import {
   AccountAuthenticationSettings,
   gateway,
-  Moltin,
+  ElasticPath,
   PasswordProfileBody,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -178,7 +178,7 @@ export const main = async () => {
     "Enter Elastic Path Store Client Secret: ",
   );
 
-  const epcc: Moltin = gateway({
+  const epcc: ElasticPath = gateway({
     client_id: clientId,
     client_secret: clientSecret,
     host,
@@ -322,7 +322,7 @@ export const main = async () => {
   rl.close();
 };
 
-const updateAccountAuthenticationSettings = async (epcc: Moltin) => {
+const updateAccountAuthenticationSettings = async (epcc: ElasticPath) => {
   const request: Partial<AccountAuthenticationSettings> = {
     type: "account_authentication_settings",
     enable_self_signup: true,
@@ -335,7 +335,7 @@ const updateAccountAuthenticationSettings = async (epcc: Moltin) => {
 
 const generatePasswordProfile = async (
   realmId: string,
-  epcc: Moltin,
+  epcc: ElasticPath,
 ): Promise<string> => {
   let profileId = "";
   const passwordProfiles = await epcc.PasswordProfile.All(realmId);
@@ -353,7 +353,7 @@ const generatePasswordProfile = async (
   return profileId;
 };
 
-const getIntegrationHubAccessToken = async (epcc: Moltin) => {
+const getIntegrationHubAccessToken = async (epcc: ElasticPath) => {
   const response = await epcc.request.send(
     `/platform-integrations/authentication-token`,
     "GET",

@@ -1,5 +1,5 @@
 "use client";
-import { CartItem as CartItemType } from "@moltin/sdk";
+import { CartItem as CartItemType } from "@elasticpath/js-sdk";
 
 export type CartAdditionalDataProps = {
   item: CartItemType;

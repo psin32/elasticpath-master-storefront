@@ -10,7 +10,7 @@ import {
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
 import { revalidatePath } from "next/cache";
 import { shippingAddressSchema } from "../../../../components/checkout/form-schema/checkout-form-schema";
-import { AccountAddress, Resource } from "@moltin/sdk";
+import { AccountAddress, Resource } from "@elasticpath/js-sdk";
 import { redirect } from "next/navigation";
 
 const deleteAddressSchema = z.object({
@@ -60,7 +60,10 @@ export async function deleteAddress(formData: FormData) {
   const selectedAccount = getSelectedAccount(accountMemberCreds);
 
   try {
-    await client.AccountAddresses.Delete({account: selectedAccount.account_id, address: addressId})
+    await client.AccountAddresses.Delete({
+      account: selectedAccount.account_id,
+      address: addressId,
+    });
     revalidatePath("/accounts/addresses");
   } catch (error) {
     console.error(error);
@@ -98,9 +101,12 @@ export async function updateAddress(formData: FormData) {
     ...addressData,
   };
 
-  
   try {
-    await client.AccountAddresses.Update({ account: selectedAccount.account_id, address: addressId, body: body })
+    await client.AccountAddresses.Update({
+      account: selectedAccount.account_id,
+      address: addressId,
+      body: body,
+    });
     revalidatePath("/accounts/addresses");
   } catch (error) {
     console.error(error);
@@ -131,13 +137,16 @@ export async function addAddress(formData: FormData) {
   const { ...addressData } = validatedFormData.data;
 
   const body: any = {
-      type: "address",
-      ...addressData,
+    type: "address",
+    ...addressData,
   };
 
   let redirectUrl: string | undefined = undefined;
   try {
-    const result = (await client.AccountAddresses.Create({account: selectedAccount.account_id, body: body})) as Resource<AccountAddress>;
+    const result = (await client.AccountAddresses.Create({
+      account: selectedAccount.account_id,
+      body: body,
+    })) as Resource<AccountAddress>;
     redirectUrl = `/account/addresses/${result.data.id}`;
   } catch (error) {
     console.error(error);

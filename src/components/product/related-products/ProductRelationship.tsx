@@ -1,58 +1,64 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
-import ProductCard from "./ProductCard";
+import { useEffect, useState } from "react";
+import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 import {
   ProductResponse,
   ShopperCatalogResourcePage,
 } from "@elasticpath/js-sdk";
-import { ShopperProduct } from "../../../../react-shopper-hooks";
+import { ShopperProduct } from "../../../react-shopper-hooks";
 import {
   getMainImageForProductResponse,
   getOtherImagesForProductResponse,
-} from "../../../../lib/file-lookup";
+} from "../../../lib/file-lookup";
 import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { getProductByIds } from "../../../../services/products";
-import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
+import ProductCard from "../../builder-io/blocks/ProductGrid/ProductCard";
 
-export interface CarouselProps {
-  slidesToShow: number;
-  slidesToScroll: number;
-  enableAutoplay: boolean;
-  enabledInfinite: boolean;
-  speed: number;
-  displayDots: boolean;
+interface IProductRelationship {
+  productId: string;
+  baseProductId: any;
+  slug: string;
+  relationship: any[];
 }
 
-export interface ProductGridProps {
-  productsList?: any;
-  customCss?: string;
-  carouselProps: CarouselProps;
-}
-
-export const ProductGrid: FC<ProductGridProps> = ({
-  productsList,
-  customCss,
-  carouselProps,
-}) => {
+const ProductRelationship = ({
+  productId,
+  baseProductId,
+  slug,
+  relationship,
+}: IProductRelationship): JSX.Element => {
   const [products, setProducts] = useState<any>();
-  const [loading, setLoading] = useState(false);
+  const [description, setDescription] = useState<string>();
+  const doFetch = async () => {
+    const client = getEpccImplicitClient();
+    let response = await client.ShopperCatalog.Products.With([
+      "main_image",
+      "files",
+      "component_products",
+    ]).GetRelatedProducts({
+      productId,
+      customRelationshipSlug: slug,
+    });
+    if (response.data.length === 0) {
+      response = await client.ShopperCatalog.Products.With([
+        "main_image",
+        "files",
+        "component_products",
+      ]).GetRelatedProducts({
+        productId: baseProductId,
+        customRelationshipSlug: slug,
+      });
+    }
+    const products = processResult(response);
+    setProducts(products);
+    const customRelationship = relationship?.find((rel) => rel.slug === slug);
+    setDescription(customRelationship?.description);
+  };
 
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      const client = getEpccImplicitClient();
-      const productIds = productsList?.map((entry: any) => {
-        return entry.product?.options?.product;
-      });
-      const response = await getProductByIds(productIds?.join(","), client);
-      setProducts(processResult(response));
-      setLoading(false);
-    };
-    init();
-  }, [productsList]);
-
+    doFetch();
+  }, []);
   const NextArrow = (props: any) => {
     const { onClick } = props;
     return (
@@ -74,12 +80,12 @@ export const ProductGrid: FC<ProductGridProps> = ({
   };
 
   const settings = {
-    dots: carouselProps?.displayDots || false,
-    infinite: carouselProps?.enabledInfinite || false,
-    speed: carouselProps?.speed || 300,
-    slidesToShow: carouselProps?.slidesToShow || 4,
-    slidesToScroll: carouselProps?.slidesToScroll || 1,
-    autoplay: carouselProps?.enableAutoplay || false,
+    dots: true,
+    infinite: false,
+    speed: 300,
+    slidesToShow: 4,
+    slidesToScroll: 1,
+    autoplay: false,
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     responsive: [
@@ -87,27 +93,23 @@ export const ProductGrid: FC<ProductGridProps> = ({
         breakpoint: 1024,
         settings: {
           slidesToShow: 3,
-          dots: carouselProps?.displayDots || false,
+          dots: true,
         },
       },
       {
         breakpoint: 600,
         settings: {
           slidesToShow: 1,
-          dots: carouselProps?.displayDots || false,
+          dots: true,
         },
       },
     ],
   };
 
   return (
-    <div>
-      <Slider
-        {...settings}
-        className={
-          customCss ? customCss : "xl:max-w-7xl xl:p-0 mx-auto max-w-full p-8"
-        }
-      >
+    <div className="mt-6">
+      <div className="text-2xl font-bold p-3">{description}</div>
+      <Slider {...settings} className="xl:max-w-7xl max-w-full">
         {products &&
           products.data.map((hit: any, i: number) => {
             return (
@@ -145,3 +147,5 @@ function processResult(
     data: processedData,
   };
 }
+
+export default ProductRelationship;

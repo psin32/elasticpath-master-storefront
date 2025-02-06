@@ -1,4 +1,4 @@
-import type { Moltin as EPCCClient } from "@moltin/sdk";
+import type { ElasticPath as EPCCClient } from "@elasticpath/js-sdk";
 
 export async function hasPublishedCatalog(
   client: EPCCClient,

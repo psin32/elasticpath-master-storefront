@@ -1,11 +1,14 @@
-import { gateway, StorageFactory } from "@moltin/sdk";
+import { gateway, StorageFactory } from "@elasticpath/js-sdk";
 import { epccEnv } from "./resolve-epcc-env";
 import { resolveEpccCustomRuleHeaders } from "./custom-rule-headers";
 import { deleteCookie, getCookie, setCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "./resolve-cart-env";
 import { EP_CURRENCY_CODE } from "./resolve-ep-currency-code";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "./cookie-constants";
-import { getSelectedAccount, parseAccountMemberCredentialsCookieStr } from "./retrieve-account-member-credentials";
+import {
+  getSelectedAccount,
+  parseAccountMemberCredentialsCookieStr,
+} from "./retrieve-account-member-credentials";
 
 let headers = resolveEpccCustomRuleHeaders();
 
@@ -13,29 +16,31 @@ const { client_id, host } = epccEnv;
 
 export function getEpccImplicitClient() {
   const catalogTag = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
-  const cookieValue = getCookie(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME)?.toString() || ""
+  const cookieValue =
+    getCookie(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME)?.toString() || "";
   if (cookieValue) {
-    const accountMemberCookie = parseAccountMemberCredentialsCookieStr(cookieValue)
+    const accountMemberCookie =
+      parseAccountMemberCredentialsCookieStr(cookieValue);
     if (accountMemberCookie) {
       const selectedAccount = getSelectedAccount(accountMemberCookie);
-      const accountToken = selectedAccount.token
+      const accountToken = selectedAccount.token;
       if (headers) {
-        headers["EP-Account-Management-Authentication-Token"] = accountToken
+        headers["EP-Account-Management-Authentication-Token"] = accountToken;
       } else {
         headers = {
-          "EP-Account-Management-Authentication-Token": accountToken
-        }
+          "EP-Account-Management-Authentication-Token": accountToken,
+        };
       }
     }
   }
 
-  if(catalogTag) {
+  if (catalogTag) {
     if (headers) {
-      headers["EP-Context-Tag"] = catalogTag
+      headers["EP-Context-Tag"] = catalogTag;
     } else {
       headers = {
-        "EP-Context-Tag": catalogTag
-      }
+        "EP-Context-Tag": catalogTag,
+      };
     }
   }
 
@@ -47,7 +52,7 @@ export function getEpccImplicitClient() {
     ...(headers ? { headers } : {}),
     storage: createNextCookieStorageFactory(),
   });
-  return client
+  return client;
 }
 
 function createNextCookieStorageFactory(): StorageFactory {

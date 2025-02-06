@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProductResponse } from "@moltin/sdk";
+import type { ProductResponse } from "@elasticpath/js-sdk";
 import { useEffect } from "react";
 import Script from "next/script";
 import { yotpoEnv } from "../../../lib/resolve-yotpo-env";
@@ -21,8 +21,8 @@ interface IRatings {
 
 const Ratings = ({ product, displayFromProduct }: IRatings): JSX.Element => {
   useEffect(() => {
-    if (yotpoEnv.enable && typeof window.yotpo !== "undefined") {
-      window.yotpo.refreshWidgets();
+    if (yotpoEnv.enable && typeof window?.yotpo !== "undefined") {
+      window?.yotpo?.refreshWidgets();
     }
   }, [product.id]);
 

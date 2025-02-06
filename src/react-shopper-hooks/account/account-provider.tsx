@@ -1,55 +1,55 @@
-import React, { createContext, ReactNode } from "react"
-import Cookies from "js-cookie"
-import { AccountCredentials } from "./types"
-import { AccountTokenBase, AccountMember } from "@moltin/sdk"
+import React, { createContext, ReactNode } from "react";
+import Cookies from "js-cookie";
+import { AccountCredentials } from "./types";
+import { AccountTokenBase, AccountMember } from "@elasticpath/js-sdk";
 
 export interface AccountState {
-  accountCookieName: string
-  profile: AccountMember | null
-  getSelectedAccountToken: () => AccountTokenBase | undefined
-  getAccountMemberTokens: () => Record<string, AccountTokenBase> | undefined
+  accountCookieName: string;
+  profile: AccountMember | null;
+  getSelectedAccountToken: () => AccountTokenBase | undefined;
+  getAccountMemberTokens: () => Record<string, AccountTokenBase> | undefined;
 }
 
-export const AccountProviderContext = createContext<AccountState | null>(null)
+export const AccountProviderContext = createContext<AccountState | null>(null);
 
 export interface AccountProviderProps {
-  accountCookieName?: string
-  children: ReactNode
+  accountCookieName?: string;
+  children: ReactNode;
 }
 
-export const ACCOUNT_MEMBER_TOKEN_STR = "_store_ep_account_member_token"
+export const ACCOUNT_MEMBER_TOKEN_STR = "_store_ep_account_member_token";
 
 export const AccountProvider = ({
   children,
   accountCookieName = ACCOUNT_MEMBER_TOKEN_STR,
 }: AccountProviderProps) => {
   function getParsedCookie(): AccountCredentials | undefined {
-    const cookie = Cookies.get(accountCookieName)
-    return cookie && JSON.parse(cookie)
+    const cookie = Cookies.get(accountCookieName);
+    return cookie && JSON.parse(cookie);
   }
 
   function getAccountMemberTokens():
     | Record<string, AccountTokenBase>
     | undefined {
-    const parsedCookie = getParsedCookie()
+    const parsedCookie = getParsedCookie();
 
     if (!parsedCookie) {
-      return undefined
+      return undefined;
     }
 
-    return parsedCookie.accounts
+    return parsedCookie.accounts;
   }
 
   function getSelectedAccountToken(): AccountTokenBase | undefined {
-    const parsedCookie = getParsedCookie()
+    const parsedCookie = getParsedCookie();
 
     if (!parsedCookie) {
-      return undefined
+      return undefined;
     }
 
-    const token = parsedCookie.accounts[parsedCookie.selected]
+    const token = parsedCookie.accounts[parsedCookie.selected];
 
-    return token
+    return token;
   }
 
   return (
@@ -58,10 +58,10 @@ export const AccountProvider = ({
         accountCookieName,
         getAccountMemberTokens,
         getSelectedAccountToken,
-        profile: null
+        profile: null,
       }}
     >
       {children}
     </AccountProviderContext.Provider>
-  )
-}
+  );
+};

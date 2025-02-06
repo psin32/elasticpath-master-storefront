@@ -2,7 +2,7 @@ import NoResults from "./NoResults";
 import HitComponentKlevu from "./HitKlevu";
 import { KlevuRecord } from "@klevu/core";
 import { useEffect, useState } from "react";
-import { ProductResponse, ShopperCatalogResource } from "@moltin/sdk";
+import { ProductResponse, ShopperCatalogResource } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { getProductByIds } from "../../services/products";
 

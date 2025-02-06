@@ -15,7 +15,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { reviewsEnv } from "../../lib/resolve-reviews-field-env";
 import StarRatings from "react-star-ratings";
 import { SendEventForHits } from "instantsearch.js/es/lib/utils";
-import { ProductResponse, ShopperCatalogResource } from "@moltin/sdk";
+import { ProductResponse, ShopperCatalogResource } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { getProductByIds } from "../../services/products";
 import StrikePrice from "../product/StrikePrice";

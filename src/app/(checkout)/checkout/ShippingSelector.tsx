@@ -1,7 +1,5 @@
 "use client";
-import {
-  useAuthedAccountMember,
-} from "../../../react-shopper-hooks";
+import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import {
   Select,
   SelectContent,
@@ -11,7 +9,7 @@ import {
 } from "../../../components/select/Select";
 import { useFormContext } from "react-hook-form";
 import { CheckoutForm as CheckoutFormSchemaType } from "../../../components/checkout/form-schema/checkout-form-schema";
-import { AccountAddress } from "@moltin/sdk";
+import { AccountAddress } from "@elasticpath/js-sdk";
 import { useEffect, useState } from "react";
 import { Skeleton } from "../../../components/skeleton/Skeleton";
 import { Button } from "../../../components/button/Button";
@@ -50,12 +48,12 @@ export function ShippingSelector() {
     const init = async () => {
       const addresses = await client.AccountAddresses.All({
         account: selectedAccountToken?.account_id || "",
-      })
+      });
       if (addresses?.data?.length > 0) {
         updateAddress(addresses.data[0].id, addresses.data);
-        setAccountAddresses(addresses.data)
+        setAccountAddresses(addresses.data);
       } else {
-        setAccountAddresses([])
+        setAccountAddresses([]);
       }
     };
     init();

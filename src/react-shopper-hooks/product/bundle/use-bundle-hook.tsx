@@ -1,31 +1,36 @@
-import React, { Dispatch, SetStateAction, useCallback, useContext } from "react"
-import { BundleProductContext } from "../../product/bundle/bundle-provider"
+import React, {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useContext,
+} from "react";
+import { BundleProductContext } from "../../product/bundle/bundle-provider";
 import {
   BundleConfiguration,
   BundleConfigurationSelectedOptions,
   BundleProduct,
-} from "../../../shopper-common/src"
-import { ProductResponse, File, ProductComponents } from "@moltin/sdk"
+} from "../../../shopper-common/src";
+import { ProductResponse, File, ProductComponents } from "@elasticpath/js-sdk";
 
 export function useBundle(): {
-  setComponents: Dispatch<SetStateAction<ProductComponents>>
-  components: ProductComponents
-  bundleConfiguration: BundleConfiguration
-  setBundleConfiguration: (bundleConfiguration: BundleConfiguration) => void
-  componentProducts: ProductResponse[]
-  selectedOptions: BundleConfigurationSelectedOptions
-  configuredProduct: BundleProduct
+  setComponents: Dispatch<SetStateAction<ProductComponents>>;
+  components: ProductComponents;
+  bundleConfiguration: BundleConfiguration;
+  setBundleConfiguration: (bundleConfiguration: BundleConfiguration) => void;
+  componentProducts: ProductResponse[];
+  selectedOptions: BundleConfigurationSelectedOptions;
+  configuredProduct: BundleProduct;
   updateSelectedOptions: (
     selectedOptions: BundleConfigurationSelectedOptions,
-  ) => void
-  componentProductImages: File[]
+  ) => void;
+  componentProductImages: File[];
 } {
-  const ctx = useContext(BundleProductContext)
+  const ctx = useContext(BundleProductContext);
 
   if (!ctx) {
     throw new Error(
       "Product Component Context was unexpectedly null, make sure you are using the useComponents hook inside a BundleProductProvider!",
-    )
+    );
   }
 
   const {
@@ -38,14 +43,14 @@ export function useBundle(): {
     configuredProduct,
     setSelectedOptions,
     componentProductImages,
-  } = ctx
+  } = ctx;
 
   const updateSelectedOptions = useCallback(
     (selectedOptions: BundleConfigurationSelectedOptions) => {
-      setSelectedOptions(selectedOptions)
+      setSelectedOptions(selectedOptions);
     },
     [setSelectedOptions],
-  )
+  );
 
   return {
     setComponents,
@@ -57,5 +62,5 @@ export function useBundle(): {
     configuredProduct,
     updateSelectedOptions,
     componentProductImages,
-  }
+  };
 }

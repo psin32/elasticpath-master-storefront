@@ -5,7 +5,10 @@ import {
   getSimpleProduct,
   getVariationsProduct,
 } from "../util/resolver-product-from-store";
-import type { Moltin as EPCCClient, ProductResponse } from "@moltin/sdk";
+import type {
+  ElasticPath as EPCCClient,
+  ProductResponse,
+} from "@elasticpath/js-sdk";
 import { getCartId } from "../util/get-cart-id";
 import { getSkuIdFromOptions } from "../../src/lib/product-helper";
 

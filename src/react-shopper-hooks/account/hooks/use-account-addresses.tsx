@@ -1,15 +1,15 @@
-import { useElasticPath } from "../../elasticpath"
-import { UseQueryOptionsWrapper } from "../../types"
-import { AccountAddress, ResourcePage } from "@moltin/sdk"
-import { useQuery, UseQueryResult } from "@tanstack/react-query"
-import { queryKeysFactory } from "../../shared/util/query-keys-factory"
+import { useElasticPath } from "../../elasticpath";
+import { UseQueryOptionsWrapper } from "../../types";
+import { AccountAddress, ResourcePage } from "@elasticpath/js-sdk";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { queryKeysFactory } from "../../shared/util/query-keys-factory";
 
-const ACCOUNT_ADDRESSES_QUERY_KEY = "account-addresses" as const
+const ACCOUNT_ADDRESSES_QUERY_KEY = "account-addresses" as const;
 
 export const accountAddressesQueryKeys = queryKeysFactory(
   ACCOUNT_ADDRESSES_QUERY_KEY,
-)
-type AccountAddressesQueryKey = typeof accountAddressesQueryKeys
+);
+type AccountAddressesQueryKey = typeof accountAddressesQueryKeys;
 
 export function useAccountAddresses(
   accountId: string,
@@ -20,7 +20,7 @@ export function useAccountAddresses(
   > & { ep?: { accountMemberToken?: string } },
 ): Partial<ResourcePage<AccountAddress>> &
   Omit<UseQueryResult<ResourcePage<AccountAddress>, Error>, "data"> {
-  const { client } = useElasticPath()
+  const { client } = useElasticPath();
   const { data, ...rest } = useQuery({
     queryKey: [...accountAddressesQueryKeys.list({ accountId })],
     queryFn: () =>
@@ -31,7 +31,7 @@ export function useAccountAddresses(
         }),
       }),
     ...options,
-  })
+  });
 
-  return { ...data, ...rest } as const
+  return { ...data, ...rest } as const;
 }

@@ -1,6 +1,6 @@
 // TODO refactor
-import { CatalogsProductVariation } from "@moltin/sdk"
-import { OptionDict } from "../../../../shopper-common/src"
+import { CatalogsProductVariation } from "@elasticpath/js-sdk";
+import { OptionDict } from "../../../../shopper-common/src";
 
 export const mapOptionsToVariation = (
   options: string[],
@@ -10,9 +10,9 @@ export const mapOptionsToVariation = (
     (acc: OptionDict, variation: CatalogsProductVariation) => {
       const x = variation.options.find((varOption) =>
         options.some((selectedOption) => varOption.id === selectedOption),
-      )?.id
-      return { ...acc, [variation.id]: x ? x : "" }
+      )?.id;
+      return { ...acc, [variation.id]: x ? x : "" };
     },
     {},
-  )
-}
+  );
+};

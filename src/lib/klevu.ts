@@ -1,4 +1,3 @@
-import { ShopperProduct } from "@elasticpath/react-shopper-hooks";
 import {
   KlevuConfig,
   KlevuFetch,
@@ -18,6 +17,7 @@ import {
   advancedFiltering,
   KlevuFilterResultOptions,
 } from "@klevu/core";
+import { ShopperProduct } from "../react-shopper-hooks";
 
 export const initKlevu = () => {
   KlevuConfig.init({

@@ -1,9 +1,9 @@
 import type {
-  Moltin as EPCCClient,
+  ElasticPath as EPCCClient,
   ShopperCatalogResourcePage,
   ProductResponse,
   ShopperCatalogResource,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 
 export async function getSimpleProduct(
   client: EPCCClient,

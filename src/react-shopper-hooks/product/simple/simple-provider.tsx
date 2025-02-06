@@ -4,32 +4,32 @@ import React, {
   ReactNode,
   SetStateAction,
   useState,
-} from "react"
-import type { Moltin as EpccClient } from "@moltin/sdk"
-import { SimpleProduct } from "../../../shopper-common/src"
-import { useStore } from "../../store"
+} from "react";
+import type { ElasticPath as EpccClient } from "@elasticpath/js-sdk";
+import { SimpleProduct } from "../../../shopper-common/src";
+import { useStore } from "../../store";
 
 interface SimpleProductState {
-  product: SimpleProduct
-  setProduct: Dispatch<SetStateAction<SimpleProduct>>
-  client: EpccClient
+  product: SimpleProduct;
+  setProduct: Dispatch<SetStateAction<SimpleProduct>>;
+  client: EpccClient;
 }
 
 export const SimpleProductContext = createContext<SimpleProductState | null>(
   null,
-)
+);
 
 export function SimpleProductProvider({
   children,
   simpleProduct,
   client: overrideClient,
 }: {
-  simpleProduct: SimpleProduct
-  children: ReactNode
-  client?: EpccClient
+  simpleProduct: SimpleProduct;
+  children: ReactNode;
+  client?: EpccClient;
 }) {
-  const { client } = useStore()
-  const [product, setProduct] = useState<SimpleProduct>(simpleProduct)
+  const { client } = useStore();
+  const [product, setProduct] = useState<SimpleProduct>(simpleProduct);
 
   return (
     <SimpleProductContext.Provider
@@ -41,5 +41,5 @@ export function SimpleProductProvider({
     >
       {children}
     </SimpleProductContext.Provider>
-  )
+  );
 }

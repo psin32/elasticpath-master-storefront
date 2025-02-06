@@ -70,7 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 </p>
               </Link>
             </div>
-            <Ratings product={product.response} displayFromProduct={true} />
+            {/* <Ratings product={product.response} displayFromProduct={true} /> */}
             <div>
               {currencyPrice && (
                 <div className="mt-1 flex items-center">

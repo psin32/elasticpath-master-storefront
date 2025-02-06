@@ -4,7 +4,7 @@ import {
   AccountTokenBase,
   ResourcePage,
   UserAuthenticationPasswordProfileBody,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../lib/epcc-server-side-credentials-client";
 import { cookies } from "next/headers";
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";

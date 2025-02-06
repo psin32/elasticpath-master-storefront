@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 import { ProductDetailsComponent } from "../../../../app/(store)/products/[productId]/product-display";
-import { parseProductResponse } from "@elasticpath/react-shopper-hooks";
 import {
   getProductById,
   getSubscriptionOfferingByProductId,
 } from "../../../../services/products";
+import { parseProductResponse } from "../../../../react-shopper-hooks";
 
 const ProductView: React.FC<{
   product: string | any;
@@ -47,6 +47,7 @@ const ProductView: React.FC<{
         breadcrumb={breadcrumb}
         offerings={offerings}
         content={content}
+        relationship={[]}
       />
     )
   );

@@ -1,64 +1,67 @@
-"use client"
+"use client";
 
-import { Fragment, useEffect, useState } from 'react'
-import { Listbox, Transition } from '@headlessui/react'
-import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
-import clsx from 'clsx';
-import { getEpccImplicitClient } from '../../lib/epcc-implicit-client';
-import { Currency, ResourcePage } from '@moltin/sdk';
-import { getCookie, setCookie } from 'cookies-next';
-import { COOKIE_PREFIX_KEY } from '../../lib/resolve-cart-env';
+import { Fragment, useEffect, useState } from "react";
+import { Listbox, Transition } from "@headlessui/react";
+import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import clsx from "clsx";
+import { getCookie, setCookie } from "cookies-next";
+import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
 
 type CatalogTag = {
-  name: string,
-  tag: string | undefined
-}
+  name: string;
+  tag: string | undefined;
+};
 
 const CatalogSelector = () => {
-  const [selected, setSelected] = useState<CatalogTag>()
-  const [tags, setTags] = useState<CatalogTag[]>()
+  const [selected, setSelected] = useState<CatalogTag>();
+  const [tags, setTags] = useState<CatalogTag[]>();
 
   const tagInCookie = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   useEffect(() => {
-    const catalogTagConfig = process.env.NEXT_PUBLIC_CATALOG_TAGS || ""
+    const catalogTagConfig = process.env.NEXT_PUBLIC_CATALOG_TAGS || "";
     if (catalogTagConfig) {
-      const tagList: CatalogTag[] = []
+      const tagList: CatalogTag[] = [];
       catalogTagConfig.split(",").map((item: string) => {
-        const config = item.split("|")
+        const config = item.split("|");
         if (config.length === 2) {
           const catalogTag: CatalogTag = {
             name: config[0],
             tag: config[1],
-          }
-          tagList.push(catalogTag)
+          };
+          tagList.push(catalogTag);
         }
-      })
-      setTags(tagList)
-      const selectedCatalogTag = tagList.find(tag => tag.tag === tagInCookie)
-      setSelected(selectedCatalogTag)
+      });
+      setTags(tagList);
+      const selectedCatalogTag = tagList.find((tag) => tag.tag === tagInCookie);
+      setSelected(selectedCatalogTag);
     }
   }, []);
 
   const handleChangeCurrency = (catalogTag: CatalogTag) => {
-    setSelected(catalogTag)
-    setCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`, catalogTag.tag)
+    setSelected(catalogTag);
+    setCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`, catalogTag.tag);
     location.reload();
-  }
+  };
 
   return (
     selected && (
-      <div className='text-sm w-60 ml-2'>
+      <div className="text-sm w-60 ml-2">
         <Listbox value={selected} onChange={handleChangeCurrency}>
           {({ open }) => (
             <>
               <div className="relative mt-1">
                 <Listbox.Button className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6">
                   <span className="flex items-center">
-                    <span className="ml-3 block truncate">{selected?.name}</span>
+                    <span className="ml-3 block truncate">
+                      {selected?.name}
+                    </span>
                   </span>
                   <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                    <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                    <ChevronUpDownIcon
+                      className="h-5 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
                   </span>
                 </Listbox.Button>
 
@@ -75,8 +78,10 @@ const CatalogSelector = () => {
                         key={tag.name}
                         className={({ active }) =>
                           clsx(
-                            active ? 'bg-indigo-600 text-white' : 'text-gray-900',
-                            'relative cursor-default select-none py-2 pl-3 pr-9'
+                            active
+                              ? "bg-indigo-600 text-white"
+                              : "text-gray-900",
+                            "relative cursor-default select-none py-2 pl-3 pr-9",
                           )
                         }
                         value={tag}
@@ -85,7 +90,10 @@ const CatalogSelector = () => {
                           <>
                             <div className="flex items-center">
                               <span
-                                className={clsx(selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate')}
+                                className={clsx(
+                                  selected ? "font-semibold" : "font-normal",
+                                  "ml-3 block truncate",
+                                )}
                               >
                                 {tag.name}
                               </span>
@@ -94,11 +102,14 @@ const CatalogSelector = () => {
                             {selected ? (
                               <span
                                 className={clsx(
-                                  active ? 'text-white' : 'text-indigo-600',
-                                  'absolute inset-y-0 right-0 flex items-center pr-4'
+                                  active ? "text-white" : "text-indigo-600",
+                                  "absolute inset-y-0 right-0 flex items-center pr-4",
                                 )}
                               >
-                                <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                <CheckIcon
+                                  className="h-5 w-5"
+                                  aria-hidden="true"
+                                />
                               </span>
                             ) : null}
                           </>

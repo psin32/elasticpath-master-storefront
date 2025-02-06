@@ -6,9 +6,9 @@ import type {
   ShopperCatalogResource,
   ShopperCatalogResourcePage,
   SubscriptionOffering,
-} from "@moltin/sdk";
+} from "@elasticpath/js-sdk";
 import { wait300 } from "../lib/product-helper";
-import { Moltin as EPCCClient } from "@moltin/sdk";
+import { ElasticPath as EPCCClient } from "@elasticpath/js-sdk";
 
 export async function getProductById(
   productId: string,

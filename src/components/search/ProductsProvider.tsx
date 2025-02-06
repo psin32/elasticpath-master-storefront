@@ -6,10 +6,10 @@ import {
   useState,
 } from "react";
 import type {
-  Moltin as EPCCClient,
+  ElasticPath as EPCCClient,
   ShopperCatalogResourcePage,
-} from "@moltin/sdk";
-import { ShopperProduct } from "@elasticpath/react-shopper-hooks";
+} from "@elasticpath/js-sdk";
+import { ShopperProduct } from "../../react-shopper-hooks";
 
 interface ProductsState {
   client: EPCCClient;

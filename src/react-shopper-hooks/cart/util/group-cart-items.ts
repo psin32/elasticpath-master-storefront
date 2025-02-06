@@ -1,6 +1,6 @@
-import { CartItem } from "@moltin/sdk"
-import { GroupedCartItems } from "../../cart"
-import { assertCartItemType } from "./assert-cart-item-type"
+import { CartItem } from "@elasticpath/js-sdk";
+import { GroupedCartItems } from "../../cart";
+import { assertCartItemType } from "./assert-cart-item-type";
 
 export function groupCartItems(items: CartItem[]): GroupedCartItems {
   return items.reduce(
@@ -19,13 +19,13 @@ export function groupCartItems(items: CartItem[]): GroupedCartItems {
         ...(assertCartItemType(item, "subscription_item")
           ? { subscription: [...acc?.subscription, item] }
           : acc.subscription),
-      }
+      };
     },
     {
       regular: [],
       promotion: [],
       custom: [],
-      subscription: []
+      subscription: [],
     } as GroupedCartItems,
-  )
+  );
 }

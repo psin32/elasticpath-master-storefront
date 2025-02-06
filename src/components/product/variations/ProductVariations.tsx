@@ -1,4 +1,4 @@
-import type { CatalogsProductVariation } from "@moltin/sdk";
+import type { CatalogsProductVariation } from "@elasticpath/js-sdk";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { useEffect } from "react";
@@ -12,7 +12,6 @@ import ProductVariationColor from "./ProductVariationColor";
 import { useVariationProduct } from "../../../react-shopper-hooks";
 import { ProductContext } from "../../../lib/product-context";
 import { getProductById } from "../../../services/products";
-import { getServerSideImplicitClient } from "../../../lib/epcc-server-side-implicit-client";
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 const getSelectedOption = (
