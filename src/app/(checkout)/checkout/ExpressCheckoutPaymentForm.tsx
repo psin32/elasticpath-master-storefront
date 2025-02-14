@@ -88,7 +88,9 @@ export function ExpressCheckoutPaymentForm({
   return (
     <fieldset className="flex flex-col gap-6 self-stretch">
       <div>
-        <legend className="text-2xl font-medium">Your Info</legend>
+        <legend className="text-2xl font-medium">
+          {isAnonymous ? "Your Info" : "Address & Payment"}
+        </legend>
       </div>
       {enableExpressCheckout && (
         <>
