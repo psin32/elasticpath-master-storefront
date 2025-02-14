@@ -25,7 +25,7 @@ export function CheckoutItem({ item }: { item: CartItem }) {
       <div className="flex flex-col items-start gap-1 flex-only-grow">
         {item.product_id && (
           <Link href={`/products/${item.slug}`}>
-            <span className="font-medium text-xl lg:text-2xl">
+            <span className="font-medium text-md">
               {item.name}
               {item?.custom_inputs?.options && (
                 <div className="mt-1 text-black/60 text-xs">
@@ -41,7 +41,7 @@ export function CheckoutItem({ item }: { item: CartItem }) {
           </Link>
         )}
         {!item.product_id && (
-          <span className="font-medium text-xl lg:text-2xl">
+          <span className="font-medium text-md">
             {item.name}
             {item?.custom_inputs?.options && (
               <div className="mt-1 text-black/60 text-xs">

@@ -9,12 +9,16 @@ import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
 import { Separator } from "../../../components/separator/Separator";
 import * as React from "react";
 import { CheckoutSidebar } from "./CheckoutSidebar";
+import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
 
 type GuestCheckoutProps = {
   cart?: any;
 };
 
 export async function GuestCheckout({ cart }: GuestCheckoutProps) {
+  const enableExpressCheckout: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_EXPRESS_CHECKOUT === "true" || false;
+
   return (
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
@@ -30,17 +34,26 @@ export async function GuestCheckout({ cart }: GuestCheckoutProps) {
             </Link>
           </div>
           <Separator />
-          <div className="flex flex-1 self-stretch">
-            <GuestInformation />
-          </div>
-          <div className="flex flex-1 self-stretch">
-            <ShippingForm />
-          </div>
-          <DeliveryForm />
-          <PaymentForm />
-          <div className="flex flex-1 self-stretch">
-            <BillingForm />
-          </div>
+          {!enableExpressCheckout && (
+            <>
+              <div className="flex flex-1 self-stretch">
+                <GuestInformation />
+              </div>
+              <div className="flex flex-1 self-stretch">
+                <ShippingForm />
+              </div>
+              <DeliveryForm />
+              <PaymentForm />
+            </>
+          )}
+          {enableExpressCheckout && (
+            <ExpressCheckoutPaymentForm isAnonymous={true} />
+          )}
+          {!enableExpressCheckout && (
+            <div className="flex flex-1 self-stretch">
+              <BillingForm />
+            </div>
+          )}
           <div className="flex flex-1 self-stretch">
             <SubmitCheckoutButton cart={cart} />
           </div>

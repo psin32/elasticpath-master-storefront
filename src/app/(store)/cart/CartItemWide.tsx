@@ -35,7 +35,7 @@ export function CartItemWide({ item }: CartItemProps) {
           <div className="flex flex-col flex-1 gap-1">
             {item.product_id && (
               <Link href={`/products/${item.slug}`}>
-                <span className="font-medium text-xl lg:text-xl">
+                <span className="font-medium text-md">
                   {item.name}
                   {item?.custom_inputs?.options && (
                     <div className="mt-1 text-black/60 text-xs">
@@ -51,7 +51,7 @@ export function CartItemWide({ item }: CartItemProps) {
               </Link>
             )}
             {!item.product_id && (
-              <span className="font-medium text-xl lg:text-2xl">
+              <span className="font-medium text-md">
                 {item.name}
                 {item?.custom_inputs?.options && (
                   <div className="mt-1 text-black/60 text-xs">

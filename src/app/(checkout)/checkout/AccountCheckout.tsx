@@ -8,6 +8,7 @@ import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
+import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
 
 type AccountCheckoutProps = {
   stripeCustomerId?: string | undefined;
@@ -18,6 +19,9 @@ export function AccountCheckout({
   cart,
   stripeCustomerId,
 }: AccountCheckoutProps) {
+  const enableExpressCheckout: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_EXPRESS_CHECKOUT === "true" || false;
+
   return (
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
@@ -37,15 +41,24 @@ export function AccountCheckout({
             <span className="text-2xl font-medium">Your Info</span>
             <AccountDisplay />
           </div>
-          <div className="flex flex-col flex-1 gap-5">
-            <span className="text-2xl font-medium">Shipping address</span>
-            <ShippingSelector />
-          </div>
-          <DeliveryForm />
-          <PaymentForm stripeCustomerId={stripeCustomerId} />
-          <div className="flex flex-1">
-            <BillingForm />
-          </div>
+          {!enableExpressCheckout && (
+            <>
+              <div className="flex flex-col flex-1 gap-5">
+                <span className="text-2xl font-medium">Shipping address</span>
+                <ShippingSelector />
+              </div>
+              <DeliveryForm />
+              <PaymentForm stripeCustomerId={stripeCustomerId} />
+            </>
+          )}
+          {enableExpressCheckout && (
+            <ExpressCheckoutPaymentForm isAnonymous={false} />
+          )}
+          {!enableExpressCheckout && (
+            <div className="flex flex-1">
+              <BillingForm />
+            </div>
+          )}
           <div className="flex flex-1">
             <SubmitCheckoutButton cart={cart} />
           </div>
