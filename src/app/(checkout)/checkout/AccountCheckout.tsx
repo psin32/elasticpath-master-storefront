@@ -9,16 +9,43 @@ import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
 import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
+import { cookies } from "next/headers";
+import { cmsConfig } from "../../../lib/resolve-cms-env";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { builder } from "@builder.io/sdk";
+import { getLogo } from "../../../services/storyblok";
+import Content from "../../../components/storyblok/Content";
+import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 type AccountCheckoutProps = {
   stripeCustomerId?: string | undefined;
   cart?: any;
 };
 
-export function AccountCheckout({
+export async function AccountCheckout({
   cart,
   stripeCustomerId,
 }: AccountCheckoutProps) {
+  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const cookieStore = cookies();
+  const locale = cookieStore.get("locale")?.value || "en";
+  const contentData = async () => {
+    if (enableBuilderIO) {
+      const content = await builder
+        .get("logo", {
+          prerender: false,
+        })
+        .toPromise();
+      return content;
+    }
+
+    if (enabledStoryblok) {
+      return await getLogo(locale);
+    }
+  };
+  const content = await contentData();
+
   const enableExpressCheckout: boolean =
     process.env.NEXT_PUBLIC_ENABLE_EXPRESS_CHECKOUT === "true" || false;
 
@@ -26,14 +53,30 @@ export function AccountCheckout({
     <div className="flex flex-col lg:flex-row justify-center">
       <div className="flex justify-center items-center lg:hidden py-5">
         <Link href="/" aria-label="Go to home page">
-          <EpIcon className="h-8 w-auto relative" />
+          {enabledStoryblok && <Content content={content}></Content>}
+          {enableBuilderIO && (
+            <BuilderContent
+              model="logo"
+              content={content}
+              apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+              customComponents={builderComponent}
+            />
+          )}
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
         <div className="flex flex-col px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-20 gap-10">
           <div className="justify-center items-center hidden lg:flex py-5">
             <Link href="/" aria-label="Go to home page">
-              <EpIcon className="h-12 w-auto relative" />
+              {enabledStoryblok && <Content content={content}></Content>}
+              {enableBuilderIO && (
+                <BuilderContent
+                  model="logo"
+                  content={content}
+                  apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+                  customComponents={builderComponent}
+                />
+              )}
             </Link>
           </div>
           <Separator />
