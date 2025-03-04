@@ -10,6 +10,7 @@ import {
   PlusIcon,
   Squares2X2Icon,
   Bars3Icon,
+  LockClosedIcon,
 } from "@heroicons/react/20/solid";
 
 import { useState } from "react";
@@ -232,11 +233,12 @@ export default function HitsElasticPath(): JSX.Element {
                       sku,
                       components,
                       tiers,
+                      extensions,
                     },
                     id,
                   },
                 } = hit;
-
+                const gatedSetting = extensions?.["products(gated)"]?.setting;
                 const ep_main_image_url = main_image?.link.href;
 
                 const currencyPrice =
@@ -267,74 +269,100 @@ export default function HitsElasticPath(): JSX.Element {
                           <img
                             src={ep_main_image_url}
                             alt={name}
-                            className="w-20 h-24 object-cover transition duration-300 ease-in-out group-hover:scale-105 hover:scale-105"
+                            className={clsx(
+                              "w-20 h-24 object-cover transition duration-300 ease-in-out group-hover:scale-105 hover:scale-105",
+                              gatedSetting && "blur-sm",
+                            )}
                           />
+                        )}
+                        {gatedSetting && (
+                          <div className="absolute top-2 left-2 bg-black/50 text-white p-2 rounded-full">
+                            <LockClosedIcon className="w-3 h-3" />
+                          </div>
                         )}
                       </div>
                       <div className="col-span-5">
                         <h2 className="text-lg text-gray-800 font-semibold hover:text-brand-primary">
-                          <Link href={`/products/${slug}`} legacyBehavior>
-                            {name}
-                          </Link>
+                          {!gatedSetting && (
+                            <Link href={`/products/${slug}`} legacyBehavior>
+                              {name}
+                            </Link>
+                          )}
+                          {gatedSetting && <>{name}</>}
                         </h2>
-                        <div className="text-gray-600 text-sm">{sku}</div>
-                        <span
-                          className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
-                          dangerouslySetInnerHTML={{
-                            __html:
-                              description.length > 200
-                                ? `${description.substring(0, 200)}...`
-                                : description,
-                          }}
-                        ></span>
+                        {gatedSetting != "fully_gated" && (
+                          <>
+                            <div className="text-gray-600 text-sm">{sku}</div>
+                            <span
+                              className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
+                              dangerouslySetInnerHTML={{
+                                __html:
+                                  description.length > 200
+                                    ? `${description.substring(0, 200)}...`
+                                    : description,
+                              }}
+                            ></span>
+                          </>
+                        )}
                       </div>
                       <div className="col-span-2 text-green-500 font-bold">
-                        {currencyPrice && (
-                          <div className="mt-1 flex items-center">
-                            {original_display_price && (
-                              <StrikePrice
-                                price={
-                                  original_display_price?.without_tax?.formatted
-                                    ? original_display_price?.without_tax
+                        {gatedSetting != "fully_gated" && (
+                          <>
+                            {currencyPrice && (
+                              <div className="mt-1 flex items-center">
+                                {original_display_price && (
+                                  <StrikePrice
+                                    price={
+                                      original_display_price?.without_tax
                                         ?.formatted
-                                    : original_display_price.with_tax.formatted
-                                }
-                                currency={
-                                  original_display_price.without_tax?.currency
-                                    ? original_display_price?.without_tax
+                                        ? original_display_price?.without_tax
+                                            ?.formatted
+                                        : original_display_price.with_tax
+                                            .formatted
+                                    }
+                                    currency={
+                                      original_display_price.without_tax
                                         ?.currency
-                                    : original_display_price.with_tax.currency
-                                }
-                                size="text-md"
-                              />
+                                        ? original_display_price?.without_tax
+                                            ?.currency
+                                        : original_display_price.with_tax
+                                            .currency
+                                    }
+                                    size="text-md"
+                                  />
+                                )}
+                                <Price
+                                  price={
+                                    display_price?.without_tax?.formatted
+                                      ? display_price?.without_tax?.formatted
+                                      : display_price.with_tax.formatted
+                                  }
+                                  currency={
+                                    display_price?.without_tax?.currency
+                                      ? display_price?.without_tax?.currency
+                                      : display_price.with_tax.currency
+                                  }
+                                  original_display_price={
+                                    original_display_price
+                                  }
+                                  size="text-xl"
+                                />
+                              </div>
                             )}
-                            <Price
-                              price={
-                                display_price?.without_tax?.formatted
-                                  ? display_price?.without_tax?.formatted
-                                  : display_price.with_tax.formatted
-                              }
-                              currency={
-                                display_price?.without_tax?.currency
-                                  ? display_price?.without_tax?.currency
-                                  : display_price.with_tax.currency
-                              }
-                              original_display_price={original_display_price}
-                              size="text-xl"
-                            />
-                          </div>
-                        )}
-                        {original_display_price && (
-                          <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
-                            {sale_id}
-                          </span>
-                        )}
-                        {tiers && (
-                          <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-xs justify-center items-center w-40">
-                            <MultibuyOfferModal product={hit.response} />
-                          </div>
+                            {original_display_price && (
+                              <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                                {sale_id}
+                              </span>
+                            )}
+                            {tiers && (
+                              <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-xs justify-center items-center w-40">
+                                <MultibuyOfferModal product={hit.response} />
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
+
                       <div className="col-span-2">
                         {!variation_matrix && !components && (
                           <div className="flex w-32 items-start rounded-lg border border-black/10">

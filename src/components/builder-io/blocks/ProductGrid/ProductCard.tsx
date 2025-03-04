@@ -5,7 +5,8 @@ import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/outline";
 import StrikePrice from "../../../product/StrikePrice";
 import Price from "../../../product/Price";
-import Ratings from "../../../reviews/yotpo/Ratings";
+import clsx from "clsx";
+import { LockClosedIcon } from "@heroicons/react/20/solid";
 
 export interface ProductCardProps {
   product: any;
@@ -16,11 +17,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     main_image,
     response: {
       meta: { display_price, original_display_price, variation_matrix },
-      attributes: { name, description, components, slug },
+      attributes: { name, components, slug, extensions },
       id,
     },
   } = product;
-
+  const gatedSetting = extensions?.["products(gated)"]?.setting;
   const ep_main_image_url = main_image?.link.href;
 
   const currencyPrice =
@@ -28,24 +29,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="max-w-full sm:max-w-lg p-3 flex flex-col">
-      <Link href={`/products/${slug}`} legacyBehavior>
+      <LinkWrapper href={`/products/${slug}`} passHref disabled={gatedSetting}>
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch"
           data-testid={id}
         >
           <div className="relative  overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
             {ep_main_image_url ? (
-              <Image
-                className="relative h-full w-full transition duration-300 ease-in-out group-hover:scale-105"
-                src={ep_main_image_url}
-                alt={name}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                style={{
-                  objectFit: "contain",
-                  objectPosition: "center",
-                }}
-              />
+              <div>
+                <Image
+                  className={clsx(
+                    "relative h-full w-full transition duration-300 ease-in-out group-hover:scale-105",
+                    gatedSetting && "blur-sm",
+                  )}
+                  src={ep_main_image_url}
+                  alt={name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  style={{
+                    objectFit: "contain",
+                    objectPosition: "center",
+                  }}
+                />
+                {gatedSetting && (
+                  <div className="absolute top-2 left-2 bg-black/50 text-white p-2 rounded-full">
+                    <LockClosedIcon className="w-3 h-3" />
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="absolute flex h-full w-full items-center justify-center bg-gray-200">
                 <EyeSlashIcon width={10} height={10} />
@@ -71,45 +82,71 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </Link>
             </div>
             {/* <Ratings product={product.response} displayFromProduct={true} /> */}
-            <div>
-              {currencyPrice && (
-                <div className="mt-1 flex items-center">
-                  {original_display_price && (
-                    <StrikePrice
+            {gatedSetting != "fully_gated" && (
+              <div>
+                {currencyPrice && (
+                  <div className="mt-1 flex items-center">
+                    {original_display_price && (
+                      <StrikePrice
+                        price={
+                          original_display_price?.without_tax?.formatted
+                            ? original_display_price?.without_tax?.formatted
+                            : original_display_price.with_tax.formatted
+                        }
+                        currency={
+                          original_display_price.without_tax?.currency
+                            ? original_display_price?.without_tax?.currency
+                            : original_display_price.with_tax.currency
+                        }
+                        size="text-lg"
+                      />
+                    )}
+                    <Price
                       price={
-                        original_display_price?.without_tax?.formatted
-                          ? original_display_price?.without_tax?.formatted
-                          : original_display_price.with_tax.formatted
+                        display_price?.without_tax?.formatted
+                          ? display_price?.without_tax?.formatted
+                          : display_price.with_tax.formatted
                       }
                       currency={
-                        original_display_price.without_tax?.currency
-                          ? original_display_price?.without_tax?.currency
-                          : original_display_price.with_tax.currency
+                        display_price?.without_tax?.currency
+                          ? display_price?.without_tax?.currency
+                          : display_price.with_tax.currency
                       }
-                      size="text-lg"
+                      original_display_price={original_display_price}
+                      size="text-xl"
                     />
-                  )}
-                  <Price
-                    price={
-                      display_price?.without_tax?.formatted
-                        ? display_price?.without_tax?.formatted
-                        : display_price.with_tax.formatted
-                    }
-                    currency={
-                      display_price?.without_tax?.currency
-                        ? display_price?.without_tax?.currency
-                        : display_price.with_tax.currency
-                    }
-                    original_display_price={original_display_price}
-                    size="text-xl"
-                  />
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-      </Link>
+      </LinkWrapper>
     </div>
+  );
+};
+
+interface LinkWrapperProps {
+  href: string;
+  disabled?: boolean;
+  children?: any;
+  passHref?: boolean;
+  className?: string;
+}
+
+const LinkWrapper = ({
+  children,
+  href,
+  disabled,
+  passHref,
+  ...props
+}: LinkWrapperProps) => {
+  if (disabled) return children;
+
+  return (
+    <Link href={href} passHref={passHref} {...props}>
+      {children}
+    </Link>
   );
 };
 
