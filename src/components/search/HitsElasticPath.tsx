@@ -16,7 +16,7 @@ import {
 import { useState } from "react";
 import { StatusButton } from "../button/StatusButton";
 import Link from "next/link";
-import { useCart } from "../../react-shopper-hooks";
+import { useAuthedAccountMember, useCart } from "../../react-shopper-hooks";
 import { toast } from "react-toastify";
 import { CartItemObject } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
@@ -29,6 +29,7 @@ export default function HitsElasticPath(): JSX.Element {
   const { mutate } = useScopedAddProductToCart();
   const { mutate: mutateBulkOrder, isPending } =
     useScopedAddBulkProductToCart();
+  const { selectedAccountToken } = useAuthedAccountMember();
   const [items, setItems] = useState<any>([]);
   const [view, setView] = useState(
     process.env.NEXT_PUBLIC_DEFAULT_PLP_VIEW || "grid",
@@ -238,7 +239,9 @@ export default function HitsElasticPath(): JSX.Element {
                     id,
                   },
                 } = hit;
-                const gatedSetting = extensions?.["products(gated)"]?.setting;
+                const gatedSetting = selectedAccountToken?.account_id
+                  ? undefined
+                  : extensions?.["products(gated)"]?.setting;
                 const ep_main_image_url = main_image?.link.href;
 
                 const currencyPrice =

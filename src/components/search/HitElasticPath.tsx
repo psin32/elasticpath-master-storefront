@@ -6,6 +6,7 @@ import Image from "next/image";
 import { EyeSlashIcon } from "@heroicons/react/24/solid";
 import clsx from "clsx";
 import { LockClosedIcon } from "@heroicons/react/20/solid";
+import { useAuthedAccountMember } from "../../react-shopper-hooks";
 
 export default function HitComponentElasticPath({
   hit,
@@ -20,7 +21,10 @@ export default function HitComponentElasticPath({
       id,
     },
   } = hit;
-  const gatedSetting = extensions?.["products(gated)"]?.setting;
+  const { selectedAccountToken } = useAuthedAccountMember();
+  const gatedSetting = selectedAccountToken?.account_id
+    ? undefined
+    : extensions?.["products(gated)"]?.setting;
   const ep_main_image_url = main_image?.link.href;
 
   // const currencyPrice = ep_price?.[EP_CURRENCY_CODE];
