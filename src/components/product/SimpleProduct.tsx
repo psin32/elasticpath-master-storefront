@@ -2,6 +2,7 @@
 import type { SimpleProduct } from "../../react-shopper-hooks";
 import {
   SimpleProductProvider,
+  useAuthedAccountMember,
   useCart,
   useSimpleProduct,
 } from "../../react-shopper-hooks";
@@ -26,12 +27,15 @@ import { builderComponent } from "../../components/builder-io/BuilderComponents"
 import { RecommendedProducts } from "../recommendations/RecommendationProducts";
 import ProductRelationship from "./related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
+import moment from "moment";
+import Link from "next/link";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
   relationship: any[];
+  purchaseHistory: any;
 }
 
 function SimpleProductDetail({
@@ -39,6 +43,7 @@ function SimpleProductDetail({
   offerings,
   content,
   relationship,
+  purchaseHistory,
 }: ISimpleProductDetail): JSX.Element {
   return (
     <SimpleProductProvider simpleProduct={simpleProduct}>
@@ -46,6 +51,7 @@ function SimpleProductDetail({
         offerings={offerings}
         content={content}
         relationship={relationship}
+        purchaseHistory={purchaseHistory}
       />
     </SimpleProductProvider>
   );
@@ -55,10 +61,12 @@ function SimpleProductContainer({
   offerings,
   content,
   relationship,
+  purchaseHistory,
 }: {
   offerings: any;
   content: any;
   relationship: any[];
+  purchaseHistory: any;
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { product } = useSimpleProduct() as any;
@@ -225,6 +233,48 @@ function SimpleProductContainer({
                 >
                   Click & Collect
                 </StatusButton>
+              )}
+              {purchaseHistory?.data?.length > 0 && (
+                <div>
+                  <div className="text-base font-medium uppercase lg:text-lg text-gray-800 mb-4">
+                    Previous Purchase Order History
+                  </div>
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-200">
+                        <th className="border border-gray-300 px-4 py-2">
+                          Purchase Date
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2">
+                          Quantity
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {purchaseHistory?.data
+                        .slice(0, 3)
+                        .map((order: any, index: number) => (
+                          <tr key={index} className="border border-gray-300">
+                            <td className="border border-gray-300 px-4 py-2">
+                              <Link
+                                href={`/account/orders/${order.order_id}`}
+                                className="hover:text-brand-primary hover:underline"
+                              >
+                                {moment(
+                                  order.meta.timestamps.created_at,
+                                  moment.ISO_8601,
+                                  true,
+                                ).format("DD MMM YYYY HH:mm:ss")}
+                              </Link>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                              {order.quantity}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
               <ProductDetails product={response} />
               {extensions && <ProductHighlights extensions={extensions} />}

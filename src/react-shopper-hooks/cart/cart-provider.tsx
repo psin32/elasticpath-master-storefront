@@ -24,6 +24,7 @@ import { useRemovePromotionCode } from "./hooks/use-remove-promotion";
 import { useAddSubscriptionItemToCart } from "./hooks/use-add-subscription-item";
 import { toast } from "react-toastify";
 import { useAddBulkProductToCart } from "./hooks/use-add-bulk-product";
+import { useReorderToCart } from "./hooks/use-reorder";
 
 export const CartItemsContext = createContext<
   | ({
@@ -44,6 +45,7 @@ export const CartItemsContext = createContext<
       useScopedAddSubscriptionItemToCart: () => ReturnType<
         typeof useAddSubscriptionItemToCart
       >;
+      useScopedReorderToCart: () => ReturnType<typeof useReorderToCart>;
       useScopedAddBundleProductToCart: () => ReturnType<
         typeof useAddBundleProductToCart
       >;
@@ -154,6 +156,20 @@ export function CartProvider({
       },
     });
 
+  const addReorderToCart = () =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useReorderToCart(cartId, {
+      onSuccess: (updatedData) => {
+        setCartQueryData(updatedData);
+        invalidateCartQuery();
+        toast("Order items added successfully in your cart", {
+          position: "top-center",
+          autoClose: 3000,
+          hideProgressBar: false,
+        });
+      },
+    });
+
   const removeCartItem = () =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useRemoveCartItem(cartId, {
@@ -219,6 +235,7 @@ export function CartProvider({
         useScopedAddBundleProductToCart: addBundleItemToCart,
         useScopedAddCustomItemToCart: addCustomItemToCart,
         useScopedAddSubscriptionItemToCart: addSubscriptionItemToCart,
+        useScopedReorderToCart: addReorderToCart,
         useClearCart: clearCart,
         ...rest,
       }}

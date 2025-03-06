@@ -13,6 +13,13 @@ import { CustomRelationship, Node, Resource } from "@elasticpath/js-sdk";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../../../lib/resolve-cms-env";
 import { getServerSideCredentialsClient } from "../../../../lib/epcc-server-side-credentials-client";
+import { getPurchaseHistoryByProductIdAndAccountId } from "../../../../services/custom-api";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "../../../../lib/retrieve-account-member-credentials";
+import { cookies } from "next/headers";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const dynamic = "force-dynamic";
@@ -63,6 +70,28 @@ export default async function ProductPage({ params }: Props) {
     client,
   );
 
+  const accountMemberCookie = retrieveAccountMemberCredentials(
+    cookies(),
+    ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  );
+  let accountId = "";
+  if (accountMemberCookie) {
+    const selectedAccount = getSelectedAccount(accountMemberCookie);
+    if (!selectedAccount?.account_id) {
+      return null;
+    }
+    accountId = selectedAccount.account_id;
+  }
+
+  const enablePurchaseHistory: boolean =
+    process.env.NEXT_PUBLIC_ENABLE_PURCHASE_HISTORY === "true" || false;
+
+  const purchaseHistory = enablePurchaseHistory
+    ? accountMemberCookie
+      ? await getPurchaseHistoryByProductIdAndAccountId(product.data?.[0]?.id)
+      : { data: [] }
+    : { data: [] };
+
   const breadCrumNode = product?.data?.[0].meta?.bread_crumb_nodes?.[0] || "";
   const nodeIds: string[] = [];
   const parentNodes =
@@ -105,6 +134,7 @@ export default async function ProductPage({ params }: Props) {
           offerings={offerings}
           content={content}
           relationship={relationship}
+          purchaseHistory={purchaseHistory}
         />
       </ProductProvider>
     </div>

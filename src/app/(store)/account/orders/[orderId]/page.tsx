@@ -14,6 +14,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { formatIsoDateString } from "../../../../../lib/format-iso-date-string";
 import { OrderLineItem } from "./OrderLineItem";
+import { Reorder } from "../Reorder";
 
 export const dynamic = "force-dynamic";
 
@@ -103,6 +104,7 @@ export default async function Orders({
           <span>{shopperOrder.raw.payment}</span>
         </div>
       </div>
+      <Reorder orderId={params.orderId}></Reorder>
       <div className="flex self-stretch">
         <ul role="list" className="w-full border-b border-zinc-300">
           {productItems.map((item) => (

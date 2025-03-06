@@ -32,6 +32,7 @@ export function resolveProductDetailComponent(
   offerings: ResourcePage<SubscriptionOffering, never>,
   content: any,
   relationship: any[],
+  purchaseHistory: any,
 ): JSX.Element {
   switch (product.kind) {
     case "base-product":
@@ -41,6 +42,7 @@ export function resolveProductDetailComponent(
           offerings={offerings}
           content={content}
           relationship={relationship}
+          purchaseHistory={purchaseHistory}
         />
       );
     case "child-product":
@@ -50,6 +52,7 @@ export function resolveProductDetailComponent(
           offerings={offerings}
           content={content}
           relationship={relationship}
+          purchaseHistory={purchaseHistory}
         />
       );
     case "simple-product":
@@ -59,6 +62,7 @@ export function resolveProductDetailComponent(
           offerings={offerings}
           content={content}
           relationship={relationship}
+          purchaseHistory={purchaseHistory}
         />
       );
     case "bundle-product":
@@ -79,12 +83,14 @@ export function ProductDetailsComponent({
   offerings,
   content,
   relationship,
+  purchaseHistory,
 }: {
   product: ShopperProduct;
   breadcrumb: Node[];
   offerings: ResourcePage<SubscriptionOffering, never>;
   content: any;
   relationship: any[];
+  purchaseHistory: any;
 }) {
   return (
     <div className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] lg:max-w-[80rem] w-full">
@@ -98,6 +104,7 @@ export function ProductDetailsComponent({
           offerings,
           content,
           relationship,
+          purchaseHistory,
         )}
       </div>
     </div>
