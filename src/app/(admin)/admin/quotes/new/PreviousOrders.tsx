@@ -1,12 +1,12 @@
 import clsx from "clsx";
 import React, { useEffect, useState } from "react";
-import { getEpccImplicitClient } from "../../../../../lib/epcc-implicit-client";
 import {
   formatIsoDateString,
   formatIsoTimeString,
 } from "../../../../../lib/format-iso-date-string";
 import { StatusButton } from "../../../../../components/button/StatusButton";
 import { useCart } from "../../../../../react-shopper-hooks";
+import { getAccountOrderDetails } from "../actions";
 
 export default function PreviousOrders({ account_id }: { account_id: string }) {
   const { useScopedAddProductToCart, useScopedReorderToCart } = useCart();
@@ -27,10 +27,7 @@ export default function PreviousOrders({ account_id }: { account_id: string }) {
   useEffect(() => {
     const init = async () => {
       try {
-        const client = getEpccImplicitClient();
-        const response = await client.Orders.With("items")
-          .Filter({ eq: { account_id, payment: "paid" } })
-          .All();
+        const response = await getAccountOrderDetails(account_id);
         setOrders(response);
       } catch (error) {
         console.error("Error fetching orders:", error);

@@ -291,7 +291,7 @@ export async function createShippingGroup(id: string, request: any) {
 }
 
 export async function getShippingGroups(id: string) {
-  const client = getServerSideCredentialsClient();
+  const client = getServerSideCredentialsClientWihoutAccountToken();
   return await client.request
     .send(
       `carts/${id}/shipping-groups`,
@@ -314,4 +314,15 @@ export async function getAccountDetails(accountId: string) {
     console.error("Error while getting account details", err);
     return err;
   });
+}
+
+export async function getAccountOrderDetails(account_id: string) {
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  return await client.Orders.With("items")
+    .Filter({ eq: { account_id, payment: "paid" } })
+    .All()
+    .catch((err) => {
+      console.error("Error while getting account details", err);
+      return err;
+    });
 }
