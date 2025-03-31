@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { RadioGroup, Dialog } from "@headlessui/react";
 import {
   addAddress,
+  associateCartWithAccount,
   changeAccountCredentials,
   createNewCart,
+  createNewQuote,
   getAccountAddresses,
   getAllSalesReps,
 } from "../actions";
@@ -29,6 +31,7 @@ import { setCookie } from "cookies-next";
 import { CART_COOKIE_NAME } from "../../../../../lib/cookie-constants";
 import CartArea from "./CartArea";
 import AddCartCustomDiscount from "./AddCartCustomDiscount";
+import { QuoteSuccessOverlay } from "./QuoteSuccessOverlay";
 
 export default function AccountSelector({
   accounts,
@@ -52,6 +55,9 @@ export default function AccountSelector({
   const { state } = useCart() as any;
   const [openDiscount, setOpenDiscount] = useState(false);
   const [enableCustomDiscount, setEnableCustomDiscount] = useState(false);
+  const [loadingCreateQuote, setLoadingCreateQuote] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const init = async () => {
@@ -109,6 +115,33 @@ export default function AccountSelector({
       .substring(2, 10)
       .toUpperCase();
     setQuoteNumber(randomQuote);
+  };
+
+  const createQuote = async () => {
+    setLoadingCreateQuote(true);
+    const request = {
+      type: "quote_ext",
+      cart_id: state?.id,
+      quote_ref: quoteNumber,
+      account_id: selectedAccount,
+      account_member_id: accountMember.id,
+      first_name: selectedAddress.first_name,
+      last_name: selectedAddress.last_name,
+      email: accountMember.email,
+      status: "Approved",
+      sales_agent_email: selectedSalesRep,
+      total_items: state?.items?.length,
+      total_amount: state?.meta?.display_price?.with_tax.amount,
+      currency: state?.meta?.display_price?.with_tax.currency,
+    };
+    const response = await createNewQuote(state?.id, request);
+    if (response?.errors) {
+      setError(response?.errors?.[0]?.detail);
+    } else {
+      await associateCartWithAccount(state?.id, selectedAccount);
+    }
+    setLoadingCreateQuote(false);
+    setIsOverlayOpen(true);
   };
 
   return (
@@ -405,12 +438,19 @@ export default function AccountSelector({
             enableCustomDiscount={enableCustomDiscount}
             setOpenDiscount={setOpenDiscount}
             selectedAccount={selectedAccount}
+            createQuote={createQuote}
+            loadingCreateQuote={loadingCreateQuote}
+            error={error}
           />
           <AddCartCustomDiscount
             selectedSalesRep={selectedAccount}
             enableCustomDiscount={enableCustomDiscount}
             openDiscount={openDiscount}
             setOpenDiscount={setOpenDiscount}
+          />
+          <QuoteSuccessOverlay
+            isOpen={isOverlayOpen}
+            setIsOpen={setIsOverlayOpen}
           />
         </div>
       )}

@@ -1,7 +1,10 @@
 "use server";
 
 import { AccountTokenBase, ResourcePage } from "@elasticpath/js-sdk";
-import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../lib/epcc-server-side-credentials-client";
+import {
+  getServerSideCredentialsClient,
+  getServerSideCredentialsClientWihoutAccountToken,
+} from "../../../../lib/epcc-server-side-credentials-client";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../../../lib/retrieve-account-member-credentials";
@@ -74,6 +77,7 @@ export async function createNewCart(quoteNumber: string) {
     name: `# ${quoteNumber}`,
     description: `Quote #${quoteNumber}`,
     discount_settings: { custom_discounts_enabled: true },
+    is_quote: true,
   };
   return await client.Cart().CreateCart(request);
 }
@@ -208,4 +212,27 @@ export async function deleteItemCustomDiscount(
   return await client
     .Cart(id)
     .RemoveItemCustomDiscount(itemId, customDiscountId);
+}
+
+export async function createNewQuote(cartId: string, request?: any) {
+  const client = getServerSideCredentialsClient();
+  return await client.request
+    .send(
+      `/extensions/quotes/${cartId}`,
+      "PUT",
+      request,
+      undefined,
+      client,
+      undefined,
+      "v2",
+    )
+    .catch((err) => {
+      console.error("Error while creating new quote", err);
+      return err;
+    });
+}
+
+export async function associateCartWithAccount(id: string, accountId: string) {
+  const client = getServerSideCredentialsClient();
+  return await client.Cart(id).AddAccountAssociation(accountId, "");
 }

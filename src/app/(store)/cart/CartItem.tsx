@@ -204,6 +204,8 @@ export function CartItem({
           enableCustomDiscount={enableCustomDiscount}
           openDiscount={openDiscount}
           setOpenDiscount={setOpenDiscount}
+          name={item.name}
+          sku={item.sku}
         />
       )}
     </div>

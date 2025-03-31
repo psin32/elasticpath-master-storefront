@@ -23,10 +23,16 @@ export default function CartArea({
   setOpenDiscount,
   enableCustomDiscount,
   selectedAccount,
+  createQuote,
+  loadingCreateQuote,
+  error,
 }: {
   setOpenDiscount: any;
   enableCustomDiscount: boolean;
   selectedAccount: string;
+  createQuote: any;
+  loadingCreateQuote: boolean;
+  error: string;
 }) {
   const { state, useScopedRemoveCartItem } = useCart() as any;
   const { useScopedUpdateCartItem } = useCart();
@@ -233,7 +239,18 @@ export default function CartArea({
                   </div>
                 </div>
 
-                <StatusButton className="w-full">Create Quote</StatusButton>
+                <StatusButton
+                  className="w-full"
+                  onClick={createQuote}
+                  status={loadingCreateQuote ? "loading" : "idle"}
+                >
+                  Create Quote
+                </StatusButton>
+                {error && (
+                  <div className="p-4 mb-4 text-red-600 bg-red-100 border border-red-200 rounded-lg">
+                    {error}
+                  </div>
+                )}
               </div>
             </>
           ) : (
