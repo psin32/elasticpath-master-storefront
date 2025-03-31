@@ -219,124 +219,87 @@ export function ManageCarts({ token }: ManageCartsProps) {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
-                        {accountCarts?.data.map((cart: any) => (
-                          <tr
-                            key={cart.id}
-                            className={
-                              cartIdInCookie === cart.id ? "bg-green-50" : ""
-                            }
-                          >
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-800 sm:pl-6 w-1/4">
-                              {cartIdInCookie === cart.id && (
-                                <span className="inline-flex items-center rounded-md bg-green-300 px-2 text-[10px] text-green-900 ring-1 ring-inset ring-green-600/20 mb-2">
-                                  Selected Cart
-                                </span>
-                              )}
+                        {accountCarts?.data
+                          ?.filter((cart: any) => !cart.is_quote)
+                          .map((cart: any) => (
+                            <tr
+                              key={cart.id}
+                              className={
+                                cartIdInCookie === cart.id ? "bg-green-50" : ""
+                              }
+                            >
+                              <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-800 sm:pl-6 w-1/4">
+                                {cartIdInCookie === cart.id && (
+                                  <span className="inline-flex items-center rounded-md bg-green-300 px-2 text-[10px] text-green-900 ring-1 ring-inset ring-green-600/20 mb-2">
+                                    Selected Cart
+                                  </span>
+                                )}
 
-                              <div>{cart.name}</div>
-                              <div className="mt-1 text-sm leading-5 text-gray-500">
-                                {cart.description}
-                              </div>
-                              <div className="mt-1 text-xs leading-5 text-gray-500">
-                                {cart.id}
-                              </div>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                              {cart.relationships.items.data?.length || 0}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                              {cart.meta.display_price.with_tax.formatted}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                              <div>
-                                {formatIsoDateString(
-                                  cart.meta.timestamps.created_at,
-                                )}
-                              </div>
-                              <div className="mt-1 text-xs leading-5 text-gray-500">
-                                {formatIsoTimeString(
-                                  cart.meta.timestamps.created_at,
-                                )}
-                              </div>
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                              <div>
+                                <div>{cart.name}</div>
+                                <div className="mt-1 text-sm leading-5 text-gray-500">
+                                  {cart.description}
+                                </div>
+                                <div className="mt-1 text-xs leading-5 text-gray-500">
+                                  {cart.id}
+                                </div>
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
+                                {cart.relationships.items.data?.length || 0}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
+                                {cart.meta.display_price.with_tax.formatted}
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
                                 <div>
                                   {formatIsoDateString(
-                                    cart.meta.timestamps.updated_at,
+                                    cart.meta.timestamps.created_at,
                                   )}
                                 </div>
                                 <div className="mt-1 text-xs leading-5 text-gray-500">
                                   {formatIsoTimeString(
-                                    cart.meta.timestamps.updated_at,
+                                    cart.meta.timestamps.created_at,
                                   )}
                                 </div>
-                              </div>
-                            </td>
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 w-28">
-                              <div className="text-right">
-                                <Menu
-                                  as="div"
-                                  className="relative inline-block text-left"
-                                >
+                              </td>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
+                                <div>
                                   <div>
-                                    <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-gray-900">
-                                      <EllipsisVerticalIcon
-                                        className="h-5 w-5"
-                                        aria-hidden="true"
-                                      />
-                                    </Menu.Button>
+                                    {formatIsoDateString(
+                                      cart.meta.timestamps.updated_at,
+                                    )}
                                   </div>
-                                  <Transition
-                                    as={Fragment}
-                                    enter="transition ease-out duration-100"
-                                    enterFrom="transform opacity-0 scale-95"
-                                    enterTo="transform opacity-100 scale-100"
-                                    leave="transition ease-in duration-75"
-                                    leaveFrom="transform opacity-100 scale-100"
-                                    leaveTo="transform opacity-0 scale-95"
+                                  <div className="mt-1 text-xs leading-5 text-gray-500">
+                                    {formatIsoTimeString(
+                                      cart.meta.timestamps.updated_at,
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 w-28">
+                                <div className="text-right">
+                                  <Menu
+                                    as="div"
+                                    className="relative inline-block text-left"
                                   >
-                                    <Menu.Items className="absolute right-0 z-20 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none">
-                                      <div className="px-1 py-1 ">
-                                        <Menu.Item>
-                                          {({ active }) => (
-                                            <button
-                                              className={`${
-                                                active
-                                                  ? "bg-brand-primary text-white"
-                                                  : "text-gray-900"
-                                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                                              onClick={() =>
-                                                handleOpenOverlay(
-                                                  false,
-                                                  cart.id,
-                                                )
-                                              }
-                                            >
-                                              Edit
-                                            </button>
-                                          )}
-                                        </Menu.Item>
-                                        <Menu.Item>
-                                          {({ active }) => (
-                                            <button
-                                              className={`${
-                                                active
-                                                  ? "bg-brand-primary text-white"
-                                                  : "text-gray-900"
-                                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                                              onClick={() =>
-                                                handleCartSelection(
-                                                  cart.id,
-                                                  cart.name,
-                                                )
-                                              }
-                                            >
-                                              Select this cart
-                                            </button>
-                                          )}
-                                        </Menu.Item>
-                                        {accountCarts.data.length > 1 && (
+                                    <div>
+                                      <Menu.Button className="-m-2.5 block p-2.5 text-gray-500 hover:text-gray-900">
+                                        <EllipsisVerticalIcon
+                                          className="h-5 w-5"
+                                          aria-hidden="true"
+                                        />
+                                      </Menu.Button>
+                                    </div>
+                                    <Transition
+                                      as={Fragment}
+                                      enter="transition ease-out duration-100"
+                                      enterFrom="transform opacity-0 scale-95"
+                                      enterTo="transform opacity-100 scale-100"
+                                      leave="transition ease-in duration-75"
+                                      leaveFrom="transform opacity-100 scale-100"
+                                      leaveTo="transform opacity-0 scale-95"
+                                    >
+                                      <Menu.Items className="absolute right-0 z-20 mt-2 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none">
+                                        <div className="px-1 py-1 ">
                                           <Menu.Item>
                                             {({ active }) => (
                                               <button
@@ -346,38 +309,77 @@ export function ManageCarts({ token }: ManageCartsProps) {
                                                     : "text-gray-900"
                                                 } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
                                                 onClick={() =>
-                                                  handleDeleteCart(cart.id)
+                                                  handleOpenOverlay(
+                                                    false,
+                                                    cart.id,
+                                                  )
                                                 }
                                               >
-                                                Delete Cart
+                                                Edit
                                               </button>
                                             )}
                                           </Menu.Item>
-                                        )}
-                                        <Menu.Item>
-                                          {({ active }) => (
-                                            <button
-                                              className={`${
-                                                active
-                                                  ? "bg-brand-primary text-white"
-                                                  : "text-gray-900"
-                                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                                              onClick={() =>
-                                                handleDeleteAllItems(cart.id)
-                                              }
-                                            >
-                                              Delete All Items
-                                            </button>
+                                          <Menu.Item>
+                                            {({ active }) => (
+                                              <button
+                                                className={`${
+                                                  active
+                                                    ? "bg-brand-primary text-white"
+                                                    : "text-gray-900"
+                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                                onClick={() =>
+                                                  handleCartSelection(
+                                                    cart.id,
+                                                    cart.name,
+                                                  )
+                                                }
+                                              >
+                                                Select this cart
+                                              </button>
+                                            )}
+                                          </Menu.Item>
+                                          {accountCarts.data.length > 1 && (
+                                            <Menu.Item>
+                                              {({ active }) => (
+                                                <button
+                                                  className={`${
+                                                    active
+                                                      ? "bg-brand-primary text-white"
+                                                      : "text-gray-900"
+                                                  } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                                  onClick={() =>
+                                                    handleDeleteCart(cart.id)
+                                                  }
+                                                >
+                                                  Delete Cart
+                                                </button>
+                                              )}
+                                            </Menu.Item>
                                           )}
-                                        </Menu.Item>
-                                      </div>
-                                    </Menu.Items>
-                                  </Transition>
-                                </Menu>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                          <Menu.Item>
+                                            {({ active }) => (
+                                              <button
+                                                className={`${
+                                                  active
+                                                    ? "bg-brand-primary text-white"
+                                                    : "text-gray-900"
+                                                } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                                                onClick={() =>
+                                                  handleDeleteAllItems(cart.id)
+                                                }
+                                              >
+                                                Delete All Items
+                                              </button>
+                                            )}
+                                          </Menu.Item>
+                                        </div>
+                                      </Menu.Items>
+                                    </Transition>
+                                  </Menu>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>

@@ -8,6 +8,7 @@ import {
   changeAccountCredentials,
   createNewCart,
   createNewQuote,
+  createShippingGroup,
   getAccountAddresses,
   getAllSalesReps,
 } from "../actions";
@@ -138,6 +139,12 @@ export default function AccountSelector({
     if (response?.errors) {
       setError(response?.errors?.[0]?.detail);
     } else {
+      const request: any = {
+        type: "shipping_group",
+        shipping_type: "Standard",
+        address: selectedAddress,
+      };
+      const response = await createShippingGroup(state?.id, request);
       await associateCartWithAccount(state?.id, selectedAccount);
     }
     setLoadingCreateQuote(false);
@@ -437,13 +444,14 @@ export default function AccountSelector({
           <CartArea
             enableCustomDiscount={enableCustomDiscount}
             setOpenDiscount={setOpenDiscount}
-            selectedAccount={selectedAccount}
+            selectedAccount={selectedSalesRep}
             createQuote={createQuote}
             loadingCreateQuote={loadingCreateQuote}
             error={error}
+            accountId={selectedAccount}
           />
           <AddCartCustomDiscount
-            selectedSalesRep={selectedAccount}
+            selectedSalesRep={selectedSalesRep}
             enableCustomDiscount={enableCustomDiscount}
             openDiscount={openDiscount}
             setOpenDiscount={setOpenDiscount}

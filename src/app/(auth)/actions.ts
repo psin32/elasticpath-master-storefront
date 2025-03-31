@@ -313,8 +313,9 @@ export async function mergeCart(
   const cartCookie = cookieStore.get(CART_COOKIE_NAME);
   const cartId = cartCookie?.value || "";
   let accountCartId = null;
-  if (accountCarts.data.length > 0) {
-    accountCartId = accountCarts.data[0].id;
+  const validCarts = accountCarts.data.filter((cart: any) => !cart.is_quote);
+  if (validCarts.length > 0) {
+    accountCartId = validCarts[0].id;
   } else {
     const response = await client.request
       .send(

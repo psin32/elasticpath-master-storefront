@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import BulkOrder from "../../../../../components/bulk-order/BulkOrder";
 import QuickOrder from "../../../../../components/bulk-order/QuickOrder";
-import { Search } from "../../../../(store)/search/search";
 import {
   ProductResponse,
   ShopperCatalogResourcePage,
@@ -14,14 +13,29 @@ import {
   getOtherImagesForProductResponse,
 } from "../../../../../lib/file-lookup";
 import SearchResultsElasticPath from "../../../../../components/search/SearchResultsElasticPath";
+import PreviousOrders from "./PreviousOrders";
 
-export default function ProductSelectionArea({ products }: { products: any }) {
-  const [activeTab, setActiveTab] = useState("bulkOrder");
+export default function ProductSelectionArea({
+  products,
+  status,
+  account_id,
+}: {
+  products: any;
+  status?: string;
+  account_id: string;
+}) {
+  const [activeTab, setActiveTab] = useState("browse");
 
   return (
     <div className="mx-auto bg-white">
       <div className="border-b border-gray-200 mb-6">
         <nav className="flex space-x-4">
+          <button
+            className={`py-4 px-6 ${activeTab === "browse" ? "border-b-2 border-black text-black" : "text-gray-500"}`}
+            onClick={() => setActiveTab("browse")}
+          >
+            Browse Products
+          </button>
           <button
             className={`py-4 px-6 ${activeTab === "bulkOrder" ? "border-b-2 border-black text-black" : "text-gray-500"}`}
             onClick={() => setActiveTab("bulkOrder")}
@@ -35,11 +49,19 @@ export default function ProductSelectionArea({ products }: { products: any }) {
             Quick Order
           </button>
           <button
-            className={`py-4 px-6 ${activeTab === "browse" ? "border-b-2 border-black text-black" : "text-gray-500"}`}
-            onClick={() => setActiveTab("browse")}
+            className={`py-4 px-6 ${activeTab === "orders" ? "border-b-2 border-black text-black" : "text-gray-500"}`}
+            onClick={() => setActiveTab("orders")}
           >
-            Browse Products
+            Previous Orders
           </button>
+          {status === "created" && (
+            <button
+              className={`py-4 px-6 ${activeTab === "notes" ? "border-b-2 border-black text-black" : "text-gray-500"}`}
+              onClick={() => setActiveTab("notes")}
+            >
+              Notes
+            </button>
+          )}
         </nav>
       </div>
       <div>
@@ -53,6 +75,7 @@ export default function ProductSelectionArea({ products }: { products: any }) {
             adminDisplay={true}
           />
         )}
+        {activeTab === "orders" && <PreviousOrders account_id={account_id} />}
       </div>
     </div>
   );

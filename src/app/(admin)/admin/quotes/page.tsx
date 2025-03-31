@@ -2,15 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { StatusButton } from "../../../../components/button/StatusButton";
-import { getAllOrders, getAllQuotes } from "./actions";
+import { getAllQuotes } from "./actions";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminSpinner from "../../../../components/AdminSpinner";
 import Link from "next/link";
+import {
+  formatIsoDateString,
+  formatIsoTimeString,
+} from "../../../../lib/format-iso-date-string";
 
 export default function QuotesPage() {
-  const { status, data } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [quotes, setQuotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,10 +26,10 @@ export default function QuotesPage() {
   }
 
   useEffect(() => {
-    const fetchAllOrders = async () => {
+    const fetchAllQuotes = async () => {
       setLoading(true);
       try {
-        const response = await getAllQuotes(data?.user?.email);
+        const response = await getAllQuotes();
         setQuotes(response.data);
         setLoading(false);
       } catch (error) {
@@ -33,7 +37,7 @@ export default function QuotesPage() {
         setLoading(false);
       }
     };
-    fetchAllOrders();
+    fetchAllQuotes();
   }, []);
 
   const handleFindMember = async () => {
@@ -46,7 +50,7 @@ export default function QuotesPage() {
     setError(null);
 
     try {
-      const response = await getAllOrders(encodeURIComponent(searchEmail));
+      const response = await getAllQuotes(encodeURIComponent(searchEmail));
       setQuotes(response.data);
       setLoading(false);
     } catch (error) {
@@ -61,14 +65,12 @@ export default function QuotesPage() {
     setError(null);
 
     try {
-      const response = await getAllOrders();
+      const response = await getAllQuotes();
       setQuotes(response.data);
     } catch (error) {
       setError("Failed to reload account members.");
     }
   };
-
-  const handleCreateQuote = async () => {};
 
   return (
     quotes && (
@@ -79,10 +81,10 @@ export default function QuotesPage() {
           <div className="flex items-center space-x-4 w-1/2">
             <input
               type="email"
-              placeholder="Enter email address"
+              placeholder="Enter account member email address"
               value={searchEmail}
               onChange={(e) => setSearchEmail(e.target.value)}
-              className="px-4 py-2 border rounded-lg focus:ring focus:outline-none w-full"
+              className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black"
             />
             <StatusButton
               onClick={handleFindMember}
@@ -120,6 +122,12 @@ export default function QuotesPage() {
                         scope="col"
                         className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                       >
+                        Quote #
+                      </th>
+                      <th
+                        scope="col"
+                        className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                      >
                         Name
                       </th>
                       <th
@@ -144,13 +152,7 @@ export default function QuotesPage() {
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Payment
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Shipping
+                        Sales Agent Email
                       </th>
                       <th
                         scope="col"
@@ -161,63 +163,56 @@ export default function QuotesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {quotes.map((order) => (
-                      <tr key={order.id} className="hover:bg-gray-200">
+                    {quotes.map((quote) => (
+                      <tr key={quote.id} className="hover:bg-gray-200">
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          <Link
+                            href={`/admin/quotes/${quote.quote_ref}`}
+                            className="underline text-brand-primary"
+                          >
+                            {quote.quote_ref}
+                          </Link>
+                        </td>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                          {order?.customer?.name
-                            ? order?.customer?.name
-                            : order?.contact?.name}
+                          {quote?.first_name} {quote?.last_name}
                           <div className="text-xs text-gray-500 mt-1">
-                            {order?.customer?.email
-                              ? order?.customer?.email
-                              : order?.contact?.email}
+                            {quote?.email}
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {order.meta.timestamps.created_at}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {order.relationships.items.data.length}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {order.meta.display_price.with_tax.formatted}
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span
-                            className={clsx(
-                              order.payment == "paid"
-                                ? "bg-green-50 text-green-700 ring-green-600/20"
-                                : order.payment == "unpaid"
-                                  ? "bg-red-50 text-red-700 ring-red-600/10"
-                                  : "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
-                              "uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                          <div>
+                            {formatIsoDateString(
+                              quote.meta.timestamps.created_at,
                             )}
-                          >
-                            {order.payment}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          <span
-                            className={clsx(
-                              order.shipping == "fulfilled"
-                                ? "bg-green-50 text-green-700 ring-green-600/20"
-                                : "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
-                              "uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                          </div>
+                          <div className="mt-1 text-xs leading-5 text-gray-500">
+                            {formatIsoTimeString(
+                              quote.meta.timestamps.created_at,
                             )}
-                          >
-                            {order.shipping}
-                          </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {quote.total_items}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {new Intl.NumberFormat("en", {
+                            style: "currency",
+                            currency: quote.currency,
+                          }).format((quote.total_amount || 0) / 100)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {quote.sales_agent_email}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           <span
                             className={clsx(
-                              order.status == "complete"
+                              quote.status == "Approved"
                                 ? "bg-green-50 text-green-700 ring-green-600/20"
                                 : "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
                               "uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
                             )}
                           >
-                            {order.status}
+                            {quote.status}
                           </span>
                         </td>
                       </tr>

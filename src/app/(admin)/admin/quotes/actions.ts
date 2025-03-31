@@ -1,6 +1,10 @@
 "use server";
 
-import { AccountTokenBase, ResourcePage } from "@elasticpath/js-sdk";
+import {
+  AccountTokenBase,
+  CartShippingGroupBase,
+  ResourcePage,
+} from "@elasticpath/js-sdk";
 import {
   getServerSideCredentialsClient,
   getServerSideCredentialsClientWihoutAccountToken,
@@ -8,7 +12,10 @@ import {
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../../../lib/retrieve-account-member-credentials";
-import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
+import {
+  ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  CART_COOKIE_NAME,
+} from "../../../../lib/cookie-constants";
 import { revalidatePath } from "next/cache";
 import { shippingAddressSchema } from "../../../../components/checkout/form-schema/checkout-form-schema";
 import { AccountAddress, Resource } from "@elasticpath/js-sdk";
@@ -38,8 +45,19 @@ export async function getAllOrders(email?: string) {
 
 export async function getAllQuotes(email?: string | null | undefined) {
   const client = getServerSideCredentialsClientWihoutAccountToken();
+  if (email) {
+    return await client.request.send(
+      `/extensions/quotes?filter=eq(email,${email})`,
+      "GET",
+      undefined,
+      undefined,
+      client,
+      false,
+      "v2",
+    );
+  }
   return await client.request.send(
-    `/extensions/quotes?filter=eq(sales_agent_email,${email})`,
+    `/extensions/quotes`,
     "GET",
     undefined,
     undefined,
@@ -235,4 +253,65 @@ export async function createNewQuote(cartId: string, request?: any) {
 export async function associateCartWithAccount(id: string, accountId: string) {
   const client = getServerSideCredentialsClient();
   return await client.Cart(id).AddAccountAssociation(accountId, "");
+}
+
+export async function getQuoteByQuoteRef(quoteId: string) {
+  const cookieStore = cookies();
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  const quote = await client.request.send(
+    `/extensions/quotes?filter=eq(quote_ref,${quoteId})`,
+    "GET",
+    undefined,
+    undefined,
+    client,
+    false,
+    "v2",
+  );
+  const cartId = quote?.data?.[0]?.cart_id;
+  cookieStore.set(CART_COOKIE_NAME, cartId, { path: "/" });
+  return quote;
+}
+
+export async function createShippingGroup(id: string, request: any) {
+  const client = getServerSideCredentialsClient();
+  return await client.request
+    .send(
+      `carts/${id}/shipping-groups`,
+      "POST",
+      request,
+      undefined,
+      client,
+      undefined,
+      "v2",
+    )
+    .catch((err) => {
+      console.error("Error while creating shipping group", err);
+      return err;
+    });
+}
+
+export async function getShippingGroups(id: string) {
+  const client = getServerSideCredentialsClient();
+  return await client.request
+    .send(
+      `carts/${id}/shipping-groups`,
+      "GET",
+      undefined,
+      undefined,
+      client,
+      undefined,
+      "v2",
+    )
+    .catch((err) => {
+      console.error("Error while getting shipping group", err);
+      return err;
+    });
+}
+
+export async function getAccountDetails(accountId: string) {
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  return await client.Accounts.Get(accountId).catch((err) => {
+    console.error("Error while getting account details", err);
+    return err;
+  });
 }

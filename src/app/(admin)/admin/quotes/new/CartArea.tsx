@@ -26,6 +26,8 @@ export default function CartArea({
   createQuote,
   loadingCreateQuote,
   error,
+  status,
+  accountId,
 }: {
   setOpenDiscount: any;
   enableCustomDiscount: boolean;
@@ -33,6 +35,8 @@ export default function CartArea({
   createQuote: any;
   loadingCreateQuote: boolean;
   error: string;
+  status?: string;
+  accountId: string;
 }) {
   const { state, useScopedRemoveCartItem } = useCart() as any;
   const { useScopedUpdateCartItem } = useCart();
@@ -75,7 +79,13 @@ export default function CartArea({
   return (
     <div className="flex min-h-screen mt-10">
       <div className="w-[70%]">
-        <ProductSelectionArea products={products} />
+        {products && (
+          <ProductSelectionArea
+            products={products}
+            status={status}
+            account_id={accountId}
+          />
+        )}
       </div>
       <div className="w-px bg-black/10 mx-10" />
 
@@ -244,7 +254,7 @@ export default function CartArea({
                   onClick={createQuote}
                   status={loadingCreateQuote ? "loading" : "idle"}
                 >
-                  Create Quote
+                  {status === "created" ? "Update Quote" : "Create Quote"}
                 </StatusButton>
                 {error && (
                   <div className="p-4 mb-4 text-red-600 bg-red-100 border border-red-200 rounded-lg">

@@ -58,7 +58,7 @@ export default function QuotesPage() {
             placeholder="Enter customer email address"
             value={searchEmail}
             onChange={(e) => setSearchEmail(e.target.value)}
-            className="px-4 py-2 border rounded-lg focus:ring focus:outline-none w-full"
+            className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black"
           />
           <StatusButton
             onClick={handleFindMember}
