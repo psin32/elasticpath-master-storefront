@@ -7,6 +7,7 @@ import {
   ShoppingCartIcon,
   UsersIcon,
   XMarkIcon,
+  PencilSquareIcon,
 } from "@heroicons/react/24/outline";
 import EpLogo from "../../../components/icons/ep-logo";
 import { usePathname } from "next/navigation";
@@ -41,6 +42,12 @@ export function AdminSidebar({
       href: "/admin/orders",
       icon: ShoppingCartIcon,
       current: pathname === "/admin/orders",
+    },
+    {
+      name: "Quotes",
+      href: "/admin/quotes",
+      icon: PencilSquareIcon,
+      current: pathname === "/admin/quotes" || pathname === "/admin/quotes/new",
     },
   ];
   return (

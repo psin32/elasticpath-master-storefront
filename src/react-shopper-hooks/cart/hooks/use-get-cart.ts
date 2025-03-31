@@ -12,17 +12,26 @@ type CartQueryKey = typeof cartQueryKeys;
 export function useGetCart(
   id: string,
   options?: UseQueryOptionsWrapper<
-    ResourceIncluded<Cart, CartIncluded>,
+    ResourceIncluded<any, CartIncluded>,
     Error,
     ReturnType<CartQueryKey["detail"]>
   >,
-): Partial<ResourceIncluded<Cart, CartIncluded>> &
-  Omit<UseQueryResult<ResourceIncluded<Cart, CartIncluded>, Error>, "data"> {
+): Partial<ResourceIncluded<any, CartIncluded>> &
+  Omit<UseQueryResult<ResourceIncluded<any, CartIncluded>, Error>, "data"> {
   const { client } = useElasticPath();
+  const included: any = ["items", "custom_discounts"];
+
   const { data, ...rest } = useQuery({
     queryKey: cartQueryKeys.detail(id),
-    queryFn: () => client.Cart(id).With("items").Get(),
+    queryFn: async () => {
+      const cartData: any = await client.Cart(id).With(included).Get();
+      const cartItems: any = await client.Cart(id).With(included).Items();
+      cartData.included.itemCustomDiscount =
+        cartItems.included.custom_discounts;
+      return { ...cartData };
+    },
     ...options,
   });
+
   return { ...data, ...rest } as const;
 }

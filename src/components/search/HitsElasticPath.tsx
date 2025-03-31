@@ -22,7 +22,11 @@ import { CartItemObject } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
 
-export default function HitsElasticPath(): JSX.Element {
+export default function HitsElasticPath({
+  adminDisplay,
+}: {
+  adminDisplay?: boolean;
+}): JSX.Element {
   const { page } = useProducts();
   const { useScopedAddProductToCart, useScopedAddBulkProductToCart } =
     useCart();
@@ -36,7 +40,7 @@ export default function HitsElasticPath(): JSX.Element {
   );
   const [childItems, setChildItems] = useState<any>([]);
 
-  if (!page) {
+  if (!page?.data) {
     return <NoResults displayIcon={false} />;
   }
 
@@ -183,36 +187,38 @@ export default function HitsElasticPath(): JSX.Element {
                   Add All Items to Cart
                 </StatusButton>
               )}
-              <div>
-                <button
-                  onClick={toggleView}
-                  className={clsx(
-                    "p-2 rounded-l-md border-t border-l border-b border-gray-800",
-                    view === "list" ? "bg-gray-800 text-white" : "",
-                  )}
-                >
-                  <Bars3Icon
+              {!adminDisplay && (
+                <div>
+                  <button
+                    onClick={toggleView}
                     className={clsx(
-                      "w-6 h-6",
-                      view === "list" ? "text-white" : "text-gray-500",
+                      "p-2 rounded-l-md border-t border-l border-b border-gray-800",
+                      view === "list" ? "bg-gray-800 text-white" : "",
                     )}
-                  />
-                </button>
-                <button
-                  onClick={toggleView}
-                  className={clsx(
-                    "p-2 rounded-r-md border-t border-r border-b border-gray-800",
-                    view === "grid" ? "bg-gray-800 text-white" : "",
-                  )}
-                >
-                  <Squares2X2Icon
+                  >
+                    <Bars3Icon
+                      className={clsx(
+                        "w-6 h-6",
+                        view === "list" ? "text-white" : "text-gray-500",
+                      )}
+                    />
+                  </button>
+                  <button
+                    onClick={toggleView}
                     className={clsx(
-                      "w-6 h-6",
-                      view === "grid" ? "text-white" : "text-gray-500",
+                      "p-2 rounded-r-md border-t border-r border-b border-gray-800",
+                      view === "grid" ? "bg-gray-800 text-white" : "",
                     )}
-                  />
-                </button>
-              </div>
+                  >
+                    <Squares2X2Icon
+                      className={clsx(
+                        "w-6 h-6",
+                        view === "grid" ? "text-white" : "text-gray-500",
+                      )}
+                    />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           {view === "list" && (
@@ -286,12 +292,13 @@ export default function HitsElasticPath(): JSX.Element {
                       </div>
                       <div className="col-span-5">
                         <h2 className="text-lg text-gray-800 font-semibold hover:text-brand-primary">
-                          {!gatedSetting && (
+                          {!gatedSetting && !adminDisplay && (
                             <Link href={`/products/${slug}`} legacyBehavior>
                               {name}
                             </Link>
                           )}
-                          {gatedSetting && <>{name}</>}
+                          {gatedSetting && !adminDisplay && <>{name}</>}
+                          {adminDisplay && <>{name}</>}
                         </h2>
                         {gatedSetting != "fully_gated" && (
                           <>
@@ -353,12 +360,12 @@ export default function HitsElasticPath(): JSX.Element {
                               </div>
                             )}
                             {original_display_price && (
-                              <span className="mt-2 uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
+                              <span className="mt-2 inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700 mb-6 mr-2">
                                 {sale_id}
                               </span>
                             )}
                             {tiers && (
-                              <div className="bg-red-700 text-white rounded-md p-2 mt-2 uppercase text-center font-bold flex flex-row gap-2 text-xs justify-center items-center w-40">
+                              <div className="bg-red-700 text-white rounded-md mt-2 uppercase py-2 text-center font-bold flex flex-row gap-2 text-xs justify-center items-center w-32">
                                 <MultibuyOfferModal product={hit.response} />
                               </div>
                             )}
@@ -433,7 +440,7 @@ export default function HitsElasticPath(): JSX.Element {
                       <div className="col-span-2">
                         {!variation_matrix && !components && (
                           <StatusButton
-                            className="py-2 w-40 text-md"
+                            className="py-2 w-32 text-sm px-2"
                             onClick={() => handleAddToCart(id)}
                             variant={quantity > 0 ? "primary" : "secondary"}
                             disabled={quantity === 0}
@@ -444,7 +451,7 @@ export default function HitsElasticPath(): JSX.Element {
 
                         {variation_matrix && (
                           <StatusButton
-                            className="py-2 text-md w-40"
+                            className="py-2 text-xs w-32"
                             onClick={() => getVariants(id, variation_matrix)}
                           >
                             Choose Variants
@@ -453,7 +460,7 @@ export default function HitsElasticPath(): JSX.Element {
 
                         {components && (
                           <Link href={`/products/${slug}`} legacyBehavior>
-                            <StatusButton className="py-2 text-md w-40">
+                            <StatusButton className="py-2 text-xs w-32">
                               View Bundle
                             </StatusButton>
                           </Link>
@@ -637,7 +644,7 @@ export default function HitsElasticPath(): JSX.Element {
                             </div>
                             <div className="col-span-2">
                               <StatusButton
-                                className="py-2 w-40 text-md"
+                                className="py-2 w-32 text-sm"
                                 onClick={() => handleAddToCart(id)}
                                 variant={quantity > 0 ? "primary" : "secondary"}
                                 disabled={quantity === 0}

@@ -2,7 +2,10 @@ import { CartItem } from "@elasticpath/js-sdk";
 import { GroupedCartItems } from "../../cart";
 import { assertCartItemType } from "./assert-cart-item-type";
 
-export function groupCartItems(items: CartItem[]): GroupedCartItems {
+export function groupCartItems(included: any): GroupedCartItems {
+  const items: CartItem[] = included?.items ?? [];
+  const customDiscounts: any = included?.custom_discounts ?? [];
+  const itemCustomDiscounts: any = included?.itemCustomDiscount ?? [];
   return items.reduce(
     (acc, item) => {
       return {
@@ -19,6 +22,8 @@ export function groupCartItems(items: CartItem[]): GroupedCartItems {
         ...(assertCartItemType(item, "subscription_item")
           ? { subscription: [...acc?.subscription, item] }
           : acc.subscription),
+        customDiscounts,
+        itemCustomDiscounts,
       };
     },
     {
@@ -26,6 +31,8 @@ export function groupCartItems(items: CartItem[]): GroupedCartItems {
       promotion: [],
       custom: [],
       subscription: [],
+      customDiscounts: [],
+      itemCustomDiscounts: [],
     } as GroupedCartItems,
   );
 }

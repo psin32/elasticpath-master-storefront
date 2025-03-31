@@ -18,7 +18,7 @@ export default function MultibuyOfferModal({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="uppercase font-semibold text-white"
+        className="text-white"
       >
         View Bulk Offer
       </button>

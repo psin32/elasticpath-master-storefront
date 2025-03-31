@@ -20,12 +20,14 @@ interface ISearchResults {
   page?: ShopperCatalogResourcePage<ShopperProduct> | any;
   nodes?: string[];
   content: any;
+  adminDisplay?: boolean;
 }
 
 export default function SearchResultsElasticPath({
   page,
   nodes,
   content,
+  adminDisplay,
 }: ISearchResults): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   let [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -65,14 +67,16 @@ export default function SearchResultsElasticPath({
             customComponents={builderComponent}
           />
         )}
-        <div className="grid grid-cols-[auto_1fr] gap-8">
-          <div className="hidden w-[14rem] md:block lg:w-[16rem]">
-            <h3 className="font-semibold">Category</h3>
-            {nav && <NodeMenu nav={nav} />}
-          </div>
+        <div className="grid gap-8">
+          {!adminDisplay && (
+            <div className="hidden w-[14rem] md:block lg:w-[16rem]">
+              <h3 className="font-semibold">Category</h3>
+              {nav && <NodeMenu nav={nav} />}
+            </div>
+          )}
 
           <div>
-            <HitsElasticPath />
+            <HitsElasticPath adminDisplay={adminDisplay} />
             <div className="py-10">
               <PaginationElasticPath />
             </div>

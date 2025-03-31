@@ -77,6 +77,7 @@ export async function impersonateUser(accountMemberId: string) {
     ).catch((err: any) => {
       console.error("Error in UserAuthenticationPasswordProfile Delete", err);
     });
+    return result;
   }
 }
 

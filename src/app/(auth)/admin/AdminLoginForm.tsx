@@ -2,21 +2,23 @@
 
 import { Label } from "../../../components/label/Label";
 import { Input } from "../../../components/input/Input";
-import { FormStatusButton } from "../../../components/button/FormStatusButton";
 import { useState } from "react";
 import { useTranslation } from "../../i18n/client";
 import { getCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { StatusButton } from "../../../components/button/StatusButton";
 
 export function AdminLoginForm({ returnUrl }: { returnUrl?: string }) {
   const [error, setError] = useState<string | undefined>(undefined);
   const { t } = useTranslation(getCookie("locale") || "en", "auth", {});
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setLoading(true);
     e.preventDefault();
 
     const res = await signIn("credentials", {
@@ -24,9 +26,12 @@ export function AdminLoginForm({ returnUrl }: { returnUrl?: string }) {
       username,
       password,
     });
+    setLoading(false);
 
     if (res?.error) {
       setError(res.error);
+    } else if (res?.status != 200) {
+      setError("Inavlid username/password");
     } else {
       router.push("/admin/dashboard");
     }
@@ -81,9 +86,12 @@ export function AdminLoginForm({ returnUrl }: { returnUrl?: string }) {
         )}
 
         <div>
-          <FormStatusButton className="w-full">
+          <StatusButton
+            className="w-full"
+            status={loading ? "loading" : "idle"}
+          >
             {t("login.button.login")}
-          </FormStatusButton>
+          </StatusButton>
         </div>
       </form>
     </div>

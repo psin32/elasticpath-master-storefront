@@ -13,8 +13,7 @@ export function enhanceCartResponse(
   const items = !!cart.included?.items
     ? enhanceCartItems(cart.included.items)
     : [];
-
-  const groupedItems = groupCartItems(cart.included?.items ?? []);
+  const groupedItems = groupCartItems(cart.included ?? {});
 
   return {
     items: items as ReadonlyArray<RefinedCartItem>,
