@@ -150,14 +150,28 @@ export function Cart() {
                 </div>
               </div>
               <Separator />
-              <SheetClose asChild>
-                <Button type="button" asChild className="self-stretch">
-                  <Link href="/checkout">
-                    <LockClosedIcon className="w-5 h-5 mr-2" />
-                    Checkout
-                  </Link>
-                </Button>
-              </SheetClose>
+
+              <div className="flex w-full gap-4">
+                <SheetClose asChild className="flex-1">
+                  <Button
+                    type="button"
+                    asChild
+                    className="self-stretch"
+                    variant="secondary"
+                  >
+                    <Link href="/create-quote">Create Quote</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild className="flex-1">
+                  <Button type="button" asChild className="self-stretch">
+                    <Link href="/checkout">
+                      <LockClosedIcon className="w-5 h-5 mr-2" />
+                      Checkout
+                    </Link>
+                  </Button>
+                </SheetClose>
+              </div>
+
               <SheetClose asChild>
                 <Button
                   type="button"

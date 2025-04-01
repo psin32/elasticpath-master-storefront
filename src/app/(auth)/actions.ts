@@ -25,6 +25,7 @@ import type {
   ProfileResponse,
   Resource,
 } from "@elasticpath/js-sdk";
+import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -73,10 +74,10 @@ export async function login(props: FormData) {
     });
 
     await mergeCart(
-      client,
       result?.data?.[0]?.token,
       result?.data?.[0]?.account_id,
       true,
+      client,
     );
     const cookieStore = cookies();
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
@@ -132,10 +133,10 @@ export async function selectedAccount(args: FormData) {
 
   const client = getServerSideImplicitClient();
   await mergeCart(
-    client,
     accountMemberCredentials?.accounts[accountId].token,
     accountId,
     false,
+    client,
   );
 
   cookieStore.set({
@@ -180,10 +181,10 @@ export async function register(data: FormData) {
   } as any);
 
   await mergeCart(
-    client,
     result?.data?.[0]?.token,
     result?.data?.[0]?.account_id,
     true,
+    client,
   );
 
   const cookieStore = cookies();
@@ -238,10 +239,10 @@ export async function oidcLogin(
     return error;
   });
   await mergeCart(
-    client,
     result?.data?.[0]?.token,
     result?.data?.[0]?.account_id,
     true,
+    client,
   );
   if (result?.data?.length > 0) {
     cookieStore.set(createCookieFromGenerateTokenResponse(result));
@@ -294,16 +295,18 @@ function createAccountMemberCredentialsCookieValue(
 }
 
 export async function mergeCart(
-  client: EPCCClient,
   token: string,
   accountId: string,
   isMergeEnabled: boolean,
+  client?: EPCCClient,
 ) {
   const cookieStore = cookies();
   const headers = {
     "EP-Account-Management-Authentication-Token": token,
   };
-
+  if (!client) {
+    client = getEpccImplicitClient();
+  }
   const accountCarts = await client.request
     .send(`/carts`, "GET", null, undefined, client, undefined, "v2", headers)
     .catch((err) => {
