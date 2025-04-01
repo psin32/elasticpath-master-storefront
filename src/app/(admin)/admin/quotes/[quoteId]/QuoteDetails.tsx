@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   createNewQuote,
   getAccountDetails,
+  getAllSalesReps,
   getQuoteByQuoteRef,
   getShippingGroups,
 } from "../actions";
@@ -20,6 +21,9 @@ import {
   UserCircleIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
+import { useSession } from "next-auth/react";
+import clsx from "clsx";
+import { Separator } from "../../../../../components/separator/Separator";
 
 export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const { state } = useCart() as any;
@@ -31,14 +35,41 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
   const [shippingGroup, setShippingGroup] = useState<any>(null);
   const [accounts, setAccounts] = useState<any>(null);
+  const [salesAgent, setSalesAgent] = useState<string>("");
   const router = useRouter();
+  const { data } = useSession();
+  const [salesReps, setSalesReps] = useState<any>([]);
+  const [selectedSalesRep, setSelectedSalesRep] = useState("");
+  const [quoteStatus, setQuoteStatus] = useState("");
+  const [selectedQuoteStatus, setSelectedQuoteStatus] = useState("");
 
   useEffect(() => {
     const init = async () => {
       const quote = await getQuoteByQuoteRef(quoteId);
       setQuoteData(quote?.data?.[0]);
+      setQuoteStatus(quote?.data?.[0]?.status);
+      setSelectedQuoteStatus(quote?.data?.[0]?.status);
       if (state.discount_settings.custom_discounts_enabled) {
         setEnableCustomDiscount(true);
+      }
+      if (quote?.data?.[0].sales_agent_email) {
+        setSalesAgent(quote?.data?.[0].sales_agent_email);
+      } else {
+        const response = await getAllSalesReps();
+        const reps = [];
+        if (data?.user?.email) {
+          reps.push({
+            email: data?.user?.email,
+            name: data?.user?.name,
+          });
+        }
+        const salesRepList = response.data.filter(
+          (rep: any) => rep.email != data?.user?.email,
+        );
+        if (data?.user?.email) {
+          setSelectedSalesRep(data?.user?.email);
+        }
+        setSalesReps(reps.concat(salesRepList));
       }
       const shipping = await getShippingGroups(state?.id);
       setShippingGroup(shipping?.data?.[0]);
@@ -60,8 +91,10 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
     const request = {
       type: "quote_ext",
       cart_id: state?.id,
-      status: "Approved",
-      sales_agent_email: quoteData.sales_agent_email,
+      status: selectedQuoteStatus,
+      sales_agent_email: quoteData.sales_agent_email
+        ? quoteData.sales_agent_email
+        : selectedSalesRep,
       total_items: state?.items?.length,
       total_amount: state?.meta?.display_price?.with_tax.amount,
       currency: state?.meta?.display_price?.with_tax.currency,
@@ -167,12 +200,62 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
               )}
 
               <div>
-                <dt className="font-medium text-gray-900">Sales Agent</dt>
-                <dd className="mt-3 text-gray-500">
-                  <span className="block mb-1 font-medium text-gray-800">
-                    {quoteData.sales_agent_email}
-                  </span>
-                </dd>
+                <div className="mb-6">
+                  <dt className="font-medium text-gray-900">Sales Agent</dt>
+                  <dd className="mt-3 text-gray-500">
+                    <span className="block mb-1 font-medium text-gray-800">
+                      {salesAgent}
+                      {!salesAgent && (
+                        <select
+                          value={selectedSalesRep}
+                          onChange={(e) => setSelectedSalesRep(e.target.value)}
+                          className="py-2 border rounded-lg text-xs"
+                        >
+                          {salesReps.map((rep: any) => (
+                            <option key={rep.email} value={rep.email}>
+                              {rep.name} ({rep.email})
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </span>
+                  </dd>
+                </div>
+                <Separator />
+                <div>
+                  <dt className="font-medium text-gray-900 mt-6">Status</dt>
+                  <dd className="mt-3 text-gray-500">
+                    <span className="block mb-1 font-medium text-gray-800">
+                      {quoteStatus != "Created" ? (
+                        <span
+                          className={clsx(
+                            quoteStatus == "Approved"
+                              ? "bg-green-50 text-green-700 ring-green-600/20"
+                              : "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
+                            "uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
+                          )}
+                        >
+                          {quoteStatus}
+                        </span>
+                      ) : (
+                        <select
+                          value={selectedQuoteStatus}
+                          onChange={(e) =>
+                            setSelectedQuoteStatus(e.target.value)
+                          }
+                          className="py-2 border rounded-lg text-xs"
+                        >
+                          <option key="Created" value="Created">
+                            Created
+                          </option>
+                          <option key="Approved" value="Approved">
+                            Approved
+                          </option>
+                        </select>
+                      )}
+                    </span>
+                  </dd>
+                </div>
               </div>
             </dl>
             <dl className="mt-8 divide-y divide-gray-200 text-sm lg:col-span-3 lg:mt-0">
@@ -210,8 +293,8 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
           createQuote={createQuote}
           loadingCreateQuote={loadingCreateQuote}
           error={error}
-          status="created"
           accountId={quoteData.account_id}
+          status="created"
         />
         <AddCartCustomDiscount
           selectedSalesRep={quoteData.sales_agent_email}

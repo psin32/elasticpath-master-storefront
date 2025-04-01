@@ -14,6 +14,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import clsx from "clsx";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface ISearchResults {
@@ -67,7 +68,12 @@ export default function SearchResultsElasticPath({
             customComponents={builderComponent}
           />
         )}
-        <div className="grid gap-8">
+        <div
+          className={clsx(
+            !adminDisplay ? "grid-cols-[auto_1fr]" : "",
+            "grid gap-8",
+          )}
+        >
           {!adminDisplay && (
             <div className="hidden w-[14rem] md:block lg:w-[16rem]">
               <h3 className="font-semibold">Category</h3>
