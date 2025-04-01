@@ -10,6 +10,10 @@ import { AccountMemberCredential } from "../../app/(auth)/account-member-credent
 import { getAccountQuotes } from "../../app/(store)/quotes/action";
 import clsx from "clsx";
 import Link from "next/link";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
+import { getShippingGroups } from "../../app/(admin)/admin/quotes/actions";
 
 export type QuotesProps = {
   account: AccountMemberCredential;
@@ -25,6 +29,51 @@ export function Quotes({ account }: QuotesProps) {
     };
     init();
   }, []);
+
+  const getCountryName = (country: string) => {
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    return regionNames.of(country.toUpperCase()) || country;
+  };
+
+  const generatePDF = async (quote: any) => {
+    const client = getEpccImplicitClient();
+    const cart = await client.Cart(quote.cart_id).With("items").Get();
+    const shipping = await getShippingGroups(quote.cart_id);
+
+    if (!quote || !cart) return;
+
+    const doc = new jsPDF();
+    doc.setFont("helvetica");
+    doc.setFontSize(9);
+    doc.text("Quote Details", 10, 10);
+    doc.text(`Name: ${quote.first_name} ${quote.last_name}`, 10, 15);
+    doc.text(`Address:`, 10, 20);
+    doc.text(shipping?.data?.[0].address?.line_1 + ",", 15, 25);
+    doc.text(shipping?.data?.[0].address?.city + ",", 15, 30);
+    doc.text(shipping?.data?.[0].address?.postcode + ",", 15, 35);
+    doc.text(getCountryName(shipping?.data?.[0].address?.country), 15, 40);
+    doc.text(`Quote ID: ${quote.quote_ref}`, 10, 50);
+    doc.setFontSize(15);
+    doc.text(
+      `Total Amount: ${cart.data.meta?.display_price?.with_tax?.formatted}`,
+      10,
+      60,
+    );
+
+    const tableData = cart?.included?.items.map((item: any) => [
+      item.name,
+      item.quantity.toString(),
+      `${item?.meta?.display_price?.with_tax?.value?.formatted}`,
+    ]);
+
+    autoTable(doc, {
+      head: [["Product", "Quantity", "Total"]],
+      body: tableData,
+      startY: 70,
+    });
+
+    doc.save(`Quote_${quote.quote_ref}.pdf`);
+  };
 
   return (
     <div className="flex flex-col lg:flex-row flex-1 self-stretch">
@@ -161,6 +210,7 @@ export function Quotes({ account }: QuotesProps) {
                             <StatusButton
                               className="text-sm rounded-lg"
                               disabled={quote.status === "Completed"}
+                              onClick={() => generatePDF(quote)}
                             >
                               Download PDF
                             </StatusButton>
