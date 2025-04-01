@@ -130,7 +130,8 @@ export function Quotes({ account }: QuotesProps) {
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
                               className={clsx(
-                                quote.status == "Approved"
+                                quote.status == "Approved" ||
+                                  quote.status == "Completed"
                                   ? "bg-green-50 text-green-700 ring-green-600/20"
                                   : "bg-yellow-50 text-yellow-800 ring-yellow-600/20",
                                 "uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset",
@@ -157,7 +158,10 @@ export function Quotes({ account }: QuotesProps) {
                             )}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <StatusButton className="text-sm rounded-lg">
+                            <StatusButton
+                              className="text-sm rounded-lg"
+                              disabled={quote.status === "Completed"}
+                            >
                               Download PDF
                             </StatusButton>
                           </td>

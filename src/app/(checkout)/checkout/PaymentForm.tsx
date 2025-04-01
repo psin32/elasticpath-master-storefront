@@ -17,9 +17,10 @@ import { getSavedCard } from "../../(store)/account/subscriptions/[subscriptionI
 
 type PaymentFormProps = {
   stripeCustomerId?: string | undefined;
+  quoteId?: string;
 };
 
-export function PaymentForm({ stripeCustomerId }: PaymentFormProps) {
+export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
   const [openTab, setOpenTab] = useState(1);
   const { data: session, status } = useSession();
   const { control, setValue } = useFormContext<CheckoutFormSchemaType>();
@@ -201,6 +202,21 @@ export function PaymentForm({ stripeCustomerId }: PaymentFormProps) {
           control={control}
           name="cardId"
           defaultValue={selectedCard}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input {...field} sizeKind="mediumUntilSm" type="hidden" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+      {quoteId && (
+        <FormField
+          control={control}
+          name="quoteId"
+          defaultValue={quoteId}
           render={({ field }) => (
             <FormItem>
               <FormControl>

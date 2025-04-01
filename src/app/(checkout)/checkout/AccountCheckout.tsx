@@ -21,11 +21,13 @@ builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 type AccountCheckoutProps = {
   stripeCustomerId?: string | undefined;
   cart?: any;
+  quoteId?: string;
 };
 
 export async function AccountCheckout({
   cart,
   stripeCustomerId,
+  quoteId,
 }: AccountCheckoutProps) {
   const { enableBuilderIO, enabledStoryblok } = cmsConfig;
   const cookieStore = cookies();
@@ -91,7 +93,10 @@ export async function AccountCheckout({
                 <ShippingSelector />
               </div>
               <DeliveryForm />
-              <PaymentForm stripeCustomerId={stripeCustomerId} />
+              <PaymentForm
+                stripeCustomerId={stripeCustomerId}
+                quoteId={quoteId}
+              />
             </>
           )}
           {enableExpressCheckout && (

@@ -15,6 +15,7 @@ export type UseCheckoutReq = {
   shippingAddress?: Partial<Address>;
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
+  quoteId?: string;
 };
 
 export const useCheckout = (
@@ -29,6 +30,7 @@ export const useCheckout = (
       shippingAddress,
       additionalHeaders,
       purchaseOrderNumber,
+      quoteId,
     }: UseCheckoutReq) => {
       const body: any = {
         data: {
@@ -39,6 +41,9 @@ export const useCheckout = (
       };
       if (purchaseOrderNumber) {
         body.data.purchase_order_number = purchaseOrderNumber;
+      }
+      if (quoteId) {
+        body.data.quote_ref = quoteId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
@@ -61,6 +66,7 @@ export type UseCheckoutWithAccountReq = {
   shippingAddress?: Partial<Address>;
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
+  quoteId?: string;
 };
 
 export const useCheckoutWithAccount = (
@@ -79,6 +85,7 @@ export const useCheckoutWithAccount = (
       shippingAddress,
       additionalHeaders,
       purchaseOrderNumber,
+      quoteId,
     }: UseCheckoutWithAccountReq) => {
       const body: any = {
         data: {
@@ -89,6 +96,9 @@ export const useCheckoutWithAccount = (
       };
       if (purchaseOrderNumber) {
         body.data.purchase_order_number = purchaseOrderNumber;
+      }
+      if (quoteId) {
+        body.data.quote_ref = quoteId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,

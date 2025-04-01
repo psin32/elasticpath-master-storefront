@@ -59,7 +59,7 @@ export default async function Page({
         {!accountMemberCookie ? (
           <GuestCheckout cart={cart} />
         ) : (
-          <AccountCheckout cart={cart} />
+          <AccountCheckout cart={cart} quoteId={params.quoteId} />
         )}
       </CheckoutViews>
     </CheckoutProvider>
