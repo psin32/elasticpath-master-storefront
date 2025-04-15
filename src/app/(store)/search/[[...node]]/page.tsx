@@ -247,7 +247,7 @@ async function getHierarchyProducts(
   offset?: string,
 ): Promise<any> {
   return await client.request.send(
-    `catalog/hierarchies/${hierarchyId}/products?include=main_images&page[limit]=${processLimit(limit)}&page[offset]=${processOffset(offset)}`,
+    `catalog/hierarchies/${hierarchyId}/products?include=main_image&page[limit]=${processLimit(limit)}&page[offset]=${processOffset(offset)}`,
     "GET",
     undefined,
     undefined,

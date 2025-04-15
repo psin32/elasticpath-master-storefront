@@ -27,6 +27,7 @@ import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
 import ProductRelationship from "../related-products/ProductRelationship";
+import { updateCustomAttributesForBundlesInCart } from "./actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface IBundleProductDetail {
@@ -64,7 +65,7 @@ function BundleProductContainer({
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { configuredProduct, selectedOptions, components } = useBundle();
-  const { useScopedAddBundleProductToCart } = useCart();
+  const { state, useScopedAddBundleProductToCart } = useCart();
 
   const { mutate, isPending } = useScopedAddBundleProductToCart();
   const { response, main_image, otherImages } = configuredProduct as any;
@@ -98,9 +99,15 @@ function BundleProductContainer({
             data.custom_inputs.additional_information.push(info);
           }
         });
+      const selectedOptions = formSelectedOptionsToData(values.selectedOptions);
+      state?.id &&
+        (await updateCustomAttributesForBundlesInCart(
+          state?.id,
+          selectedOptions,
+        ));
       mutate({
         productId: configuredProduct.response.id,
-        selectedOptions: formSelectedOptionsToData(values.selectedOptions),
+        selectedOptions,
         quantity: 1,
         data,
       });
