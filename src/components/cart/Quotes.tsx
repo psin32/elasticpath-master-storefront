@@ -296,15 +296,22 @@ export function Quotes({ account }: QuotesProps) {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            <StatusButton
-                              variant="secondary"
-                              className="text-xs"
-                              onClick={() =>
-                                downloadPDF(quote.id, quote.quote_ref)
-                              }
-                            >
-                              Download
-                            </StatusButton>
+                            <div className="flex space-x-2">
+                              <button
+                                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-2 px-4 rounded"
+                                onClick={() =>
+                                  downloadPDF(quote.id, quote.quote_ref)
+                                }
+                              >
+                                Download PDF
+                              </button>
+                              <Link
+                                href="/checkout"
+                                className="text-xs bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded inline-block"
+                              >
+                                Checkout
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       ))}
