@@ -12,6 +12,8 @@ import {
   formatIsoDateString,
   formatIsoTimeString,
 } from "../../../../lib/format-iso-date-string";
+import { getMultipleContractsByIds } from "../../../(checkout)/create-quote/contracts-service";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export default function QuotesPage() {
   const { status } = useSession();
@@ -20,6 +22,7 @@ export default function QuotesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchEmail, setSearchEmail] = useState<string>("");
+  const [contractCache, setContractCache] = useState<Record<string, any>>({});
 
   if (status == "unauthenticated") {
     router.push("/admin");
@@ -31,6 +34,32 @@ export default function QuotesPage() {
       try {
         const response = await getAllQuotes();
         setQuotes(response.data);
+
+        // Load contract information for all quotes
+        const contractsToFetch: string[] = response.data
+          .filter((quote: any) => quote.contract_term_id)
+          .map((quote: any) => quote.contract_term_id);
+
+        // Create a unique set of contract IDs to fetch
+        const uniqueContractIds: string[] = Array.from(
+          new Set(contractsToFetch),
+        );
+
+        if (uniqueContractIds.length > 0) {
+          const contractsResponse =
+            await getMultipleContractsByIds(uniqueContractIds);
+
+          // Transform array of contracts into a lookup object
+          const contractsData: Record<string, any> = {};
+          if (contractsResponse && contractsResponse.data) {
+            contractsResponse.data.forEach((contract: any) => {
+              contractsData[contract.id] = contract;
+            });
+          }
+
+          setContractCache(contractsData);
+        }
+
         setLoading(false);
       } catch (error) {
         setError("Failed to load orders.");
@@ -52,6 +81,39 @@ export default function QuotesPage() {
     try {
       const response = await getAllQuotes(encodeURIComponent(searchEmail));
       setQuotes(response.data);
+
+      // Load contract information for filtered quotes
+      const contractsToFetch: string[] = response.data
+        .filter((quote: any) => quote.contract_term_id)
+        .map((quote: any) => quote.contract_term_id);
+
+      // Create a unique set of contract IDs to fetch
+      const uniqueContractIds: string[] = Array.from(new Set(contractsToFetch));
+
+      // Only fetch contracts not already in the cache
+      const contractsToFetchFiltered = uniqueContractIds.filter(
+        (id) => !contractCache[id],
+      );
+
+      if (contractsToFetchFiltered.length > 0) {
+        const contractsResponse = await getMultipleContractsByIds(
+          contractsToFetchFiltered,
+        );
+
+        // Transform array of contracts into a lookup object
+        const newContractsData: Record<string, any> = {};
+        if (contractsResponse && contractsResponse.data) {
+          contractsResponse.data.forEach((contract: any) => {
+            newContractsData[contract.id] = contract;
+          });
+        }
+
+        setContractCache((prevCache) => ({
+          ...prevCache,
+          ...newContractsData,
+        }));
+      }
+
       setLoading(false);
     } catch (error) {
       setError("No member found with the provided email.");
@@ -70,6 +132,15 @@ export default function QuotesPage() {
     } catch (error) {
       setError("Failed to reload account members.");
     }
+  };
+
+  const getContractDisplayName = (contractId: string | null | undefined) => {
+    if (!contractId) return "No Contract";
+
+    const contract = contractCache[contractId];
+    if (!contract) return "Loading...";
+
+    return contract.display_name || `Contract #${contractId.substring(0, 8)}`;
   };
 
   return (
@@ -152,6 +223,12 @@ export default function QuotesPage() {
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
+                        Contract
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                      >
                         Sales Agent Email
                       </th>
                       <th
@@ -199,6 +276,18 @@ export default function QuotesPage() {
                             style: "currency",
                             currency: quote.currency,
                           }).format((quote.total_amount || 0) / 100)}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {quote.contract_term_id ? (
+                            <div className="flex items-center space-x-1">
+                              <DocumentTextIcon className="h-4 w-4 text-gray-400" />
+                              <span>
+                                {getContractDisplayName(quote.contract_term_id)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No Contract</span>
+                          )}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {quote.sales_agent_email}

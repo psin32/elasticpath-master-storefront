@@ -149,7 +149,7 @@ export default function AccountSelector({
       contract_term_id: selectedContract?.id || null,
     };
     const response = await createNewQuote(state?.id, request);
-    console.log("createNewQuote response: ", response);
+
     if (response?.errors) {
       setError(response?.errors?.[0]?.detail);
     } else {
