@@ -18,6 +18,7 @@ import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
 import Link from "next/link";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { getAllActiveContracts } from "./contracts-service";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const metadata: Metadata = {
@@ -77,6 +78,8 @@ export default async function CheckoutPage() {
   };
   const content = await contentData();
 
+  const activeContracts = await getAllActiveContracts();
+
   return (
     accountMemberCookie && (
       <CheckoutProvider>
@@ -122,6 +125,7 @@ export default async function CheckoutPage() {
                         : 1
                     }
                     accountToken={selectedAccount.token}
+                    activeContracts={activeContracts}
                   />
                 )}
               </div>

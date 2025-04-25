@@ -15,6 +15,7 @@ import {
   HashtagIcon,
   UserCircleIcon,
   UserGroupIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -37,6 +38,7 @@ export default function AccountSelector({
   accountMembers,
   accountsCount,
   accountToken,
+  activeContracts,
 }: {
   accountId: string;
   accountName: string;
@@ -44,6 +46,13 @@ export default function AccountSelector({
   accountMembers: any;
   accountsCount: number;
   accountToken: string;
+  activeContracts: {
+    data: {
+      display_name?: string;
+      start_date: string;
+      end_date?: string;
+    }[];
+  };
 }) {
   const [selectedAccountMember, setSelectedAccountMember] =
     useState(accountMemberId);
@@ -59,6 +68,7 @@ export default function AccountSelector({
   const [loadingCreateQuote, setLoadingCreateQuote] = useState(false);
   const [error, setError] = useState<string>("");
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
+  const [selectedContract, setSelectedContract] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -66,6 +76,13 @@ export default function AccountSelector({
     };
     init();
   }, [accountId]);
+
+  useEffect(() => {
+    // Initialize with first contract if available
+    if (activeContracts?.data?.length > 0 && !selectedContract) {
+      setSelectedContract(activeContracts.data[0]);
+    }
+  }, [activeContracts, selectedContract]);
 
   const fetchAddresses = async (accountId: string, addressId?: string) => {
     try {
@@ -128,6 +145,8 @@ export default function AccountSelector({
       total_items: state?.items?.length,
       total_amount: state?.meta?.display_price?.with_tax.amount,
       currency: state?.meta?.display_price?.with_tax.currency,
+      contract_id: selectedContract?.id || null,
+      contract_display_name: selectedContract?.display_name || null,
     };
     const response = await createNewQuote(state?.id, request);
     if (response?.errors) {
@@ -154,6 +173,58 @@ export default function AccountSelector({
 
   return (
     <>
+      <div className="mb-8">
+        {activeContracts.data && activeContracts.data.length > 0 ? (
+          <div className="space-y-4">
+            <div className="font-bold text-xl">Select Contract</div>
+            <RadioGroup
+              value={selectedContract}
+              onChange={setSelectedContract}
+              className="grid grid-cols-3 gap-4 text-gray-600"
+            >
+              {activeContracts.data.map((contract, index) => (
+                <RadioGroup.Option key={index} value={contract}>
+                  {({ checked }) => (
+                    <div
+                      className={`p-4 flex items-center justify-between cursor-pointer border rounded-lg shadow-sm transition hover:shadow-md min-h-28 ${
+                        checked
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <DocumentTextIcon className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                        <div>
+                          <div className="text-md font-medium">
+                            {contract.display_name || `Contract #${index + 1}`}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            Start:{" "}
+                            {new Date(contract.start_date).toLocaleDateString()}
+                          </div>
+                          {contract.end_date && (
+                            <div className="text-sm text-gray-500">
+                              End:{" "}
+                              {new Date(contract.end_date).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {checked && (
+                        <CheckIcon className="w-6 text-brand-primary" />
+                      )}
+                    </div>
+                  )}
+                </RadioGroup.Option>
+              ))}
+            </RadioGroup>
+          </div>
+        ) : (
+          <div className="text-gray-500 italic">
+            No active contracts available
+          </div>
+        )}
+      </div>
       {!quoteStarted && (
         <div className="space-y-6 w-full">
           <div className="mb-4 font-bold text-xl">Select Account Member</div>
@@ -287,9 +358,20 @@ export default function AccountSelector({
               </div>
               {quoteNumber && (
                 <div className="w-full mt-8 flex justify-end">
-                  <StatusButton onClick={handleCreateQuote} className="text-sm">
+                  <StatusButton
+                    onClick={handleCreateQuote}
+                    className="text-sm"
+                    disabled={
+                      activeContracts.data?.length > 0 && !selectedContract
+                    }
+                  >
                     Start Quote Process
                   </StatusButton>
+                  {activeContracts.data?.length > 0 && !selectedContract && (
+                    <p className="text-red-500 text-sm mt-2">
+                      Please select a contract to continue
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -351,6 +433,27 @@ export default function AccountSelector({
                 </dt>
                 <dd className="text-sm  text-gray-500 ml-4">{accountName}</dd>
               </div>
+              {selectedContract && (
+                <div className="flex mt-4">
+                  <dt className="">
+                    <DocumentTextIcon
+                      className="h-6 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </dt>
+                  <dd className="text-sm text-gray-500 ml-4">
+                    {selectedContract.display_name || "Selected Contract"}
+                    <div className="text-xs text-gray-400">
+                      Valid:{" "}
+                      {new Date(
+                        selectedContract.start_date,
+                      ).toLocaleDateString()}
+                      {selectedContract.end_date &&
+                        ` - ${new Date(selectedContract.end_date).toLocaleDateString()}`}
+                    </div>
+                  </dd>
+                </div>
+              )}
               <div className="mt-10">
                 <StatusButton
                   className="text-sm rounded-lg py-2 px-4"
