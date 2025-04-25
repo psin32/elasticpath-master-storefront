@@ -20,10 +20,13 @@ import {
   HashtagIcon,
   UserCircleIcon,
   UserGroupIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import { useSession } from "next-auth/react";
 import clsx from "clsx";
 import { Separator } from "../../../../../components/separator/Separator";
+import { getEpccImplicitClient } from "../../../../../lib/epcc-implicit-client";
+import { getMultipleContractsByIds } from "../../../../(checkout)/create-quote/contracts-service";
 
 export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const { state } = useCart() as any;
@@ -42,6 +45,7 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const [selectedSalesRep, setSelectedSalesRep] = useState("");
   const [quoteStatus, setQuoteStatus] = useState("");
   const [selectedQuoteStatus, setSelectedQuoteStatus] = useState("");
+  const [contractDetails, setContractDetails] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -77,6 +81,24 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
         quote?.data?.[0].account_id,
       );
       setAccounts(accountResponse.data);
+
+      // If there's a contract_term_id, fetch contract details
+      if (quote?.data?.[0]?.contract_term_id) {
+        try {
+          const contractResponse = await getMultipleContractsByIds([
+            quote.data[0].contract_term_id,
+          ]);
+          if (
+            contractResponse &&
+            contractResponse.data &&
+            contractResponse.data.length > 0
+          ) {
+            setContractDetails(contractResponse.data[0]);
+          }
+        } catch (err) {
+          console.error("Error fetching contract details:", err);
+        }
+      }
     };
     init();
   }, [quoteId]);
@@ -165,6 +187,27 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
                   {accounts && accounts.name}
                 </dd>
               </div>
+              {contractDetails && (
+                <div className="flex mt-4">
+                  <dt className="">
+                    <DocumentTextIcon
+                      className="h-6 w-5 text-gray-400"
+                      aria-hidden="true"
+                    />
+                  </dt>
+                  <dd className="text-sm text-gray-500 ml-4">
+                    {contractDetails.display_name || "Contract"}
+                    <div className="text-xs text-gray-400">
+                      Valid:{" "}
+                      {new Date(
+                        contractDetails.start_date,
+                      ).toLocaleDateString()}
+                      {contractDetails.end_date &&
+                        ` - ${new Date(contractDetails.end_date).toLocaleDateString()}`}
+                    </div>
+                  </dd>
+                </div>
+              )}
             </dl>
             <dl className="grid grid-cols-2 gap-6 text-sm sm:grid-cols-2 md:gap-x-8 lg:col-span-6">
               {shippingGroup && (

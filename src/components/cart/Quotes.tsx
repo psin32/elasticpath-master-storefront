@@ -14,6 +14,8 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { getShippingGroups } from "../../app/(admin)/admin/quotes/actions";
+import { getMultipleContractsByIds } from "../../app/(checkout)/create-quote/contracts-service";
+import { DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export type QuotesProps = {
   account: AccountMemberCredential;
@@ -21,58 +23,153 @@ export type QuotesProps = {
 
 export function Quotes({ account }: QuotesProps) {
   const [quotes, setQuotes] = useState<any[]>([]);
+  const [contractCache, setContractCache] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    const init = async () => {
-      const response = await getAccountQuotes(account.account_id);
-      setQuotes(response.data);
-    };
-    init();
-  }, []);
+    const getData = async () => {
+      try {
+        const res = await getAccountQuotes(account.account_id);
+        if (res?.data) {
+          setQuotes(res.data);
 
-  const getCountryName = (country: string) => {
-    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-    return regionNames.of(country.toUpperCase()) || country;
+          // Load contract information for all quotes
+          const contractsToFetch: string[] = res.data
+            .filter((quote: any) => quote.contract_term_id)
+            .map((quote: any) => quote.contract_term_id);
+
+          // Create a unique set of contract IDs to fetch
+          const uniqueContractIds: string[] = Array.from(
+            new Set(contractsToFetch),
+          );
+
+          if (uniqueContractIds.length > 0) {
+            const contractsResponse =
+              await getMultipleContractsByIds(uniqueContractIds);
+
+            // Transform array of contracts into a lookup object
+            const contractsData: Record<string, any> = {};
+            if (contractsResponse && contractsResponse.data) {
+              contractsResponse.data.forEach((contract: any) => {
+                contractsData[contract.id] = contract;
+              });
+            }
+
+            setContractCache(contractsData);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    getData();
+  }, [account?.account_id]);
+
+  const downloadPDF = async (quoteId: string, quoteRef: string) => {
+    try {
+      const client = getEpccImplicitClient();
+      const quoteData = quotes.find((q) => q.id === quoteId);
+      if (!quoteData) return;
+
+      const shipping = await getShippingGroups(quoteData.cart_id);
+      const doc = new jsPDF();
+
+      // Header
+      doc.setFontSize(20);
+      doc.text(`Quote #${quoteRef}`, 105, 20, { align: "center" });
+
+      // Date
+      doc.setFontSize(10);
+      doc.text(
+        `Date: ${formatIsoDateString(quoteData.meta.timestamps.created_at)}`,
+        20,
+        30,
+      );
+
+      // Contact Info
+      doc.setFontSize(12);
+      doc.text("Contact Information", 20, 40);
+      doc.setFontSize(10);
+      doc.text(`Name: ${quoteData.first_name} ${quoteData.last_name}`, 20, 50);
+      doc.text(`Email: ${quoteData.email}`, 20, 55);
+
+      // Shipping Address
+      if (shipping?.data?.[0]?.address) {
+        const shippingAddress = shipping.data[0].address;
+        doc.setFontSize(12);
+        doc.text("Shipping Address", 20, 65);
+        doc.setFontSize(10);
+        doc.text(
+          `${shippingAddress.first_name} ${shippingAddress.last_name}`,
+          20,
+          75,
+        );
+        doc.text(`${shippingAddress.line_1}`, 20, 80);
+        if (shippingAddress.line_2) {
+          doc.text(`${shippingAddress.line_2}`, 20, 85);
+        }
+        doc.text(
+          `${shippingAddress.city}, ${shippingAddress.region} ${shippingAddress.postcode}`,
+          20,
+          90,
+        );
+        doc.text(`${shippingAddress.country}`, 20, 95);
+      }
+
+      // Contract information if available
+      if (
+        quoteData.contract_term_id &&
+        contractCache[quoteData.contract_term_id]
+      ) {
+        const contract = contractCache[quoteData.contract_term_id];
+        doc.setFontSize(12);
+        doc.text("Contract Information", 20, 105);
+        doc.setFontSize(10);
+        doc.text(`Contract: ${contract.display_name || "No name"}`, 20, 115);
+        doc.text(
+          `Start Date: ${new Date(contract.start_date).toLocaleDateString()}`,
+          20,
+          120,
+        );
+        if (contract.end_date) {
+          doc.text(
+            `End Date: ${new Date(contract.end_date).toLocaleDateString()}`,
+            20,
+            125,
+          );
+        }
+      }
+
+      // Quote Details
+      doc.setFontSize(12);
+      doc.text("Quote Summary", 20, 135);
+
+      autoTable(doc, {
+        startY: 140,
+        head: [["Items", "Total"]],
+        body: [
+          [
+            quoteData.total_items.toString(),
+            new Intl.NumberFormat("en", {
+              style: "currency",
+              currency: quoteData.currency,
+            }).format((quoteData.total_amount || 0) / 100),
+          ],
+        ],
+      });
+
+      doc.save(`quote-${quoteRef}.pdf`);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const generatePDF = async (quote: any) => {
-    const client = getEpccImplicitClient();
-    const cart = await client.Cart(quote.cart_id).With("items").Get();
-    const shipping = await getShippingGroups(quote.cart_id);
+  const getContractDisplayName = (contractId: string | null | undefined) => {
+    if (!contractId) return "No Contract";
 
-    if (!quote || !cart) return;
+    const contract = contractCache[contractId];
+    if (!contract) return "Loading...";
 
-    const doc = new jsPDF();
-    doc.setFont("helvetica");
-    doc.setFontSize(9);
-    doc.text("Quote Details", 10, 10);
-    doc.text(`Name: ${quote.first_name} ${quote.last_name}`, 10, 15);
-    doc.text(`Address:`, 10, 20);
-    doc.text(shipping?.data?.[0].address?.line_1 + ",", 15, 25);
-    doc.text(shipping?.data?.[0].address?.city + ",", 15, 30);
-    doc.text(shipping?.data?.[0].address?.postcode + ",", 15, 35);
-    doc.text(getCountryName(shipping?.data?.[0].address?.country), 15, 40);
-    doc.text(`Quote ID: ${quote.quote_ref}`, 10, 50);
-    doc.setFontSize(15);
-    doc.text(
-      `Total Amount: ${cart.data.meta?.display_price?.with_tax?.formatted}`,
-      10,
-      60,
-    );
-
-    const tableData = cart?.included?.items.map((item: any) => [
-      item.name,
-      item.quantity.toString(),
-      `${item?.meta?.display_price?.with_tax?.value?.formatted}`,
-    ]);
-
-    autoTable(doc, {
-      head: [["Product", "Quantity", "Total"]],
-      body: tableData,
-      startY: 70,
-    });
-
-    doc.save(`Quote_${quote.quote_ref}.pdf`);
+    return contract.display_name || `Contract #${contractId.substring(0, 8)}`;
   };
 
   return (
@@ -116,13 +213,13 @@ export function Quotes({ account }: QuotesProps) {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
-                          Total
+                          Contract
                         </th>
                         <th
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
-                          Sales Agent Email
+                          Total
                         </th>
                         <th
                           scope="col"
@@ -133,11 +230,9 @@ export function Quotes({ account }: QuotesProps) {
                         <th
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        ></th>
-                        <th
-                          scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                        ></th>
+                        >
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
@@ -168,13 +263,24 @@ export function Quotes({ account }: QuotesProps) {
                             {quote.total_items}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {quote.contract_term_id ? (
+                              <div className="flex items-center space-x-1">
+                                <DocumentTextIcon className="h-4 w-4 text-gray-400" />
+                                <span>
+                                  {getContractDisplayName(
+                                    quote.contract_term_id,
+                                  )}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">No Contract</span>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {new Intl.NumberFormat("en", {
                               style: "currency",
                               currency: quote.currency,
                             }).format((quote.total_amount || 0) / 100)}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {quote.sales_agent_email}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
@@ -190,29 +296,14 @@ export function Quotes({ account }: QuotesProps) {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {quote.status === "Approved" && (
-                              <Link href={`/quote-checkout/${quote.quote_ref}`}>
-                                <StatusButton className="text-sm rounded-lg">
-                                  Checkout
-                                </StatusButton>
-                              </Link>
-                            )}
-                            {quote.status != "Approved" && (
-                              <StatusButton
-                                className="text-sm rounded-lg"
-                                disabled
-                              >
-                                Checkout
-                              </StatusButton>
-                            )}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <StatusButton
-                              className="text-sm rounded-lg"
-                              disabled={quote.status === "Completed"}
-                              onClick={() => generatePDF(quote)}
+                              variant="secondary"
+                              className="text-xs"
+                              onClick={() =>
+                                downloadPDF(quote.id, quote.quote_ref)
+                              }
                             >
-                              Download PDF
+                              Download
                             </StatusButton>
                           </td>
                         </tr>
