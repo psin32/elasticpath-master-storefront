@@ -48,6 +48,7 @@ export default function AccountSelector({
   accountToken: string;
   activeContracts: {
     data: {
+      id: string;
       display_name?: string;
       start_date: string;
       end_date?: string;
@@ -145,10 +146,10 @@ export default function AccountSelector({
       total_items: state?.items?.length,
       total_amount: state?.meta?.display_price?.with_tax.amount,
       currency: state?.meta?.display_price?.with_tax.currency,
-      contract_id: selectedContract?.id || null,
-      contract_display_name: selectedContract?.display_name || null,
+      contract_term_id: selectedContract?.id || null,
     };
     const response = await createNewQuote(state?.id, request);
+    console.log("createNewQuote response: ", response);
     if (response?.errors) {
       setError(response?.errors?.[0]?.detail);
     } else {
@@ -526,6 +527,7 @@ export default function AccountSelector({
             loadingCreateQuote={loadingCreateQuote}
             error={error}
             accountId={accountId}
+            contractId={selectedContract?.id}
           />
           {accountsCount > 1 && (
             <AddCartCustomDiscount
