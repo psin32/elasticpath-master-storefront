@@ -190,10 +190,17 @@ export function Quotes({ account }: QuotesProps) {
                           scope="col"
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
+                          Sales Agent Email
+                        </th>
+                        <th
+                          scope="col"
+                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                        >
                           Status
                         </th>
                         <th
                           scope="col"
+                          colSpan={2}
                           className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                         >
                           Actions
@@ -246,6 +253,9 @@ export function Quotes({ account }: QuotesProps) {
                               style: "currency",
                               currency: quote.currency,
                             }).format((quote.total_amount || 0) / 100)}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {quote.sales_agent_email}
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <span
