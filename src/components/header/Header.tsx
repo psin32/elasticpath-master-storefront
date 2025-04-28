@@ -23,6 +23,7 @@ import { builderComponent } from "../../components/builder-io/BuilderComponents"
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import ContractIndicator from "../contracts/ContractIndicator";
+import { getCurrentCartContract } from "../contracts/actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 const Header = async () => {
@@ -55,6 +56,8 @@ const Header = async () => {
     }
   };
   const content = await contentData();
+
+  const contract = await getCurrentCartContract();
 
   return (
     <>
@@ -105,7 +108,7 @@ const Header = async () => {
                 );
               })}
             <AccountMenu />
-            <ContractIndicator />
+            <ContractIndicator contractId={contract.contractId} />
             <Cart />
           </div>
         </div>

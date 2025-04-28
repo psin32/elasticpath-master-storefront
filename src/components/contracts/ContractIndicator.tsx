@@ -5,8 +5,11 @@ import { getCurrentCartContract, getContractDetails } from "./actions";
 import { DocumentCheckIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 
-export default function ContractIndicator() {
-  const [contractId, setContractId] = useState<string | null>(null);
+export default function ContractIndicator({
+  contractId,
+}: {
+  contractId: string;
+}) {
   const [contractName, setContractName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,14 +18,10 @@ export default function ContractIndicator() {
     async function fetchContractInfo() {
       try {
         setLoading(true);
-        const result = await getCurrentCartContract();
-        console.log("Contract info result:", result);
 
-        if (result.success && result.contractId) {
-          setContractId(result.contractId);
-
+        if (contractId) {
           // Fetch contract details to get the name
-          const contractDetails = await getContractDetails(result.contractId);
+          const contractDetails = await getContractDetails(contractId);
           console.log("Contract details:", contractDetails);
 
           if (contractDetails.success && contractDetails.contractName) {
