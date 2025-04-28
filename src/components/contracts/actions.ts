@@ -106,8 +106,6 @@ export async function getCurrentCartContract() {
 
     const parsedCredentials = JSON.parse(credentials);
 
-    console.log("credentials", parsedCredentials);
-
     const response = await fetch(
       `https://${client.config.host}/v2/carts/${cartId}`,
       {
