@@ -527,7 +527,6 @@ export default function AccountSelector({
             loadingCreateQuote={loadingCreateQuote}
             error={error}
             accountId={accountId}
-            contractId={selectedContract?.id}
           />
           {accountsCount > 1 && (
             <AddCartCustomDiscount

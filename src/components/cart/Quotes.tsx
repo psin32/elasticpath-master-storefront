@@ -64,103 +64,68 @@ export function Quotes({ account }: QuotesProps) {
     getData();
   }, [account?.account_id]);
 
-  const downloadPDF = async (quoteId: string, quoteRef: string) => {
-    try {
-      const client = getEpccImplicitClient();
-      const quoteData = quotes.find((q) => q.id === quoteId);
-      if (!quoteData) return;
+  const getCountryName = (country: string) => {
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    return regionNames.of(country.toUpperCase()) || country;
+  };
 
-      const shipping = await getShippingGroups(quoteData.cart_id);
-      const doc = new jsPDF();
+  const generatePDF = async (quote: any) => {
+    const client = getEpccImplicitClient();
+    const cart = await client.Cart(quote.cart_id).With("items").Get();
+    const shipping = await getShippingGroups(quote.cart_id);
 
-      // Header
-      doc.setFontSize(20);
-      doc.text(`Quote #${quoteRef}`, 105, 20, { align: "center" });
+    if (!quote || !cart) return;
 
-      // Date
+    const doc = new jsPDF();
+    doc.setFont("helvetica");
+    doc.setFontSize(9);
+    doc.text("Quote Details", 10, 10);
+    doc.text(`Name: ${quote.first_name} ${quote.last_name}`, 10, 15);
+    doc.text(`Address:`, 10, 20);
+    doc.text(shipping?.data?.[0].address?.line_1 + ",", 15, 25);
+    doc.text(shipping?.data?.[0].address?.city + ",", 15, 30);
+    doc.text(shipping?.data?.[0].address?.postcode + ",", 15, 35);
+    doc.text(getCountryName(shipping?.data?.[0].address?.country), 15, 40);
+    doc.text(`Quote ID: ${quote.quote_ref}`, 10, 50);
+
+    // Contract information if available
+    if (quote.contract_term_id && contractCache[quote.contract_term_id]) {
+      const contract = contractCache[quote.contract_term_id];
       doc.setFontSize(10);
-      doc.text(
-        `Date: ${formatIsoDateString(quoteData.meta.timestamps.created_at)}`,
-        20,
-        30,
-      );
-
-      // Contact Info
-      doc.setFontSize(12);
-      doc.text("Contact Information", 20, 40);
-      doc.setFontSize(10);
-      doc.text(`Name: ${quoteData.first_name} ${quoteData.last_name}`, 20, 50);
-      doc.text(`Email: ${quoteData.email}`, 20, 55);
-
-      // Shipping Address
-      if (shipping?.data?.[0]?.address) {
-        const shippingAddress = shipping.data[0].address;
-        doc.setFontSize(12);
-        doc.text("Shipping Address", 20, 65);
-        doc.setFontSize(10);
+      doc.text(`Contract: ${contract.display_name || "No name"}`, 10, 55);
+      doc.text(`Contract ID: ${contract.id}`, 10, 60);
+      if (contract.end_date) {
         doc.text(
-          `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-          20,
-          75,
+          `End Date: ${new Date(contract.end_date).toLocaleDateString()}`,
+          10,
+          65,
         );
-        doc.text(`${shippingAddress.line_1}`, 20, 80);
-        if (shippingAddress.line_2) {
-          doc.text(`${shippingAddress.line_2}`, 20, 85);
-        }
-        doc.text(
-          `${shippingAddress.city}, ${shippingAddress.region} ${shippingAddress.postcode}`,
-          20,
-          90,
-        );
-        doc.text(`${shippingAddress.country}`, 20, 95);
       }
-
-      // Contract information if available
-      if (
-        quoteData.contract_term_id &&
-        contractCache[quoteData.contract_term_id]
-      ) {
-        const contract = contractCache[quoteData.contract_term_id];
-        doc.setFontSize(12);
-        doc.text("Contract Information", 20, 105);
-        doc.setFontSize(10);
-        doc.text(`Contract: ${contract.display_name || "No name"}`, 20, 115);
-        doc.text(
-          `Start Date: ${new Date(contract.start_date).toLocaleDateString()}`,
-          20,
-          120,
-        );
-        if (contract.end_date) {
-          doc.text(
-            `End Date: ${new Date(contract.end_date).toLocaleDateString()}`,
-            20,
-            125,
-          );
-        }
-      }
-
-      // Quote Details
-      doc.setFontSize(12);
-      doc.text("Quote Summary", 20, 135);
-
-      autoTable(doc, {
-        startY: 140,
-        head: [["Items", "Total"]],
-        body: [
-          [
-            quoteData.total_items.toString(),
-            new Intl.NumberFormat("en", {
-              style: "currency",
-              currency: quoteData.currency,
-            }).format((quoteData.total_amount || 0) / 100),
-          ],
-        ],
-      });
-
-      doc.save(`quote-${quoteRef}.pdf`);
-    } catch (e) {
-      console.error(e);
     }
+
+    doc.setFontSize(15);
+    doc.text(
+      `Total Amount: ${cart.data.meta?.display_price?.with_tax?.formatted}`,
+      10,
+      quote.contract_term_id && contractCache[quote.contract_term_id] ? 80 : 60,
+    );
+
+    const tableData = cart?.included?.items.map((item: any) => [
+      item.name,
+      item.quantity.toString(),
+      `${item?.meta?.display_price?.with_tax?.value?.formatted}`,
+    ]);
+
+    autoTable(doc, {
+      head: [["Product", "Quantity", "Total"]],
+      body: tableData,
+      startY:
+        quote.contract_term_id && contractCache[quote.contract_term_id]
+          ? 90
+          : 70,
+    });
+
+    doc.save(`Quote_${quote.quote_ref}.pdf`);
   };
 
   const getContractDisplayName = (contractId: string | null | undefined) => {
@@ -296,14 +261,29 @@ export function Quotes({ account }: QuotesProps) {
                             </span>
                           </td>
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {quote.status === "Approved" && (
+                              <Link href={`/quote-checkout/${quote.quote_ref}`}>
+                                <StatusButton className="text-sm rounded-lg">
+                                  Checkout
+                                </StatusButton>
+                              </Link>
+                            )}
+                            {quote.status != "Approved" && (
+                              <StatusButton
+                                className="text-sm rounded-lg"
+                                disabled
+                              >
+                                Checkout
+                              </StatusButton>
+                            )}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             <StatusButton
-                              variant="secondary"
-                              className="text-xs"
-                              onClick={() =>
-                                downloadPDF(quote.id, quote.quote_ref)
-                              }
+                              className="text-sm rounded-lg"
+                              disabled={quote.status === "Completed"}
+                              onClick={() => generatePDF(quote)}
                             >
-                              Download
+                              Download PDF
                             </StatusButton>
                           </td>
                         </tr>
