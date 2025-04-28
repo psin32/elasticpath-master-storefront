@@ -3,6 +3,7 @@
 import { getServerSideCredentialsClientWihoutAccountToken } from "../../lib/epcc-server-side-credentials-client";
 import { cookies } from "next/headers";
 import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
+import { getContractById } from "../../app/(checkout)/create-quote/contracts-service";
 
 export async function updateCartWithContract(contractId: string) {
   const cookieStore = cookies();
@@ -59,11 +60,10 @@ export async function removeContractFromCart() {
   try {
     const client = getServerSideCredentialsClientWihoutAccountToken();
 
-    // Remove contract custom attributes
+    // Instead of setting to null, just don't include the contract_term_id
     const cartRequest = {
       data: {
         custom_attributes: {
-          contract_term_id: null,
           contract_applied: {
             type: "boolean",
             value: false,
@@ -99,17 +99,34 @@ export async function getCurrentCartContract() {
 
   try {
     const client = getServerSideCredentialsClientWihoutAccountToken();
-    const response = await client.request.send(
-      `carts/${cartId}`,
-      "GET",
-      undefined,
-      undefined,
-      client,
-      false,
-      "v2",
+
+    const credentials = client.config.storage?.get(
+      `${COOKIE_PREFIX_KEY}_ep_credentials`,
     );
 
-    const customAttributes = response?.data?.custom_attributes || {};
+    const parsedCredentials = JSON.parse(credentials);
+
+    console.log("credentials", parsedCredentials);
+
+    const response = await fetch(
+      `https://${client.config.host}/v2/carts/${cartId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${parsedCredentials?.access_token}`,
+        },
+        next: {
+          revalidate: 0,
+          tags: ["active-contract"],
+        },
+      },
+    );
+
+    const data = await response.json();
+
+    const customAttributes = data?.custom_attributes || {};
+
+    console.log("customAttributes", customAttributes);
 
     return {
       success: true,
@@ -117,7 +134,26 @@ export async function getCurrentCartContract() {
       contractApplied: !!customAttributes?.contract_applied?.value,
     };
   } catch (error) {
-    console.error("Error getting cart contract:", error);
-    return { success: false, error: "Failed to get cart contract" };
+    console.error("Error getting current contract:", error);
+    return { success: false, contractId: null, error };
+  }
+}
+
+export async function getContractDetails(contractId: string) {
+  if (!contractId) {
+    return { success: false, error: "No contract ID provided" };
+  }
+
+  try {
+    const contract = await getContractById(contractId);
+    console.log("contract", contract);
+    return {
+      success: true,
+      contractName: contract.data.display_name || "Contract",
+      contractData: contract.data || null,
+    };
+  } catch (error) {
+    console.error("Error getting contract details:", error);
+    return { success: false, contractName: null, error };
   }
 }

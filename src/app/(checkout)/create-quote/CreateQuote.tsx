@@ -39,6 +39,7 @@ export default function AccountSelector({
   accountsCount,
   accountToken,
   activeContracts,
+  currentContractId,
 }: {
   accountId: string;
   accountName: string;
@@ -54,6 +55,7 @@ export default function AccountSelector({
       end_date?: string;
     }[];
   };
+  currentContractId: string | null;
 }) {
   const [selectedAccountMember, setSelectedAccountMember] =
     useState(accountMemberId);
@@ -79,11 +81,24 @@ export default function AccountSelector({
   }, [accountId]);
 
   useEffect(() => {
-    // Initialize with first contract if available
-    if (activeContracts?.data?.length > 0 && !selectedContract) {
+    // Initialize selected contract either from current cart contract or first available
+    if (currentContractId && activeContracts?.data) {
+      // Find the contract in active contracts that matches the current cart contract
+      const matchingContract = activeContracts.data.find(
+        (contract) => contract.id === currentContractId,
+      );
+
+      if (matchingContract) {
+        setSelectedContract(matchingContract);
+      } else if (activeContracts.data.length > 0 && !selectedContract) {
+        // Fallback to first contract if no match
+        setSelectedContract(activeContracts.data[0]);
+      }
+    } else if (activeContracts?.data?.length > 0 && !selectedContract) {
+      // No current contract, use first available
       setSelectedContract(activeContracts.data[0]);
     }
-  }, [activeContracts, selectedContract]);
+  }, [activeContracts, currentContractId, selectedContract]);
 
   const fetchAddresses = async (accountId: string, addressId?: string) => {
     try {
@@ -178,6 +193,24 @@ export default function AccountSelector({
         {activeContracts.data && activeContracts.data.length > 0 ? (
           <div className="space-y-4">
             <div className="font-bold text-xl">Select Contract</div>
+            {currentContractId && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center">
+                  <CheckIcon className="h-5 w-5 text-blue-600 mr-2" />
+                  <div>
+                    <p className="text-sm text-blue-800 font-medium">
+                      Contract Selected from Cart
+                    </p>
+                    <p className="text-xs text-blue-600">
+                      {selectedContract?.display_name ||
+                        (selectedContract?.id
+                          ? `Contract ID: ${selectedContract.id}`
+                          : "Unknown contract")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <RadioGroup
               value={selectedContract}
               onChange={setSelectedContract}
