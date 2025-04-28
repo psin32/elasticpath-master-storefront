@@ -9,31 +9,58 @@ import { AccountMemberCredential } from "../../app/(auth)/account-member-credent
 import { getAllActiveContracts } from "../../app/(checkout)/create-quote/contracts-service";
 import clsx from "clsx";
 import Link from "next/link";
-import { DocumentTextIcon } from "@heroicons/react/24/outline";
+import {
+  DocumentTextIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
+import {
+  updateCartWithContract,
+  removeContractFromCart,
+  getCurrentCartContract,
+} from "./actions";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { StatusButton } from "../button/StatusButton";
 
 export type ContractsProps = {
   account: AccountMemberCredential;
 };
 
 export function Contracts({ account }: ContractsProps) {
+  const router = useRouter();
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(
+    null,
+  );
+  const [contractApplied, setContractApplied] = useState<boolean>(false);
 
+  // Fetch contracts and current cart contract
   useEffect(() => {
-    const fetchContracts = async () => {
+    const fetchData = async () => {
       try {
+        // Get contracts
         const response = await getAllActiveContracts();
         if (response?.data) {
           setContracts(response.data);
         }
+
+        // Get current cart contract
+        const cartContract = await getCurrentCartContract();
+        if (cartContract.success) {
+          setSelectedContractId(cartContract.contractId);
+          setContractApplied(cartContract.contractApplied || false);
+        }
       } catch (error) {
-        console.error("Error fetching contracts:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchContracts();
+    fetchData();
   }, []);
 
   const getContractStatus = (contract: any) => {
@@ -50,11 +77,80 @@ export function Contracts({ account }: ContractsProps) {
     }
   };
 
+  const handleSelectContract = async (contractId: string) => {
+    setActionLoading(true);
+    try {
+      const result = await updateCartWithContract(contractId);
+      if (result.success) {
+        setSelectedContractId(contractId);
+        setContractApplied(true);
+        toast.success("Contract applied to cart successfully");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to apply contract");
+      }
+    } catch (error) {
+      console.error("Error selecting contract:", error);
+      toast.error("Failed to apply contract");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRemoveContract = async () => {
+    setActionLoading(true);
+    try {
+      const result = await removeContractFromCart();
+      if (result.success) {
+        setSelectedContractId(null);
+        setContractApplied(false);
+        toast.success("Contract removed from cart successfully");
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to remove contract");
+      }
+    } catch (error) {
+      console.error("Error removing contract:", error);
+      toast.error("Failed to remove contract");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row flex-1 self-stretch">
       <div className="flex justify-center self-stretch items-start gap-2 flex-only-grow">
         <div className="flex flex-col gap-10 p-5 lg:p-24 w-full">
-          <h1 className="text-4xl font-medium">Contract Terms</h1>
+          <div className="flex justify-between items-center">
+            <h1 className="text-4xl font-medium">Contract Terms</h1>
+
+            {/* Display selected contract information */}
+            {selectedContractId && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+                <div className="flex items-center mb-2">
+                  <CheckCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
+                  <span className="text-sm font-medium text-blue-800">
+                    Contract Applied to Cart
+                  </span>
+                </div>
+                <div className="text-xs text-blue-600">
+                  {(selectedContractId &&
+                    contracts.find((c) => c.id === selectedContractId)
+                      ?.display_name) ||
+                    "Contract ID: " + selectedContractId}
+                </div>
+                <StatusButton
+                  variant="secondary"
+                  className="mt-2 text-xs py-1 px-2"
+                  onClick={handleRemoveContract}
+                  disabled={actionLoading}
+                  status={actionLoading ? "loading" : "idle"}
+                >
+                  Remove Contract
+                </StatusButton>
+              </div>
+            )}
+          </div>
 
           {loading ? (
             <div className="flex justify-center">
@@ -112,15 +208,24 @@ export function Contracts({ account }: ContractsProps) {
                             scope="col"
                             className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                           >
-                            Details
+                            Actions
                           </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {contracts.map((contract) => {
                           const status = getContractStatus(contract);
+                          const isSelected = selectedContractId === contract.id;
+                          const isActive = status === "Active";
+
                           return (
-                            <tr key={contract.id} className="hover:bg-gray-200">
+                            <tr
+                              key={contract.id}
+                              className={clsx(
+                                "hover:bg-gray-200",
+                                isSelected && "bg-blue-50",
+                              )}
+                            >
                               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                 <div className="flex items-center space-x-2">
                                   <DocumentTextIcon className="h-5 w-5 text-gray-400" />
@@ -128,6 +233,9 @@ export function Contracts({ account }: ContractsProps) {
                                     {contract.display_name ||
                                       `Contract ${contract.id.substring(0, 8)}`}
                                   </span>
+                                  {isSelected && (
+                                    <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                                  )}
                                 </div>
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -168,13 +276,38 @@ export function Contracts({ account }: ContractsProps) {
                                   {status}
                                 </span>
                               </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                <Link
-                                  href={`/contracts/${contract.id}`}
-                                  className="text-blue-600 hover:text-blue-800 font-medium"
-                                >
-                                  View Details
-                                </Link>
+                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 space-y-2">
+                                <div className="flex space-x-2">
+                                  <Link
+                                    href={`/contracts/${contract.id}`}
+                                    className="text-blue-600 hover:text-blue-800 font-medium"
+                                  >
+                                    View Details
+                                  </Link>
+                                  {isActive && (
+                                    <>
+                                      {isSelected ? (
+                                        <button
+                                          onClick={() => handleRemoveContract()}
+                                          disabled={actionLoading}
+                                          className="text-red-600 hover:text-red-800 font-medium ml-2 disabled:opacity-50"
+                                        >
+                                          Remove
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() =>
+                                            handleSelectContract(contract.id)
+                                          }
+                                          disabled={actionLoading}
+                                          className="text-green-600 hover:text-green-800 font-medium ml-2 disabled:opacity-50"
+                                        >
+                                          Select Contract
+                                        </button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );
