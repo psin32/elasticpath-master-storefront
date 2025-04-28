@@ -91,20 +91,14 @@ export function Quotes({ account }: QuotesProps) {
     // Contract information if available
     if (quote.contract_term_id && contractCache[quote.contract_term_id]) {
       const contract = contractCache[quote.contract_term_id];
-      doc.setFontSize(12);
-      doc.text("Contract Information", 20, 105);
       doc.setFontSize(10);
-      doc.text(`Contract: ${contract.display_name || "No name"}`, 20, 115);
-      doc.text(
-        `Start Date: ${new Date(contract.start_date).toLocaleDateString()}`,
-        20,
-        120,
-      );
+      doc.text(`Contract: ${contract.display_name || "No name"}`, 10, 55);
+      doc.text(`Contract ID: ${contract.id}`, 10, 60);
       if (contract.end_date) {
         doc.text(
           `End Date: ${new Date(contract.end_date).toLocaleDateString()}`,
-          20,
-          125,
+          10,
+          65,
         );
       }
     }
@@ -113,7 +107,7 @@ export function Quotes({ account }: QuotesProps) {
     doc.text(
       `Total Amount: ${cart.data.meta?.display_price?.with_tax?.formatted}`,
       10,
-      60,
+      quote.contract_term_id && contractCache[quote.contract_term_id] ? 80 : 60,
     );
 
     const tableData = cart?.included?.items.map((item: any) => [
@@ -125,7 +119,10 @@ export function Quotes({ account }: QuotesProps) {
     autoTable(doc, {
       head: [["Product", "Quantity", "Total"]],
       body: tableData,
-      startY: 70,
+      startY:
+        quote.contract_term_id && contractCache[quote.contract_term_id]
+          ? 90
+          : 70,
     });
 
     doc.save(`Quote_${quote.quote_ref}.pdf`);
