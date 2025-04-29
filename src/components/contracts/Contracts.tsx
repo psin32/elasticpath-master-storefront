@@ -24,11 +24,7 @@ import { useRouter } from "next/navigation";
 import { StatusButton } from "../button/StatusButton";
 import { useQueryClient } from "@tanstack/react-query";
 
-export type ContractsProps = {
-  account: AccountMemberCredential;
-};
-
-export function Contracts({ account }: ContractsProps) {
+export function Contracts() {
   const router = useRouter();
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);

@@ -16,7 +16,7 @@ export type ContractDetailsProps = {
   account: AccountMemberCredential;
 };
 
-export function ContractDetails({ contractId, account }: ContractDetailsProps) {
+export function ContractDetails({ contractId }: ContractDetailsProps) {
   const [contract, setContract] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
