@@ -2,9 +2,7 @@
 
 import {
   CartAdditionalHeaders,
-  Product,
   ProductResponse,
-  Resource,
   ShopperCatalogResource,
 } from "@elasticpath/js-sdk";
 import { getServerSideImplicitClient } from "../lib/epcc-server-side-implicit-client";
@@ -24,8 +22,6 @@ export async function serverSideAddProductToCart(
 ) {
   const client = getServerSideImplicitClient();
 
-  console.log("props", props);
-
   const { cartId, productId, quantity, data, isSku, token, additionalHeaders } =
     props;
 
@@ -37,19 +33,17 @@ export async function serverSideAddProductToCart(
       .AddProduct(productId, quantity, data, isSku, token, additionalHeaders);
   }
 
-  const originalProduct = await client.ShopperCatalog.Products.Get({
+  const originalProduct = await client.ShopperCatalog.Products.With(
+    "main_image",
+  ).Get({
     productId,
   });
-
-  console.log("originalProduct", originalProduct);
 
   const customItem = constructCustomItem({
     resolvedDynamicPricing,
     props,
     originalProduct,
   });
-
-  console.log("customItem", customItem);
 
   return client.Cart(cartId).AddCustomItem(customItem);
 }
@@ -74,7 +68,7 @@ function constructCustomItem({
     sku: originalProduct.data.attributes.sku,
     name: originalProduct.data.attributes.name,
     custom_inputs: {
-      image: resolveCustomItemImage(originalProduct),
+      image_url: resolveCustomItemImage(originalProduct),
       originalQuantityForContract:
         resolvedDynamicPricing.originalQuantityForContract,
     },
@@ -85,7 +79,7 @@ function resolveCustomItemImage(
   originalProduct: ShopperCatalogResource<ProductResponse>,
 ) {
   // @ts-ignore
-  return originalProduct.data.image ?? null;
+  return originalProduct.included?.main_images?.[0].link.href ?? null;
 }
 
 const MOCK_DYNAMIC_PRICING_LOOKUP: Record<string, any> = {
