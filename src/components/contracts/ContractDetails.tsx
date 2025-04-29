@@ -16,6 +16,7 @@ import {
   DocumentTextIcon,
   PlusIcon,
   MinusIcon,
+  PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
 import {
@@ -504,12 +505,19 @@ export function ContractDetails({
           )}
 
           {/* Line Items section */}
-          {contract.line_items?.data.length > 0 && (
+          {contract.line_items?.data.length > 0 ? (
             <div className="mt-8">
-              <div className="mb-4">
+              <div className="mb-4 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-900">
                   Contract Line Items
                 </h3>
+                <Link
+                  href="/search"
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <PlusCircleIcon className="h-5 w-5 mr-1" />
+                  Add New License
+                </Link>
               </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -724,6 +732,27 @@ export function ContractDetails({
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-8 border border-dashed border-gray-300 rounded-lg p-8">
+              <div className="text-center">
+                <PlusCircleIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">
+                  No licenses
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  This contract doesn't have any licenses yet.
+                </p>
+                <div className="mt-6">
+                  <Link
+                    href="/search"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <PlusCircleIcon className="h-5 w-5 mr-1" />
+                    Add a New License
+                  </Link>
+                </div>
               </div>
             </div>
           )}
