@@ -1,6 +1,7 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useElasticPath } from "../../elasticpath";
 import { CartAdditionalHeaders, CartItemsResponse } from "@elasticpath/js-sdk";
+import { serverSideAddProductToCart } from "../../../services/add-to-cart";
 
 type CartAddProductReq = {
   productId: string;
@@ -25,9 +26,15 @@ export const useAddProductToCart = (
       token,
       additionalHeaders,
     }) => {
-      return client
-        .Cart(cartId)
-        .AddProduct(productId, quantity, data, isSku, token, additionalHeaders);
+      return serverSideAddProductToCart({
+        cartId,
+        productId,
+        quantity,
+        data,
+        isSku,
+        token,
+        additionalHeaders,
+      });
     },
     ...options,
   });
