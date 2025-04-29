@@ -11,12 +11,19 @@ import {
   getContractById,
 } from "../../app/(checkout)/create-quote/contracts-service";
 import Link from "next/link";
-import { ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  DocumentTextIcon,
+  PlusIcon,
+  MinusIcon,
+} from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
 import {
   ProductResponse,
   ShopperCatalogResourcePage,
 } from "@elasticpath/js-sdk";
+import { toast } from "react-toastify";
+import { useCart } from "../../react-shopper-hooks";
 
 export type ContractDetailsProps = {
   contractResponse: Awaited<ReturnType<typeof getContractById>>;
@@ -31,6 +38,94 @@ export function ContractDetails({
   productLookup,
 }: ContractDetailsProps) {
   const contract = contractResponse.data;
+  const { useScopedAddProductToCart, useScopedAddBulkProductToCart } =
+    useCart();
+  const { mutate: addToCart, isPending: isAddingToCart } =
+    useScopedAddProductToCart();
+  const { mutate: bulkAddToCart, isPending: isBulkAddingToCart } =
+    useScopedAddBulkProductToCart();
+  const [lineItemQuantities, setLineItemQuantities] = useState<
+    Record<string, number>
+  >({});
+
+  // Initialize quantities for each line item
+  useEffect(() => {
+    if (contract?.line_items?.data) {
+      const quantities: Record<string, number> = {};
+      contract.line_items.data.forEach((item: ContractLineItem) => {
+        quantities[item.product_id] = 1;
+      });
+      setLineItemQuantities(quantities);
+    }
+  }, [contract]);
+
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    setLineItemQuantities((prev) => ({
+      ...prev,
+      [productId]: newQuantity,
+    }));
+  };
+
+  const handleAddToCart = (productId: string) => {
+    const quantity = lineItemQuantities[productId] || 1;
+    const data = {
+      custom_inputs: {
+        additional_information: [],
+      },
+    };
+
+    addToCart(
+      { productId, quantity, data },
+      {
+        onError: (response: any) => {
+          if (response?.errors) {
+            toast.error(response?.errors?.[0].detail, {
+              position: "top-center",
+              autoClose: 2000,
+              hideProgressBar: false,
+            });
+          }
+        },
+      },
+    );
+  };
+
+  const handleAddAllToCart = () => {
+    if (!contract?.line_items?.data || contract.line_items.data.length === 0)
+      return;
+
+    const cartItems = contract.line_items.data.map((item: ContractLineItem) => {
+      return {
+        type: "cart_item",
+        id: item.product_id,
+        quantity: lineItemQuantities[item.product_id] || 1,
+        custom_inputs: {
+          additional_information: [],
+        },
+      };
+    });
+
+    bulkAddToCart(cartItems, {
+      onSuccess: () => {
+        toast.success("All items added to cart", {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+        });
+      },
+      onError: (response: any) => {
+        if (response?.errors) {
+          toast.error(response?.errors?.[0].detail, {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+          });
+        }
+      },
+    });
+  };
+
   const getContractStatus = (contract: any) => {
     const now = new Date();
     const startDate = new Date(contract.start_date);
@@ -274,9 +369,18 @@ export function ContractDetails({
           {/* Line Items section */}
           {contract.line_items?.data.length > 0 && (
             <div className="mt-8">
-              <h3 className="text-lg font-medium text-gray-900">
-                Contract Line Items
-              </h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Contract Line Items
+                </h3>
+                <button
+                  onClick={handleAddAllToCart}
+                  disabled={isBulkAddingToCart}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                >
+                  {isBulkAddingToCart ? "Adding..." : "Add All to Cart"}
+                </button>
+              </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -305,6 +409,12 @@ export function ContractDetails({
                       >
                         Quantity
                       </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Add to Cart
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -327,6 +437,92 @@ export function ContractDetails({
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div className="flex items-center space-x-2">
+                              <div className="flex items-start rounded-lg border border-black/10 w-32">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      item.product_id,
+                                      (lineItemQuantities[item.product_id] ||
+                                        1) - 1,
+                                    )
+                                  }
+                                  className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                                >
+                                  <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
+                                </button>
+                                <svg
+                                  width="2"
+                                  height="36"
+                                  viewBox="0 0 2 36"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M1 0V36"
+                                    stroke="black"
+                                    strokeOpacity="0.1"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+
+                                <input
+                                  type="number"
+                                  placeholder="Qty"
+                                  className="border-none focus-visible:ring-0 focus-visible:border-black w-14 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  value={
+                                    lineItemQuantities[item.product_id] || 1
+                                  }
+                                  onChange={(e) =>
+                                    handleQuantityChange(
+                                      item.product_id,
+                                      parseInt(e.target.value) || 1,
+                                    )
+                                  }
+                                  min="1"
+                                />
+
+                                <svg
+                                  width="2"
+                                  height="36"
+                                  viewBox="0 0 2 36"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M1 0V36"
+                                    stroke="black"
+                                    strokeOpacity="0.1"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      item.product_id,
+                                      (lineItemQuantities[item.product_id] ||
+                                        1) + 1,
+                                    )
+                                  }
+                                  className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                                >
+                                  <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
+                                </button>
+                              </div>
+                              <button
+                                onClick={() => handleAddToCart(item.product_id)}
+                                disabled={isAddingToCart}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                              >
+                                Add to Cart
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ),
