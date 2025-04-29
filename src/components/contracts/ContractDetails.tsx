@@ -16,10 +16,20 @@ export type ContractDetailsProps = {
   account: AccountMemberCredential;
 };
 
+// Define the line item type
+type LineItem = {
+  product_id: string;
+  product_slug: string;
+  quantity: number;
+  name?: string;
+  price?: number;
+};
+
 export function ContractDetails({ contractId }: ContractDetailsProps) {
   const [contract, setContract] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
 
   useEffect(() => {
     const fetchContract = async () => {
@@ -27,6 +37,13 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
         const response = await getContractById(contractId);
         if (response?.data) {
           setContract(response.data);
+          // Check if contract has line items and set them
+          if (
+            response.data.line_items &&
+            Array.isArray(response.data.line_items)
+          ) {
+            setLineItems(response.data.line_items);
+          }
         } else {
           setError("Contract not found");
         }
@@ -119,18 +136,42 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
       doc.text(descriptionLines, 25, 140);
     }
 
-    // Contract Terms section if available
-    if (contract.terms) {
+    // Add line items section to PDF if available
+    if (lineItems.length > 0) {
       const yPos = contract.description
         ? 160 + doc.splitTextToSize(contract.description, 170).length * 6
         : 130;
 
       doc.setFontSize(12);
-      doc.text("Contract Terms and Conditions", 20, yPos);
+      doc.text("Contract Line Items", 20, yPos);
+      doc.setFontSize(10);
+
+      let itemYPos = yPos + 10;
+      lineItems.forEach((item, index) => {
+        doc.text(`${index + 1}. Product ID: ${item.product_id}`, 25, itemYPos);
+        itemYPos += 6;
+        doc.text(`   Product: ${item.product_slug}`, 25, itemYPos);
+        itemYPos += 6;
+        doc.text(`   Quantity: ${item.quantity}`, 25, itemYPos);
+        itemYPos += 10;
+      });
+    }
+
+    // Contract Terms section if available
+    if (contract.terms) {
+      const yPosAfterItems =
+        lineItems.length > 0
+          ? 150 + lineItems.length * 22
+          : contract.description
+            ? 160 + doc.splitTextToSize(contract.description, 170).length * 6
+            : 130;
+
+      doc.setFontSize(12);
+      doc.text("Contract Terms and Conditions", 20, yPosAfterItems);
       doc.setFontSize(10);
 
       const termsLines = doc.splitTextToSize(contract.terms, 170);
-      doc.text(termsLines, 25, yPos + 10);
+      doc.text(termsLines, 25, yPosAfterItems + 10);
     }
 
     // Footer
@@ -257,6 +298,59 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
               <h3 className="text-lg font-medium text-gray-900">Description</h3>
               <div className="mt-2 prose prose-sm text-gray-700">
                 <p>{contract.description}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Line Items section */}
+          {lineItems.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-gray-900">
+                Contract Line Items
+              </h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Product ID
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Product
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Quantity
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {lineItems.map((item, index) => (
+                      <tr
+                        key={index}
+                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {item.product_id}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {item.name || item.product_slug}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {item.quantity}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
