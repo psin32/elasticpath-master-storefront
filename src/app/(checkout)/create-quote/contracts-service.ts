@@ -19,7 +19,7 @@ export async function getAllActiveContracts() {
     accountId = selectedAccount.account_id;
   }
   return await client.request.send(
-    `/extensions/contract-terms?filter=eq(account_id,${accountId})`,
+    `/extensions/contract-terms?filter=eq(elastic_path_account_id,${accountId})`,
     "GET",
     undefined,
     undefined,
@@ -30,6 +30,7 @@ export async function getAllActiveContracts() {
 }
 
 export async function getContractDisplayData(contractId: string) {
+  if (!contractId) return null;
   const contract = await getContractById(contractId);
   return {
     id: contract.data.id,
@@ -55,7 +56,7 @@ export async function getContractById(contractId: string) {
   }
 
   const response = await fetch(
-    `https://${client.config.host}/v2/extensions/contract-terms/${contractId}?filter=eq(account_id,${accountId})`,
+    `https://${client.config.host}/v2/extensions/contract-terms/${contractId}?filter=eq(elastic_path_account_id,${accountId})`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -97,9 +98,22 @@ export async function getMultipleContractsByIds(contractIds: string[]) {
   // Format IDs string for the filter
   const idsParam = contractIds.join(",");
 
+  // Get the account ID for additional filtering if needed
+  const accountMemberCookie = retrieveAccountMemberCredentials(
+    cookies(),
+    ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  );
+  let accountIdFilter = "";
+  if (accountMemberCookie) {
+    const selectedAccount = getSelectedAccount(accountMemberCookie);
+    const accountId = selectedAccount.account_id;
+    // Add account ID filter to ensure security
+    accountIdFilter = `:eq(elastic_path_account_id,${accountId})`;
+  }
+
   return await client.request
     .send(
-      `/extensions/contract-terms?filter=in(id,${idsParam})`,
+      `/extensions/contract-terms?filter=in(id,${idsParam})${accountIdFilter}`,
       "GET",
       undefined,
       undefined,

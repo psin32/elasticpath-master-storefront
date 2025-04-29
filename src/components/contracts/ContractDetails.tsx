@@ -25,39 +25,129 @@ import {
 import { toast } from "react-toastify";
 import { useCart } from "../../react-shopper-hooks";
 
+// Import the server action for price calculation
+import { calculateContractItemPrice } from "../../services/contract-price-calculator";
+
 export type ContractDetailsProps = {
   contractResponse: Awaited<ReturnType<typeof getContractById>>;
   account: AccountMemberCredential;
   productLookup: Record<string, ProductResponse>;
 };
 
-// Define the line item type
-
 export function ContractDetails({
   contractResponse,
   productLookup,
 }: ContractDetailsProps) {
   const contract = contractResponse.data;
-  const { useScopedAddProductToCart, useScopedAddBulkProductToCart } =
-    useCart();
+  const { useScopedAddProductToCart } = useCart();
   const { mutate: addToCart, isPending: isAddingToCart } =
     useScopedAddProductToCart();
-  const { mutate: bulkAddToCart, isPending: isBulkAddingToCart } =
-    useScopedAddBulkProductToCart();
   const [lineItemQuantities, setLineItemQuantities] = useState<
     Record<string, number>
+  >({});
+  const [pricesByProductId, setPricesByProductId] = useState<
+    Record<
+      string,
+      {
+        amount: number;
+        currency: string;
+        includes_tax?: boolean;
+        breakdown?: any;
+      }
+    >
+  >({});
+  const [isLoadingPrices, setIsLoadingPrices] = useState<
+    Record<string, boolean>
   >({});
 
   // Initialize quantities for each line item
   useEffect(() => {
     if (contract?.line_items?.data) {
       const quantities: Record<string, number> = {};
+      const loadingState: Record<string, boolean> = {};
       contract.line_items.data.forEach((item: ContractLineItem) => {
         quantities[item.product_id] = 1;
+        loadingState[item.product_id] = true; // Start with loading state
       });
       setLineItemQuantities(quantities);
+      setIsLoadingPrices(loadingState);
+
+      // Initialize price data by calling the server action for each product
+      const fetchInitialPrices = async () => {
+        const initialPrices: Record<
+          string,
+          {
+            amount: number;
+            currency: string;
+            includes_tax?: boolean;
+            breakdown?: any;
+          }
+        > = {};
+
+        // Fetch prices for all items in parallel
+        await Promise.all(
+          contract.line_items.data.map(async (item: ContractLineItem) => {
+            try {
+              const response = await calculateContractItemPrice(
+                item.product_id,
+                1,
+              );
+              if (response.success && response.data) {
+                if (response.data.price) {
+                  initialPrices[item.product_id] = {
+                    ...response.data.price,
+                    breakdown: response.data.breakdown || undefined,
+                  };
+                }
+              } else {
+                // Fallback to product data if dynamic pricing fails
+                const product = productLookup[item.product_id];
+                if (product?.meta?.display_price?.with_tax) {
+                  const price = product.meta.display_price.with_tax;
+                  initialPrices[item.product_id] = {
+                    amount: price.amount || 0,
+                    currency: price.currency || "USD",
+                  };
+                } else {
+                  initialPrices[item.product_id] = {
+                    amount: 0,
+                    currency: "USD",
+                  };
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching price for ${item.product_id}:`,
+                error,
+              );
+              // Fallback to product data if available or set default
+              const product = productLookup[item.product_id];
+              if (product?.meta?.display_price?.with_tax) {
+                const price = product.meta.display_price.with_tax;
+                initialPrices[item.product_id] = {
+                  amount: price.amount || 0,
+                  currency: price.currency || "USD",
+                };
+              } else {
+                initialPrices[item.product_id] = { amount: 0, currency: "USD" };
+              }
+            }
+          }),
+        );
+
+        setPricesByProductId(initialPrices);
+
+        // Update loading states to false after all prices are fetched
+        const updatedLoadingState: Record<string, boolean> = {};
+        contract.line_items.data.forEach((item: ContractLineItem) => {
+          updatedLoadingState[item.product_id] = false;
+        });
+        setIsLoadingPrices(updatedLoadingState);
+      };
+
+      fetchInitialPrices();
     }
-  }, [contract]);
+  }, [contract, productLookup]);
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -65,6 +155,80 @@ export function ContractDetails({
       ...prev,
       [productId]: newQuantity,
     }));
+
+    // Update loading state while we fetch new price
+    setIsLoadingPrices((prev) => ({
+      ...prev,
+      [productId]: true,
+    }));
+
+    // Call the server action for price calculation
+    const fetchUpdatedPrice = async () => {
+      try {
+        const response = await calculateContractItemPrice(
+          productId,
+          newQuantity,
+        );
+
+        if (response.success && response.data) {
+          const priceData = response.data.price;
+          const breakdownData = response.data.breakdown;
+
+          if (priceData) {
+            setPricesByProductId((prev) => ({
+              ...prev,
+              [productId]: {
+                ...priceData,
+                breakdown: breakdownData || undefined,
+              },
+            }));
+          } else {
+            // If price data is missing, fall back to scaling
+            scaleBasePriceByQuantity(productId, newQuantity);
+          }
+        } else {
+          // If dynamic pricing fails, scale the current price by quantity
+          scaleBasePriceByQuantity(productId, newQuantity);
+        }
+      } catch (error) {
+        console.error(`Error calculating price for ${productId}:`, error);
+        toast.error("Could not calculate updated price", {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+        });
+        // Attempt to scale the price as a fallback
+        scaleBasePriceByQuantity(productId, newQuantity);
+      } finally {
+        // Set loading state back to false
+        setIsLoadingPrices((prev) => ({
+          ...prev,
+          [productId]: false,
+        }));
+      }
+    };
+
+    fetchUpdatedPrice();
+  };
+
+  // Helper function to scale the base price by quantity (fallback method)
+  const scaleBasePriceByQuantity = (productId: string, newQuantity: number) => {
+    setPricesByProductId((prev) => {
+      const basePrice = prev[productId]?.amount || 0;
+      return {
+        ...prev,
+        [productId]: {
+          ...prev[productId],
+          amount: basePrice * newQuantity,
+          breakdown: {
+            ...prev[productId]?.breakdown,
+            quantity: newQuantity,
+            totalBeforeDiscount: basePrice * newQuantity,
+            totalAfterDiscount: basePrice * newQuantity,
+          },
+        },
+      };
+    });
   };
 
   const handleAddToCart = (productId: string) => {
@@ -91,39 +255,12 @@ export function ContractDetails({
     );
   };
 
-  const handleAddAllToCart = () => {
-    if (!contract?.line_items?.data || contract.line_items.data.length === 0)
-      return;
-
-    const cartItems = contract.line_items.data.map((item: ContractLineItem) => {
-      return {
-        type: "cart_item",
-        id: item.product_id,
-        quantity: lineItemQuantities[item.product_id] || 1,
-        custom_inputs: {
-          additional_information: [],
-        },
-      };
-    });
-
-    bulkAddToCart(cartItems, {
-      onSuccess: () => {
-        toast.success("All items added to cart", {
-          position: "top-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-        });
-      },
-      onError: (response: any) => {
-        if (response?.errors) {
-          toast.error(response?.errors?.[0].detail, {
-            position: "top-center",
-            autoClose: 2000,
-            hideProgressBar: false,
-          });
-        }
-      },
-    });
+  // Helper function to format price
+  const formatPrice = (amount: number, currency: string = "USD") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount / 100); // Assuming the amount is in cents
   };
 
   const getContractStatus = (contract: any) => {
@@ -369,17 +506,10 @@ export function ContractDetails({
           {/* Line Items section */}
           {contract.line_items?.data.length > 0 && (
             <div className="mt-8">
-              <div className="flex justify-between items-center mb-4">
+              <div className="mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
                   Contract Line Items
                 </h3>
-                <button
-                  onClick={handleAddAllToCart}
-                  disabled={isBulkAddingToCart}
-                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-                >
-                  {isBulkAddingToCart ? "Adding..." : "Add All to Cart"}
-                </button>
               </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -407,7 +537,13 @@ export function ContractDetails({
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Quantity
+                        Contract Quantity
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Price
                       </th>
                       <th
                         scope="col"
@@ -437,6 +573,65 @@ export function ContractDetails({
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {isLoadingPrices[item.product_id] ? (
+                              <div className="flex items-center">
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-2 text-blue-500"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Calculating...
+                              </div>
+                            ) : (
+                              <div>
+                                {pricesByProductId[item.product_id] ? (
+                                  <div>
+                                    <div className="font-medium">
+                                      {formatPrice(
+                                        pricesByProductId[item.product_id]
+                                          .amount,
+                                        pricesByProductId[item.product_id]
+                                          .currency,
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      for{" "}
+                                      {lineItemQuantities[item.product_id] || 1}{" "}
+                                      units
+                                    </div>
+                                    {pricesByProductId[item.product_id]
+                                      .breakdown?.discount > 0 && (
+                                      <div className="text-xs text-green-600 mt-1">
+                                        {
+                                          pricesByProductId[item.product_id]
+                                            .breakdown.discount
+                                        }
+                                        % volume discount applied
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  "N/A"
+                                )}
+                              </div>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <div className="flex items-center space-x-2">

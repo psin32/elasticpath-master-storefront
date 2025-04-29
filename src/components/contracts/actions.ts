@@ -170,7 +170,6 @@ export async function getContractDetails(contractId: string) {
 
   try {
     const contract = await getContractById(contractId);
-    console.log("contract", contract);
     return {
       success: true,
       contractName: contract.data.display_name || "Contract",

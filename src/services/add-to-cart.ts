@@ -92,7 +92,7 @@ const MOCK_DYNAMIC_PRICING_LOOKUP: Record<string, any> = {
   },
 };
 
-async function getDynamicPricing(productId: string) {
+export async function getDynamicPricing(productId: string) {
   const result = MOCK_DYNAMIC_PRICING_LOOKUP[productId];
 
   if (result) {
