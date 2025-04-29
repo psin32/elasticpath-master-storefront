@@ -6,58 +6,31 @@ import {
   formatIsoTimeString,
 } from "../../lib/format-iso-date-string";
 import { AccountMemberCredential } from "../../app/(auth)/account-member-credentials-schema";
-import { getContractById } from "../../app/(checkout)/create-quote/contracts-service";
+import {
+  ContractLineItem,
+  getContractById,
+} from "../../app/(checkout)/create-quote/contracts-service";
 import Link from "next/link";
 import { ArrowLeftIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
+import {
+  ProductResponse,
+  ShopperCatalogResourcePage,
+} from "@elasticpath/js-sdk";
 
 export type ContractDetailsProps = {
-  contractId: string;
+  contractResponse: Awaited<ReturnType<typeof getContractById>>;
   account: AccountMemberCredential;
+  productLookup: Record<string, ProductResponse>;
 };
 
 // Define the line item type
-type LineItem = {
-  product_id: string;
-  product_slug: string;
-  quantity: number;
-  name?: string;
-  price?: number;
-};
 
-export function ContractDetails({ contractId }: ContractDetailsProps) {
-  const [contract, setContract] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lineItems, setLineItems] = useState<LineItem[]>([]);
-
-  useEffect(() => {
-    const fetchContract = async () => {
-      try {
-        const response = await getContractById(contractId);
-        if (response?.data) {
-          setContract(response.data);
-          // Check if contract has line items and set them
-          if (
-            response.data.line_items &&
-            Array.isArray(response.data.line_items)
-          ) {
-            setLineItems(response.data.line_items);
-          }
-        } else {
-          setError("Contract not found");
-        }
-      } catch (error) {
-        console.error("Error fetching contract:", error);
-        setError("Failed to load contract details");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContract();
-  }, [contractId]);
-
+export function ContractDetails({
+  contractResponse,
+  productLookup,
+}: ContractDetailsProps) {
+  const contract = contractResponse.data;
   const getContractStatus = (contract: any) => {
     const now = new Date();
     const startDate = new Date(contract.start_date);
@@ -137,7 +110,7 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
     }
 
     // Add line items section to PDF if available
-    if (lineItems.length > 0) {
+    if (contract.line_items?.data.length > 0) {
       const yPos = contract.description
         ? 160 + doc.splitTextToSize(contract.description, 170).length * 6
         : 130;
@@ -147,21 +120,27 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
       doc.setFontSize(10);
 
       let itemYPos = yPos + 10;
-      lineItems.forEach((item, index) => {
-        doc.text(`${index + 1}. Product ID: ${item.product_id}`, 25, itemYPos);
-        itemYPos += 6;
-        doc.text(`   Product: ${item.product_slug}`, 25, itemYPos);
-        itemYPos += 6;
-        doc.text(`   Quantity: ${item.quantity}`, 25, itemYPos);
-        itemYPos += 10;
-      });
+      contract.line_items?.data.forEach(
+        (item: ContractLineItem, index: number) => {
+          doc.text(
+            `${index + 1}. Product ID: ${item.product_id}`,
+            25,
+            itemYPos,
+          );
+          itemYPos += 6;
+          doc.text(`   SKU: ${item.sku}`, 25, itemYPos);
+          itemYPos += 6;
+          doc.text(`   Quantity: ${item.quantity}`, 25, itemYPos);
+          itemYPos += 10;
+        },
+      );
     }
 
     // Contract Terms section if available
     if (contract.terms) {
       const yPosAfterItems =
-        lineItems.length > 0
-          ? 150 + lineItems.length * 22
+        contract.line_items?.data.length > 0
+          ? 150 + contract.line_items?.data.length * 22
           : contract.description
             ? 160 + doc.splitTextToSize(contract.description, 170).length * 6
             : 130;
@@ -183,17 +162,7 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
     doc.save(`Contract_${contract.id.substring(0, 8)}.pdf`);
   };
 
-  if (loading) {
-    return (
-      <div className="flex flex-col p-5 lg:p-24">
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !contract) {
+  if (!contract) {
     return (
       <div className="flex flex-col p-5 lg:p-24">
         <Link
@@ -205,7 +174,7 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
         <div className="text-center">
           <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-semibold text-gray-900">
-            {error || "Contract not found"}
+            Contract not found
           </h3>
           <p className="mt-1 text-sm text-gray-500">
             We couldn&apos;t find the contract you&apos;re looking for.
@@ -303,7 +272,7 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
           )}
 
           {/* Line Items section */}
-          {lineItems.length > 0 && (
+          {contract.line_items?.data.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-medium text-gray-900">
                 Contract Line Items
@@ -316,13 +285,19 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
+                        Product Name
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Product ID
                       </th>
                       <th
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Product
+                        SKU
                       </th>
                       <th
                         scope="col"
@@ -333,22 +308,29 @@ export function ContractDetails({ contractId }: ContractDetailsProps) {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {lineItems.map((item, index) => (
-                      <tr
-                        key={index}
-                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.product_id}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.name || item.product_slug}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {item.quantity}
-                        </td>
-                      </tr>
-                    ))}
+                    {contract.line_items?.data.map(
+                      (item: ContractLineItem, index: any) => (
+                        <tr
+                          key={index}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {productLookup[item.product_id]?.attributes.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {item.product_id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {item.sku}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {item.quantity}
+                          </td>
+                        </tr>
+                      ),
+                    )}
                   </tbody>
                 </table>
               </div>
