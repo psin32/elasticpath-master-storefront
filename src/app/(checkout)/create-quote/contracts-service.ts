@@ -14,6 +14,14 @@ export async function getAllActiveContracts() {
   );
 }
 
+export async function getContractDisplayData(contractId: string) {
+  const contract = await getContractById(contractId);
+  return {
+    id: contract.data.id,
+    name: contract.data.display_name,
+  };
+}
+
 export async function getContractById(contractId: string) {
   if (!contractId) return null;
 

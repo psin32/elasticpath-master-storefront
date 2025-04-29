@@ -22,6 +22,7 @@ import {
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { StatusButton } from "../button/StatusButton";
+import { useQueryClient } from "@tanstack/react-query";
 
 export type ContractsProps = {
   account: AccountMemberCredential;
@@ -36,6 +37,7 @@ export function Contracts({ account }: ContractsProps) {
     null,
   );
   const [contractApplied, setContractApplied] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   // Fetch contracts and current cart contract
   useEffect(() => {
@@ -93,6 +95,9 @@ export function Contracts({ account }: ContractsProps) {
       console.error("Error selecting contract:", error);
       toast.error("Failed to apply contract");
     } finally {
+      queryClient.invalidateQueries({
+        queryKey: ["contract", "active-contract"],
+      });
       setActionLoading(false);
     }
   };
@@ -113,6 +118,9 @@ export function Contracts({ account }: ContractsProps) {
       console.error("Error removing contract:", error);
       toast.error("Failed to remove contract");
     } finally {
+      queryClient.invalidateQueries({
+        queryKey: ["contract", "active-contract"],
+      });
       setActionLoading(false);
     }
   };
