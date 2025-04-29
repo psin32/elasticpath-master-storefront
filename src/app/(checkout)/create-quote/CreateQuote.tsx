@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RadioGroup, Dialog } from "@headlessui/react";
 import {
   addAddress,
@@ -30,6 +30,7 @@ import AddCartCustomDiscount from "../../(admin)/admin/quotes/new/AddCartCustomD
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 import { QuoteSuccessOverlay } from "./QuoteSuccessOverlay";
 import { mergeCart } from "../../(auth)/actions";
+import Link from "next/link";
 
 export default function AccountSelector({
   accountId,
@@ -71,7 +72,6 @@ export default function AccountSelector({
   const [loadingCreateQuote, setLoadingCreateQuote] = useState(false);
   const [error, setError] = useState<string>("");
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
-  const [selectedContract, setSelectedContract] = useState<any>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -80,25 +80,13 @@ export default function AccountSelector({
     init();
   }, [accountId]);
 
-  useEffect(() => {
-    // Initialize selected contract either from current cart contract or first available
-    if (currentContractId && activeContracts?.data) {
-      // Find the contract in active contracts that matches the current cart contract
-      const matchingContract = activeContracts.data.find(
+  const selectedContract = useMemo(
+    () =>
+      activeContracts.data.find(
         (contract) => contract.id === currentContractId,
-      );
-
-      if (matchingContract) {
-        setSelectedContract(matchingContract);
-      } else if (activeContracts.data.length > 0 && !selectedContract) {
-        // Fallback to first contract if no match
-        setSelectedContract(activeContracts.data[0]);
-      }
-    } else if (activeContracts?.data?.length > 0 && !selectedContract) {
-      // No current contract, use first available
-      setSelectedContract(activeContracts.data[0]);
-    }
-  }, [activeContracts, currentContractId, selectedContract]);
+      ),
+    [activeContracts, currentContractId],
+  );
 
   const fetchAddresses = async (accountId: string, addressId?: string) => {
     try {
@@ -145,6 +133,12 @@ export default function AccountSelector({
   };
 
   const createQuote = async () => {
+    // Only continue if a contract is selected
+    if (!currentContractId || !selectedContract) {
+      setError("Please apply a contract to the cart before creating a quote");
+      return;
+    }
+
     setLoadingCreateQuote(true);
     const request = {
       type: "quote_ext",
@@ -189,78 +183,54 @@ export default function AccountSelector({
 
   return (
     <>
-      <div className="mb-8">
-        {activeContracts.data && activeContracts.data.length > 0 ? (
-          <div className="space-y-4">
-            <div className="font-bold text-xl">Select Contract</div>
-            {currentContractId && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <div className="flex items-center">
-                  <CheckIcon className="h-5 w-5 text-blue-600 mr-2" />
-                  <div>
-                    <p className="text-sm text-blue-800 font-medium">
-                      Contract Selected from Cart
-                    </p>
-                    <p className="text-xs text-blue-600">
-                      {selectedContract?.display_name ||
-                        (selectedContract?.id
-                          ? `Contract ID: ${selectedContract.id}`
-                          : "Unknown contract")}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <RadioGroup
-              value={selectedContract}
-              onChange={setSelectedContract}
-              className="grid grid-cols-3 gap-4 text-gray-600"
-            >
-              {activeContracts.data.map((contract, index) => (
-                <RadioGroup.Option key={index} value={contract}>
-                  {({ checked }) => (
-                    <div
-                      className={`p-4 flex items-center justify-between cursor-pointer border rounded-lg shadow-sm transition hover:shadow-md min-h-28 ${
-                        checked
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <DocumentTextIcon className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
-                        <div>
-                          <div className="text-md font-medium">
-                            {contract.display_name || `Contract #${index + 1}`}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            Start:{" "}
-                            {new Date(contract.start_date).toLocaleDateString()}
-                          </div>
-                          {contract.end_date && (
-                            <div className="text-sm text-gray-500">
-                              End:{" "}
-                              {new Date(contract.end_date).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {checked && (
-                        <CheckIcon className="w-6 text-brand-primary" />
-                      )}
-                    </div>
-                  )}
-                </RadioGroup.Option>
-              ))}
-            </RadioGroup>
-          </div>
-        ) : (
-          <div className="text-gray-500 italic">
-            No active contracts available
-          </div>
-        )}
-      </div>
       {!quoteStarted && (
         <div className="space-y-6 w-full">
+          {selectedContract ? (
+            <div>
+              <div className="mb-4 font-bold text-xl">
+                Contract Applied to Quote
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-gray-600">
+                <div className="p-6 flex items-start justify-between border border-gray-200 bg-blue-50 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <DocumentTextIcon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <div className="text-md font-medium">
+                        {selectedContract.display_name ||
+                          `Contract ID: ${selectedContract.id}`}
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        Start:{" "}
+                        {new Date(
+                          selectedContract.start_date,
+                        ).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 font-bold text-xl">Contract Required</div>
+              <div className="grid grid-cols-3 gap-4 text-gray-600">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-yellow-700">
+                    Please apply a contract to your cart before creating a
+                    quote. You can select a contract from the Contracts page.
+                  </p>
+                  <Link
+                    href="/contracts"
+                    className="mt-2 inline-block text-sm font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    Go to Contracts
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="mb-4 font-bold text-xl">Select Account Member</div>
           <RadioGroup
             value={selectedAccountMember}
@@ -271,16 +241,18 @@ export default function AccountSelector({
               <RadioGroup.Option key={members.id} value={members.id}>
                 {({ checked }) => (
                   <div
-                    className={`p-4 flex items-center justify-between cursor-pointer border rounded-lg shadow-sm transition hover:shadow-md min-h-20 ${
-                      checked ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                    className={`p-6 flex items-center justify-between cursor-pointer border rounded-lg transition hover:shadow-md ${
+                      checked ? "border-gray-200 bg-blue-50" : "border-gray-300"
                     }`}
                   >
                     <div>
-                      <div className="text-md">{members.name}</div>
-                      <div className="text-md mt-2">{members.email}</div>
+                      <div className="text-md font-medium">{members.name}</div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {members.email}
+                      </div>
                     </div>
                     {checked && (
-                      <CheckIcon className="w-6 text-brand-primary" />
+                      <CheckIcon className="w-5 h-5 text-green-500" />
                     )}
                   </div>
                 )}
@@ -288,7 +260,9 @@ export default function AccountSelector({
             ))}
           </RadioGroup>
 
-          <div className="mb-4 font-bold text-xl">Select Shipping Address</div>
+          <div className="mb-4 mt-8 font-bold text-xl">
+            Select Shipping Address
+          </div>
           <RadioGroup
             value={selectedAddress}
             onChange={setSelectedAddress}
@@ -298,33 +272,37 @@ export default function AccountSelector({
               <RadioGroup.Option key={index} value={address}>
                 {({ checked }) => (
                   <div
-                    className={`p-4 flex items-center justify-between border rounded-lg shadow-sm cursor-pointer transition hover:shadow-md min-h-52 ${
-                      checked
-                        ? "border-blue-500 bg-blue-50 text-gray-800"
-                        : "border-gray-300"
+                    className={`p-6 flex items-start justify-between border rounded-lg cursor-pointer transition hover:shadow-md ${
+                      checked ? "border-gray-200 bg-blue-50" : "border-gray-300"
                     }`}
                   >
-                    <span>
-                      <p className="font-bold">{address.name}</p>
-                      <p>
+                    <div>
+                      <p className="font-medium">{address.name}</p>
+                      <p className="text-sm text-gray-500 mt-1">
                         {address.first_name} {address.last_name}
                       </p>
-                      <p>{address.line_1}</p>
-                      {address.line_2 && <p>{address.line_2}</p>}
-                      <p>
+                      <p className="text-sm text-gray-500">{address.line_1}</p>
+                      {address.line_2 && (
+                        <p className="text-sm text-gray-500">
+                          {address.line_2}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-500">
                         {address.city}, {address.postcode}
                       </p>
-                      <p>{getCountryName(address.country)}</p>
-                    </span>
+                      <p className="text-sm text-gray-500">
+                        {getCountryName(address.country)}
+                      </p>
+                    </div>
                     {checked && (
-                      <CheckIcon className="w-6 text-brand-primary" />
+                      <CheckIcon className="w-5 h-5 text-green-500" />
                     )}
                   </div>
                 )}
               </RadioGroup.Option>
             ))}
             <div
-              className="p-4 border border-dashed border-gray-400 rounded-lg cursor-pointer flex items-center justify-center hover:shadow-md"
+              className="p-6 border border-dashed border-gray-400 rounded-lg cursor-pointer flex items-center justify-center hover:shadow-md"
               onClick={() => setIsOpen(true)}
             >
               <span className="text-gray-600">+ Add New Address</span>
@@ -395,15 +373,14 @@ export default function AccountSelector({
                   <StatusButton
                     onClick={handleCreateQuote}
                     className="text-sm"
-                    disabled={
-                      activeContracts.data?.length > 0 && !selectedContract
-                    }
+                    disabled={!selectedContract}
                   >
                     Start Quote Process
                   </StatusButton>
-                  {activeContracts.data?.length > 0 && !selectedContract && (
+                  {!selectedContract && (
                     <p className="text-red-500 text-sm mt-2">
-                      Please select a contract to continue
+                      Please apply a contract to your cart before creating a
+                      quote
                     </p>
                   )}
                 </div>
@@ -475,9 +452,11 @@ export default function AccountSelector({
                       aria-hidden="true"
                     />
                   </dt>
-                  <dd className="text-sm text-gray-500 ml-4">
-                    {selectedContract.display_name || "Selected Contract"}
-                    <div className="text-xs text-gray-400">
+                  <dd className="text-sm ml-4">
+                    <span className="font-medium text-gray-900">
+                      {selectedContract.display_name || "Contract"}
+                    </span>
+                    <div className="text-gray-500">
                       Valid:{" "}
                       {new Date(
                         selectedContract.start_date,
