@@ -22,6 +22,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../lib/resolve-cms-env";
+import ContractIndicator from "../contracts/ContractIndicator";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 const Header = async () => {
@@ -104,6 +105,7 @@ const Header = async () => {
                 );
               })}
             <AccountMenu />
+            <ContractIndicator />
             <Cart />
           </div>
         </div>

@@ -19,6 +19,7 @@ import { builderComponent } from "../../../components/builder-io/BuilderComponen
 import Link from "next/link";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { getAllActiveContracts } from "./contracts-service";
+import { getCurrentCartContract } from "../../../components/contracts/actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const metadata: Metadata = {
@@ -80,6 +81,11 @@ export default async function CheckoutPage() {
 
   const activeContracts = await getAllActiveContracts();
 
+  const cartContract = await getCurrentCartContract();
+  const currentContractId = cartContract.success
+    ? cartContract.contractId
+    : null;
+
   return (
     accountMemberCookie && (
       <CheckoutProvider>
@@ -126,6 +132,7 @@ export default async function CheckoutPage() {
                     }
                     accountToken={selectedAccount.token}
                     activeContracts={activeContracts}
+                    currentContractId={currentContractId}
                   />
                 )}
               </div>

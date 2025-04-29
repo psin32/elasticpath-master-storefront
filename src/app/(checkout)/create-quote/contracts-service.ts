@@ -14,24 +14,39 @@ export async function getAllActiveContracts() {
   );
 }
 
+export async function getContractDisplayData(contractId: string) {
+  const contract = await getContractById(contractId);
+  return {
+    id: contract.data.id,
+    name: contract.data.display_name,
+  };
+}
+
 export async function getContractById(contractId: string) {
   if (!contractId) return null;
 
   const client = getServerSideCredentialsClientWihoutAccountToken();
-  return await client.request
-    .send(
-      `/extensions/contract-terms/${contractId}`,
-      "GET",
-      undefined,
-      undefined,
-      client,
-      false,
-      "v2",
-    )
-    .catch((err) => {
-      console.error("Error fetching contract by ID:", err);
-      return null;
-    });
+
+  const accessToken = (await client.Authenticate()).access_token;
+
+  const response = await fetch(
+    `https://${client.config.host}/v2/extensions/contract-terms/${contractId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      next: {
+        revalidate: 0,
+        tags: ["active-contract"],
+      },
+    },
+  );
+
+  const data = await response.json();
+  console.log("data", data);
+
+  return data;
 }
 
 export async function getMultipleContractsByIds(contractIds: string[]) {
