@@ -49,6 +49,7 @@ export const useCheckout = (
       }
       if (contractId) {
         body.data.contract_ref = contractId;
+        body.data.external_ref = contractId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
@@ -109,6 +110,7 @@ export const useCheckoutWithAccount = (
       }
       if (contractId) {
         body.data.contract_ref = contractId;
+        body.data.external_ref = contractId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
