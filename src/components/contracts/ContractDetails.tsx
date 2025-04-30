@@ -853,7 +853,7 @@ export function ContractDetails({
                   No licenses
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  This contract doesn't have any licenses yet.
+                  This contract doesn&apos;t have any licenses yet.
                 </p>
                 <div className="mt-6">
                   {isCurrentContractSelected ? (
