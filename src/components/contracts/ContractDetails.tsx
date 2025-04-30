@@ -17,6 +17,7 @@ import {
   PlusIcon,
   MinusIcon,
   PlusCircleIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
 import {
@@ -25,6 +26,9 @@ import {
 } from "@elasticpath/js-sdk";
 import { toast } from "react-toastify";
 import { useCart } from "../../react-shopper-hooks";
+import { getCurrentCartContract, updateCartWithContract } from "./actions";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Import the server action for price calculation
 import { calculateContractItemPrice } from "../../services/contract-price-calculator";
@@ -40,6 +44,8 @@ export function ContractDetails({
   productLookup,
 }: ContractDetailsProps) {
   const contract = contractResponse.data;
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { useScopedAddProductToCart } = useCart();
   const { mutate: addToCart, isPending: isAddingToCart } =
     useScopedAddProductToCart();
@@ -60,6 +66,29 @@ export function ContractDetails({
   const [isLoadingPrices, setIsLoadingPrices] = useState<
     Record<string, boolean>
   >({});
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(
+    null,
+  );
+  const [isSelectingContract, setIsSelectingContract] = useState(false);
+
+  // Check if this contract is currently selected
+  useEffect(() => {
+    const checkSelectedContract = async () => {
+      try {
+        const cartContract = await getCurrentCartContract();
+        if (cartContract.success) {
+          setSelectedContractId(cartContract.contractId);
+        }
+      } catch (error) {
+        console.error("Error checking selected contract:", error);
+      }
+    };
+
+    checkSelectedContract();
+  }, []);
+
+  // Check if this is the currently selected contract
+  const isCurrentContractSelected = selectedContractId === contract.id;
 
   // Initialize quantities for each line item
   useEffect(() => {
@@ -395,6 +424,28 @@ export function ContractDetails({
     doc.save(`Contract_${contract.id.substring(0, 8)}.pdf`);
   };
 
+  const handleSelectContract = async () => {
+    setIsSelectingContract(true);
+    try {
+      const result = await updateCartWithContract(contract.id);
+      if (result.success) {
+        setSelectedContractId(contract.id);
+        toast.success("Contract applied to cart successfully");
+        queryClient.invalidateQueries({
+          queryKey: ["contract", "active-contract"],
+        });
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to apply contract");
+      }
+    } catch (error) {
+      console.error("Error selecting contract:", error);
+      toast.error("Failed to apply contract");
+    } finally {
+      setIsSelectingContract(false);
+    }
+  };
+
   if (!contract) {
     return (
       <div className="flex flex-col p-5 lg:p-24">
@@ -444,13 +495,59 @@ export function ContractDetails({
                   `Contract ${contract.id.substring(0, 8)}`}
               </h1>
             </div>
-            <span
-              className={`${
-                statusColors[status as keyof typeof statusColors]
-              } uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset`}
-            >
-              {status}
-            </span>
+            <div className="flex items-center gap-2">
+              <span
+                className={`${
+                  statusColors[status as keyof typeof statusColors]
+                } uppercase inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset`}
+              >
+                {status}
+              </span>
+
+              {!isCurrentContractSelected && (
+                <button
+                  type="button"
+                  onClick={handleSelectContract}
+                  disabled={isSelectingContract}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                >
+                  {isSelectingContract ? (
+                    <>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Applying...
+                    </>
+                  ) : (
+                    "Select Contract"
+                  )}
+                </button>
+              )}
+
+              {isCurrentContractSelected && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-md">
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Currently Selected
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -511,13 +608,19 @@ export function ContractDetails({
                 <h3 className="text-lg font-medium text-gray-900">
                   Contract Line Items
                 </h3>
-                <Link
-                  href="/search"
-                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  <PlusCircleIcon className="h-5 w-5 mr-1" />
-                  Add New License
-                </Link>
+                {isCurrentContractSelected ? (
+                  <Link
+                    href="/search"
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <PlusCircleIcon className="h-5 w-5 mr-1" />
+                    Add New License
+                  </Link>
+                ) : (
+                  <div className="text-sm text-gray-500 italic">
+                    Select this contract to add new licenses
+                  </div>
+                )}
               </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -642,90 +745,98 @@ export function ContractDetails({
                             )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <div className="flex items-center space-x-2">
-                              <div className="flex items-start rounded-lg border border-black/10 w-32">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.product_id,
-                                      (lineItemQuantities[item.product_id] ||
-                                        1) - 1,
-                                    )
-                                  }
-                                  className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
-                                >
-                                  <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
-                                </button>
-                                <svg
-                                  width="2"
-                                  height="36"
-                                  viewBox="0 0 2 36"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M1 0V36"
-                                    stroke="black"
-                                    strokeOpacity="0.1"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                  />
-                                </svg>
+                            {isCurrentContractSelected ? (
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-start rounded-lg border border-black/10 w-32">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(
+                                        item.product_id,
+                                        (lineItemQuantities[item.product_id] ||
+                                          1) - 1,
+                                      )
+                                    }
+                                    className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                                  >
+                                    <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
+                                  </button>
+                                  <svg
+                                    width="2"
+                                    height="36"
+                                    viewBox="0 0 2 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M1 0V36"
+                                      stroke="black"
+                                      strokeOpacity="0.1"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
 
-                                <input
-                                  type="number"
-                                  placeholder="Qty"
-                                  className="border-none focus-visible:ring-0 focus-visible:border-black w-14 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                  value={
-                                    lineItemQuantities[item.product_id] || 1
-                                  }
-                                  onChange={(e) =>
-                                    handleQuantityChange(
-                                      item.product_id,
-                                      parseInt(e.target.value) || 1,
-                                    )
-                                  }
-                                  min="1"
-                                />
-
-                                <svg
-                                  width="2"
-                                  height="36"
-                                  viewBox="0 0 2 36"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path
-                                    d="M1 0V36"
-                                    stroke="black"
-                                    strokeOpacity="0.1"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
+                                  <input
+                                    type="number"
+                                    placeholder="Qty"
+                                    className="border-none focus-visible:ring-0 focus-visible:border-black w-14 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    value={
+                                      lineItemQuantities[item.product_id] || 1
+                                    }
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.product_id,
+                                        parseInt(e.target.value) || 1,
+                                      )
+                                    }
+                                    min="1"
                                   />
-                                </svg>
+
+                                  <svg
+                                    width="2"
+                                    height="36"
+                                    viewBox="0 0 2 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path
+                                      d="M1 0V36"
+                                      stroke="black"
+                                      strokeOpacity="0.1"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleQuantityChange(
+                                        item.product_id,
+                                        (lineItemQuantities[item.product_id] ||
+                                          1) + 1,
+                                      )
+                                    }
+                                    className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                                  >
+                                    <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
+                                  </button>
+                                </div>
                                 <button
-                                  type="button"
                                   onClick={() =>
-                                    handleQuantityChange(
-                                      item.product_id,
-                                      (lineItemQuantities[item.product_id] ||
-                                        1) + 1,
-                                    )
+                                    handleAddToCart(item.product_id)
                                   }
-                                  className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                                  disabled={isAddingToCart}
+                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                                 >
-                                  <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
+                                  Add to Cart
                                 </button>
                               </div>
-                              <button
-                                onClick={() => handleAddToCart(item.product_id)}
-                                disabled={isAddingToCart}
-                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-                              >
-                                Add to Cart
-                              </button>
-                            </div>
+                            ) : (
+                              <div className="text-sm text-gray-500 italic">
+                                Select contract first
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ),
@@ -745,13 +856,26 @@ export function ContractDetails({
                   This contract doesn't have any licenses yet.
                 </p>
                 <div className="mt-6">
-                  <Link
-                    href="/search"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <PlusCircleIcon className="h-5 w-5 mr-1" />
-                    Add a New License
-                  </Link>
+                  {isCurrentContractSelected ? (
+                    <Link
+                      href="/search"
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <PlusCircleIcon className="h-5 w-5 mr-1" />
+                      Add a New License
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSelectContract}
+                      disabled={isSelectingContract}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                    >
+                      {isSelectingContract
+                        ? "Applying..."
+                        : "Select This Contract First"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
