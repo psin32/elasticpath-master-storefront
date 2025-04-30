@@ -35,6 +35,8 @@ export function Contracts() {
   const [contractApplied, setContractApplied] = useState<boolean>(false);
   const queryClient = useQueryClient();
 
+  console.log("contracts", selectedContractId);
+
   // Fetch contracts and current cart contract
   useEffect(() => {
     const fetchData = async () => {
@@ -139,7 +141,7 @@ export function Contracts() {
                 </div>
                 <div className="text-xs text-blue-600">
                   {(selectedContractId &&
-                    contracts.find((c) => c.id === selectedContractId)
+                    contracts.find((c) => c.contract_ref === selectedContractId)
                       ?.display_name) ||
                     "Contract ID: " + selectedContractId}
                 </div>
@@ -219,12 +221,13 @@ export function Contracts() {
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {contracts.map((contract) => {
                           const status = getContractStatus(contract);
-                          const isSelected = selectedContractId === contract.id;
+                          const isSelected =
+                            selectedContractId === contract.contract_ref;
                           const isActive = status === "Active";
 
                           return (
                             <tr
-                              key={contract.id}
+                              key={contract.contract_ref}
                               className={clsx(
                                 "hover:bg-gray-200",
                                 isSelected && "bg-blue-50",
@@ -235,7 +238,7 @@ export function Contracts() {
                                   <DocumentTextIcon className="h-5 w-5 text-gray-400" />
                                   <span>
                                     {contract.display_name ||
-                                      `Contract ${contract.id.substring(0, 8)}`}
+                                      `Contract ${contract.contract_ref.substring(0, 8)}`}
                                   </span>
                                   {isSelected && (
                                     <CheckCircleIcon className="h-5 w-5 text-green-500" />
@@ -283,7 +286,7 @@ export function Contracts() {
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 space-y-2">
                                 <div className="flex space-x-2">
                                   <Link
-                                    href={`/contracts/${contract.id}`}
+                                    href={`/contracts/${contract.contract_ref}`}
                                     className="text-blue-600 hover:text-blue-800 font-medium"
                                   >
                                     View Details
@@ -301,7 +304,9 @@ export function Contracts() {
                                       ) : (
                                         <button
                                           onClick={() =>
-                                            handleSelectContract(contract.id)
+                                            handleSelectContract(
+                                              contract.contract_ref,
+                                            )
                                           }
                                           disabled={actionLoading}
                                           className="text-green-600 hover:text-green-800 font-medium ml-2 disabled:opacity-50"

@@ -51,6 +51,7 @@ export default function AccountSelector({
   activeContracts: {
     data: {
       id: string;
+      contract_ref: string;
       display_name?: string;
       start_date: string;
       end_date?: string;
@@ -83,7 +84,7 @@ export default function AccountSelector({
   const selectedContract = useMemo(
     () =>
       activeContracts.data.find(
-        (contract) => contract.id === currentContractId,
+        (contract) => contract.contract_ref === currentContractId,
       ),
     [activeContracts, currentContractId],
   );

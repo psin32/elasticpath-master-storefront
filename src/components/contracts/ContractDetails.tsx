@@ -427,7 +427,7 @@ export function ContractDetails({
   const handleSelectContract = async () => {
     setIsSelectingContract(true);
     try {
-      const result = await updateCartWithContract(contract.id);
+      const result = await updateCartWithContract(contract.contract_ref);
       if (result.success) {
         setSelectedContractId(contract.id);
         toast.success("Contract applied to cart successfully");
