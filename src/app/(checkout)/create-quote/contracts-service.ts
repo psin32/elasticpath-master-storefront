@@ -6,6 +6,7 @@ import {
   retrieveAccountMemberCredentials,
 } from "../../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../lib/cookie-constants";
+import { c } from "vitest/dist/reporters-5f784f42";
 
 export async function getAllActiveContracts() {
   const client = getServerSideCredentialsClientWihoutAccountToken();
@@ -69,7 +70,14 @@ export async function getContractById(contractId: string) {
     },
   );
 
+  console.log(
+    "url: ",
+    `https://${client.config.host}/v2/extensions/contract-terms/${contractId}?filter=eq(elastic_path_account_id,${accountId})`,
+  );
+  console.log("accessToken", accessToken);
+
   const data = await response.json().then((data) => {
+    console.log("response data", data);
     return {
       ...data,
       data: {

@@ -16,6 +16,7 @@ export type UseCheckoutReq = {
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
   quoteId?: string;
+  contractId?: string;
 };
 
 export const useCheckout = (
@@ -31,6 +32,7 @@ export const useCheckout = (
       additionalHeaders,
       purchaseOrderNumber,
       quoteId,
+      contractId,
     }: UseCheckoutReq) => {
       const body: any = {
         data: {
@@ -44,6 +46,9 @@ export const useCheckout = (
       }
       if (quoteId) {
         body.data.quote_ref = quoteId;
+      }
+      if (contractId) {
+        body.data.contract_ref = contractId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
@@ -67,6 +72,7 @@ export type UseCheckoutWithAccountReq = {
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
   quoteId?: string;
+  contractId?: string;
 };
 
 export const useCheckoutWithAccount = (
@@ -86,6 +92,7 @@ export const useCheckoutWithAccount = (
       additionalHeaders,
       purchaseOrderNumber,
       quoteId,
+      contractId,
     }: UseCheckoutWithAccountReq) => {
       const body: any = {
         data: {
@@ -99,6 +106,9 @@ export const useCheckoutWithAccount = (
       }
       if (quoteId) {
         body.data.quote_ref = quoteId;
+      }
+      if (contractId) {
+        body.data.contract_ref = contractId;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
