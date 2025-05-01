@@ -12,6 +12,8 @@ import {
 } from "../../../(checkout)/create-quote/contracts-service";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
 import { ProductResponse } from "@elasticpath/js-sdk";
+import { ContractOrdersResponse } from "../../../../types/contract-orders";
+import { getContractOrders } from "../../../../components/contracts/actions";
 
 type Props = {
   params: {
@@ -55,6 +57,8 @@ export default async function Page({ params }: Props) {
     {} as Record<string, ProductResponse>,
   );
 
+  const ordersResult = await getContractOrders(contractId);
+
   console.log("contract", contract);
   console.log("lineItemProducts", lineItemProducts);
   return (
@@ -62,6 +66,7 @@ export default async function Page({ params }: Props) {
       contractResponse={contract}
       productLookup={productLookup}
       account={selectedAccount}
+      orderHistoryResponse={ordersResult}
     />
   );
 }

@@ -26,22 +26,29 @@ import {
 } from "@elasticpath/js-sdk";
 import { toast } from "react-toastify";
 import { useCart } from "../../react-shopper-hooks";
-import { getCurrentCartContract, updateCartWithContract } from "./actions";
+import {
+  getContractOrders,
+  getCurrentCartContract,
+  updateCartWithContract,
+} from "./actions";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
 // Import the server action for price calculation
 import { calculateContractItemPrice } from "../../services/contract-price-calculator";
+import { ContractOrderHistoryClient } from "./ContractOrderHistoryClient";
 
 export type ContractDetailsProps = {
   contractResponse: Awaited<ReturnType<typeof getContractById>>;
   account: AccountMemberCredential;
+  orderHistoryResponse: Awaited<ReturnType<typeof getContractOrders>>;
   productLookup: Record<string, ProductResponse>;
 };
 
 export function ContractDetails({
   contractResponse,
   productLookup,
+  orderHistoryResponse,
 }: ContractDetailsProps) {
   const contract = contractResponse.data;
   const router = useRouter();
@@ -905,6 +912,16 @@ export function ContractDetails({
           </div>
         </div>
       </div>
+
+      {/* Order History Section */}
+      {orderHistoryResponse && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Order History
+          </h2>
+          <ContractOrderHistoryClient ordersResult={orderHistoryResponse} />
+        </div>
+      )}
     </div>
   );
 }
