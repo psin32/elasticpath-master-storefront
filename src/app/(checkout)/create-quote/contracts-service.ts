@@ -33,6 +33,7 @@ export async function getAllActiveContracts() {
 export async function getContractDisplayData(contractId: string) {
   if (!contractId) return null;
   const contract = await getContractById(contractId);
+  console.log("contract", contract);
   return {
     id: contract.data.id,
     name: contract.data.display_name,

@@ -18,6 +18,7 @@ import {
   MinusIcon,
   PlusCircleIcon,
   CheckCircleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
 import {
@@ -33,10 +34,11 @@ import {
 } from "./actions";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { Dialog } from "@headlessui/react";
+import { ContractOrderHistoryClient } from "./ContractOrderHistoryClient";
 
 // Import the server action for price calculation
 import { calculateContractItemPrice } from "../../services/contract-price-calculator";
-import { ContractOrderHistoryClient } from "./ContractOrderHistoryClient";
 
 export type ContractDetailsProps = {
   contractResponse: Awaited<ReturnType<typeof getContractById>>;
@@ -77,6 +79,9 @@ export function ContractDetails({
     null,
   );
   const [isSelectingContract, setIsSelectingContract] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { state } = useCart() as any;
+  const hasCartItems = state?.items?.length > 0;
 
   // Check if this contract is currently selected
   useEffect(() => {
@@ -433,8 +438,17 @@ export function ContractDetails({
     doc.save(`Contract_${contract.contract_ref.substring(0, 8)}.pdf`);
   };
 
+  const initiateSelectContract = async () => {
+    if (hasCartItems) {
+      setShowConfirmation(true);
+    } else {
+      handleSelectContract();
+    }
+  };
+
   const handleSelectContract = async () => {
     setIsSelectingContract(true);
+    setShowConfirmation(false);
     try {
       const result = await updateCartWithContract(contract.contract_ref);
       if (result.success) {
@@ -518,7 +532,7 @@ export function ContractDetails({
               {!isCurrentContractSelected && (
                 <button
                   type="button"
-                  onClick={handleSelectContract}
+                  onClick={initiateSelectContract}
                   disabled={isSelectingContract}
                   className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                 >
@@ -886,7 +900,7 @@ export function ContractDetails({
                   ) : (
                     <button
                       type="button"
-                      onClick={handleSelectContract}
+                      onClick={initiateSelectContract}
                       disabled={isSelectingContract}
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
                     >
@@ -924,6 +938,52 @@ export function ContractDetails({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />
+              </div>
+              <div>
+                <Dialog.Title className="text-lg font-medium text-gray-900">
+                  Shop with this contract?
+                </Dialog.Title>
+                <Dialog.Description className="mt-2 text-sm text-gray-500">
+                  You have items in your cart. Changing to this contract may
+                  affect pricing and could impact the availability of some
+                  products.
+                </Dialog.Description>
+
+                <div className="mt-4 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    onClick={() => setShowConfirmation(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    onClick={handleSelectContract}
+                  >
+                    Shop with Contract
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
 
       {/* Order History Section */}
       {orderHistoryResponse && (
