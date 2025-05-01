@@ -166,6 +166,10 @@ export function usePaymentComplete(
           payment: {
             gateway: "elastic_path_payments_stripe",
             method: "purchase",
+            options: {
+              payment_method_types: ["card"],
+              automatic_payment_methods: { enabled: false },
+            },
           },
         };
       }
