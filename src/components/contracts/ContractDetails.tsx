@@ -440,17 +440,17 @@ export function ContractDetails({
       const result = await updateCartWithContract(contract.contract_ref);
       if (result.success) {
         setSelectedContractId(contract.contract_ref);
-        toast.success("Contract applied to cart successfully");
+        toast.success("Now shopping with contract successfully");
         queryClient.invalidateQueries({
           queryKey: ["contract", "active-contract"],
         });
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to apply contract");
+        toast.error(result.error || "Failed to shop with contract");
       }
     } catch (error) {
       console.error("Error selecting contract:", error);
-      toast.error("Failed to apply contract");
+      toast.error("Failed to shop with contract");
     } finally {
       setIsSelectingContract(false);
     }
@@ -546,7 +546,7 @@ export function ContractDetails({
                       Applying...
                     </>
                   ) : (
-                    "Select Contract"
+                    "Shop with Contract"
                   )}
                 </button>
               )}
@@ -554,7 +554,7 @@ export function ContractDetails({
               {isCurrentContractSelected && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-md">
                   <CheckCircleIcon className="h-4 w-4" />
-                  Currently Selected
+                  Currently Shopping With
                 </span>
               )}
             </div>
@@ -636,7 +636,7 @@ export function ContractDetails({
                   </Link>
                 ) : (
                   <div className="text-sm text-gray-500 italic">
-                    Select this contract to add new licenses
+                    Shop with this contract to add new licenses
                   </div>
                 )}
               </div>
@@ -852,7 +852,7 @@ export function ContractDetails({
                               </div>
                             ) : (
                               <div className="text-sm text-gray-500 italic">
-                                Select contract first
+                                Shop with contract first
                               </div>
                             )}
                           </td>
@@ -891,7 +891,7 @@ export function ContractDetails({
                     >
                       {isSelectingContract
                         ? "Applying..."
-                        : "Select This Contract First"}
+                        : "Shop with This Contract First"}
                     </button>
                   )}
                 </div>

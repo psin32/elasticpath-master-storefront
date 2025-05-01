@@ -84,14 +84,14 @@ export function Contracts() {
       if (result.success) {
         setSelectedContractId(contractId);
         setContractApplied(true);
-        toast.success("Contract applied to cart successfully");
+        toast.success("Now shopping with contract successfully");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to apply contract");
+        toast.error(result.error || "Failed to shop with contract");
       }
     } catch (error) {
       console.error("Error selecting contract:", error);
-      toast.error("Failed to apply contract");
+      toast.error("Failed to shop with contract");
     } finally {
       queryClient.invalidateQueries({
         queryKey: ["contract", "active-contract"],
@@ -107,14 +107,14 @@ export function Contracts() {
       if (result.success) {
         setSelectedContractId(null);
         setContractApplied(false);
-        toast.success("Contract removed from cart successfully");
+        toast.success("No longer shopping with contract");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to remove contract");
+        toast.error(result.error || "Failed to stop shopping with contract");
       }
     } catch (error) {
       console.error("Error removing contract:", error);
-      toast.error("Failed to remove contract");
+      toast.error("Failed to stop shopping with contract");
     } finally {
       queryClient.invalidateQueries({
         queryKey: ["contract", "active-contract"],
@@ -136,7 +136,7 @@ export function Contracts() {
                 <div className="flex items-center mb-2">
                   <CheckCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
                   <span className="text-sm font-medium text-blue-800">
-                    Contract Applied to Cart
+                    Currently Shopping With Contract
                   </span>
                 </div>
                 <div className="text-xs text-blue-600">
@@ -152,7 +152,7 @@ export function Contracts() {
                   disabled={actionLoading}
                   status={actionLoading ? "loading" : "idle"}
                 >
-                  Remove Contract
+                  Stop Shopping With Contract
                 </StatusButton>
               </div>
             )}
@@ -299,7 +299,7 @@ export function Contracts() {
                                           disabled={actionLoading}
                                           className="text-red-600 hover:text-red-800 font-medium ml-2 disabled:opacity-50"
                                         >
-                                          Remove
+                                          Stop Shopping
                                         </button>
                                       ) : (
                                         <button
@@ -311,7 +311,7 @@ export function Contracts() {
                                           disabled={actionLoading}
                                           className="text-green-600 hover:text-green-800 font-medium ml-2 disabled:opacity-50"
                                         >
-                                          Select Contract
+                                          Shop with Contract
                                         </button>
                                       )}
                                     </>

@@ -43,10 +43,10 @@ export default function ContractIndicator() {
       <Link
         href="/contracts"
         className="flex items-center gap-1 px-2 py-1 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors border border-dashed border-gray-300"
-        title="Select a contract to apply"
+        title="Shop with a contract"
       >
         <DocumentCheckIcon className="h-4 w-4" />
-        <span className="hidden sm:inline">Select Contract</span>
+        <span className="hidden sm:inline">Shop with Contract</span>
       </Link>
     );
   }

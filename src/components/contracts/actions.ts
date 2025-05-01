@@ -123,7 +123,7 @@ export async function removeContractFromCart() {
     return { success: true, cartId };
   } catch (error) {
     console.error("Error removing contract from cart:", error);
-    return { success: false, error: "Failed to remove contract from cart" };
+    return { success: false, error: "Failed to stop shopping with contract" };
   }
 }
 
