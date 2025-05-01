@@ -344,7 +344,6 @@ export function ContractDetails({
     doc.text("Contract Information", 20, 60);
 
     doc.setFontSize(10);
-    doc.text(`Contract ID: ${contract.id}`, 25, 70);
     doc.text(`Contract Ref: ${contract.contract_ref}`, 25, 70);
     doc.text(`Status: ${getContractStatus(contract)}`, 25, 80);
     doc.text(
