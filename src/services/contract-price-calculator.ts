@@ -109,8 +109,8 @@ export async function calculateContractItemPrice(
             basePrice: product.listPrice,
             quantity: quantity,
             discount: product.totalPartnerDiscountPercentage,
-            totalBeforeDiscount: product..partnerPrice,
-            totalAfterDiscount: product.price,
+            totalBeforeDiscount: product.listPrice * quantity,
+            totalAfterDiscount: product.price * quantity,
           },
         },
       };
