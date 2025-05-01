@@ -131,7 +131,7 @@ type DynamicPricingResponse = DynamicPricingResponseItem[];
 
 export async function getDynamicPricing(request: DynamicPricingRequest) {
   const response = await fetch(
-    "https://hooks.eu-west-1.elasticpathintegrations.com/trigger/SW5zdGFuY2VGbG93Q29uZmlnOjMxOTllY2JhLTc4MjEtNDRkZS1hYzFkLTYxNjkzNDk4YjJkNQ==",
+    process.env.NEXT_PUBLIC_DYNAMIC_PRICING_URL ?? "",
     {
       method: "POST",
       headers: {
