@@ -1,11 +1,6 @@
 "use server";
 
-import {
-  CartAdditionalHeaders,
-  CartItem,
-  ProductResponse,
-  ShopperCatalogResource,
-} from "@elasticpath/js-sdk";
+import { CartAdditionalHeaders, CartItem } from "@elasticpath/js-sdk";
 import { getServerSideImplicitClient } from "../lib/epcc-server-side-implicit-client";
 import {
   getSelectedAccount,
@@ -70,6 +65,8 @@ export async function serverSideAddProductToCart(
 
   const contractTerm = customAttributes?.contract_term_id?.value;
 
+  const currency = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`)?.value;
+
   // Combine quantities for matching products
   const combinedProducts = combineProductQuantities(
     mappedCartItems,
@@ -81,6 +78,7 @@ export async function serverSideAddProductToCart(
     contract_terms: contractTerm,
     account: selectedAccount.account_id,
     products: combinedProducts,
+    currency: currency ?? "USD",
   });
 
   const originalProduct = await client.ShopperCatalog.Products.With(
@@ -126,13 +124,12 @@ export type DynamicPricingRequest = {
     product_id: string;
     quantity: number;
   }[];
+  currency: string;
 };
 
 type DynamicPricingResponse = DynamicPricingResponseItem[];
 
 export async function getDynamicPricing(request: DynamicPricingRequest) {
-  console.log("dynamic pricing request", request);
-
   const response = await fetch(
     "https://hooks.eu-west-1.elasticpathintegrations.com/trigger/SW5zdGFuY2VGbG93Q29uZmlnOjMxOTllY2JhLTc4MjEtNDRkZS1hYzFkLTYxNjkzNDk4YjJkNQ==",
     {

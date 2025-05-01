@@ -53,6 +53,7 @@ export async function calculateContractItemPrice(
       redirect("/login?returnUrl=/checkout");
       throw new Error("No account member cookie found");
     }
+    const currency = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`)?.value;
 
     const selectedAccount = getSelectedAccount(accountMemberCookie);
 
@@ -89,6 +90,7 @@ export async function calculateContractItemPrice(
       contract_terms: contractTerm ?? "",
       account: selectedAccount.account_id,
       products: combinedProducts,
+      currency: currency ?? "USD",
     });
 
     // find the product in the resolvedDynamicPricing.products array
@@ -102,7 +104,7 @@ export async function calculateContractItemPrice(
         data: {
           price: {
             amount: product.price * quantity,
-            currency: "USD",
+            currency: currency ?? "USD",
             includes_tax: true,
           },
           breakdown: {
