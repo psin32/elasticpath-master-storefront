@@ -73,7 +73,7 @@ export default function ContractBanner() {
 
   if (isLoading || isRefetching) {
     return (
-      <div className="w-full bg-gray-100 bg-opacity-100 text-sm py-1.5 border-b border-gray-200 sticky top-0 z-10">
+      <div className="w-full bg-gray-100 bg-opacity-100 text-sm py-1.5 border-b border-gray-200 sticky top-0">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="animate-pulse flex items-center">
             <DocumentCheckIcon className="h-4 w-4 mr-2 text-gray-500" />
@@ -87,7 +87,7 @@ export default function ContractBanner() {
 
   if (!contract) {
     return (
-      <div className="w-full bg-gray-100 bg-opacity-100 text-sm py-1.5 border-b border-gray-200 sticky top-0 z-10">
+      <div className="w-full bg-gray-100 bg-opacity-100 text-sm py-1.5 border-b border-gray-200 sticky top-0">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center">
             <ShoppingBagIcon className="h-4 w-4 mr-2 text-gray-500" />
@@ -115,7 +115,7 @@ export default function ContractBanner() {
 
   return (
     <>
-      <div className="w-full bg-green-50 bg-opacity-100 text-sm py-1.5 border-b border-green-100 sticky top-0 z-10">
+      <div className="w-full bg-green-50 bg-opacity-100 text-sm py-1.5 border-b border-green-100 sticky top-0">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center">
             <DocumentCheckIcon className="h-4 w-4 mr-2 text-green-600" />
