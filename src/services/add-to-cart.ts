@@ -130,16 +130,13 @@ export type DynamicPricingRequest = {
 type DynamicPricingResponse = DynamicPricingResponseItem[];
 
 export async function getDynamicPricing(request: DynamicPricingRequest) {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_DYNAMIC_PRICING_URL ?? "",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
+  const response = await fetch(process.env.DYNAMIC_PRICING_URL ?? "", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(request),
+  });
 
   const responseBody: DynamicPricingResponse = await response.json();
   console.log("dynamic pricing response", responseBody);
