@@ -23,6 +23,9 @@ import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { StatusButton } from "../button/StatusButton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCart } from "../../react-shopper-hooks";
+import { Dialog } from "@headlessui/react";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 export function Contracts() {
   const router = useRouter();
@@ -33,7 +36,16 @@ export function Contracts() {
     null,
   );
   const [contractApplied, setContractApplied] = useState<boolean>(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    type: "select" | "remove";
+    contractId?: string;
+  } | null>(null);
   const queryClient = useQueryClient();
+  const { state } = useCart() as any;
+  const hasCartItems = state?.items?.length > 0;
+
+  console.log("contracts", selectedContractId);
 
   // Fetch contracts and current cart contract
   useEffect(() => {
@@ -75,21 +87,38 @@ export function Contracts() {
     }
   };
 
+  const initiateContractAction = (
+    type: "select" | "remove",
+    contractId?: string,
+  ) => {
+    if (hasCartItems) {
+      setPendingAction({ type, contractId });
+      setShowConfirmation(true);
+    } else {
+      if (type === "select" && contractId) {
+        handleSelectContract(contractId);
+      } else if (type === "remove") {
+        handleRemoveContract();
+      }
+    }
+  };
+
   const handleSelectContract = async (contractId: string) => {
     setActionLoading(true);
+    setShowConfirmation(false);
     try {
       const result = await updateCartWithContract(contractId);
       if (result.success) {
         setSelectedContractId(contractId);
         setContractApplied(true);
-        toast.success("Contract applied to cart successfully");
+        toast.success("Now shopping with contract successfully");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to apply contract");
+        toast.error(result.error || "Failed to shop with contract");
       }
     } catch (error) {
       console.error("Error selecting contract:", error);
-      toast.error("Failed to apply contract");
+      toast.error("Failed to shop with contract");
     } finally {
       queryClient.invalidateQueries({
         queryKey: ["contract", "active-contract"],
@@ -100,24 +129,35 @@ export function Contracts() {
 
   const handleRemoveContract = async () => {
     setActionLoading(true);
+    setShowConfirmation(false);
     try {
       const result = await removeContractFromCart();
       if (result.success) {
         setSelectedContractId(null);
         setContractApplied(false);
-        toast.success("Contract removed from cart successfully");
+        toast.success("No longer shopping with contract");
         router.refresh();
       } else {
-        toast.error(result.error || "Failed to remove contract");
+        toast.error(result.error || "Failed to stop shopping with contract");
       }
     } catch (error) {
       console.error("Error removing contract:", error);
-      toast.error("Failed to remove contract");
+      toast.error("Failed to stop shopping with contract");
     } finally {
       queryClient.invalidateQueries({
         queryKey: ["contract", "active-contract"],
       });
       setActionLoading(false);
+    }
+  };
+
+  const confirmAction = () => {
+    if (!pendingAction) return;
+
+    if (pendingAction.type === "select" && pendingAction.contractId) {
+      handleSelectContract(pendingAction.contractId);
+    } else if (pendingAction.type === "remove") {
+      handleRemoveContract();
     }
   };
 
@@ -127,34 +167,57 @@ export function Contracts() {
         <div className="flex flex-col gap-10 p-5 lg:p-24 w-full">
           <div className="flex justify-between items-center">
             <h1 className="text-4xl font-medium">Contract Terms</h1>
-
-            {/* Display selected contract information */}
-            {selectedContractId && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div className="flex items-center mb-2">
-                  <CheckCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-blue-800">
-                    Contract Applied to Cart
-                  </span>
-                </div>
-                <div className="text-xs text-blue-600">
-                  {(selectedContractId &&
-                    contracts.find((c) => c.id === selectedContractId)
-                      ?.display_name) ||
-                    "Contract ID: " + selectedContractId}
-                </div>
-                <StatusButton
-                  variant="secondary"
-                  className="mt-2 text-xs py-1 px-2"
-                  onClick={handleRemoveContract}
-                  disabled={actionLoading}
-                  status={actionLoading ? "loading" : "idle"}
-                >
-                  Remove Contract
-                </StatusButton>
-              </div>
-            )}
           </div>
+
+          {/* Confirmation Dialog */}
+          <Dialog
+            open={showConfirmation}
+            onClose={() => setShowConfirmation(false)}
+            className="relative z-50"
+          >
+            <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+              <Dialog.Panel className="mx-auto max-w-md rounded-lg bg-white p-6 shadow-xl">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />
+                  </div>
+                  <div>
+                    <Dialog.Title className="text-lg font-medium text-gray-900">
+                      {pendingAction?.type === "select"
+                        ? "Switch to different contract?"
+                        : "Stop shopping with contract?"}
+                    </Dialog.Title>
+                    <Dialog.Description className="mt-2 text-sm text-gray-500">
+                      You have items in your cart. Changing contracts may affect
+                      pricing and could impact the availability of some
+                      products.
+                    </Dialog.Description>
+
+                    <div className="mt-4 flex justify-end gap-3">
+                      <button
+                        type="button"
+                        className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        onClick={() => setShowConfirmation(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        onClick={confirmAction}
+                      >
+                        {pendingAction?.type === "select"
+                          ? "Switch Contract"
+                          : "Stop Shopping"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </Dialog>
 
           {loading ? (
             <div className="flex justify-center">
@@ -219,12 +282,13 @@ export function Contracts() {
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {contracts.map((contract) => {
                           const status = getContractStatus(contract);
-                          const isSelected = selectedContractId === contract.id;
+                          const isSelected =
+                            selectedContractId === contract.contract_ref;
                           const isActive = status === "Active";
 
                           return (
                             <tr
-                              key={contract.id}
+                              key={contract.contract_ref}
                               className={clsx(
                                 "hover:bg-gray-200",
                                 isSelected && "bg-blue-50",
@@ -235,7 +299,7 @@ export function Contracts() {
                                   <DocumentTextIcon className="h-5 w-5 text-gray-400" />
                                   <span>
                                     {contract.display_name ||
-                                      `Contract ${contract.id.substring(0, 8)}`}
+                                      `Contract ${contract.contract_ref.substring(0, 8)}`}
                                   </span>
                                   {isSelected && (
                                     <CheckCircleIcon className="h-5 w-5 text-green-500" />
@@ -283,7 +347,7 @@ export function Contracts() {
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 space-y-2">
                                 <div className="flex space-x-2">
                                   <Link
-                                    href={`/contracts/${contract.id}`}
+                                    href={`/contracts/${contract.contract_ref}`}
                                     className="text-blue-600 hover:text-blue-800 font-medium"
                                   >
                                     View Details
@@ -292,21 +356,26 @@ export function Contracts() {
                                     <>
                                       {isSelected ? (
                                         <button
-                                          onClick={() => handleRemoveContract()}
+                                          onClick={() =>
+                                            initiateContractAction("remove")
+                                          }
                                           disabled={actionLoading}
                                           className="text-red-600 hover:text-red-800 font-medium ml-2 disabled:opacity-50"
                                         >
-                                          Remove
+                                          Stop Shopping
                                         </button>
                                       ) : (
                                         <button
                                           onClick={() =>
-                                            handleSelectContract(contract.id)
+                                            initiateContractAction(
+                                              "select",
+                                              contract.contract_ref,
+                                            )
                                           }
                                           disabled={actionLoading}
                                           className="text-green-600 hover:text-green-800 font-medium ml-2 disabled:opacity-50"
                                         >
-                                          Select Contract
+                                          Shop with Contract
                                         </button>
                                       )}
                                     </>

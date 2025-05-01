@@ -1,11 +1,20 @@
 "use server";
 
-import {
-  CartAdditionalHeaders,
-  ProductResponse,
-  ShopperCatalogResource,
-} from "@elasticpath/js-sdk";
+import { CartAdditionalHeaders, CartItem } from "@elasticpath/js-sdk";
 import { getServerSideImplicitClient } from "../lib/epcc-server-side-implicit-client";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "../lib/retrieve-account-member-credentials";
+import { cookies } from "next/headers";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../lib/cookie-constants";
+import { redirect } from "next/navigation";
+import { COOKIE_PREFIX_KEY } from "../lib/resolve-cart-env";
+import {
+  combineProductQuantities,
+  convertDynamicPricingResponseToCustomItem,
+  DynamicPricingResponseItem,
+} from "./cart-utils";
 
 export type ServerSideAddProductToCartProps = {
   cartId: string;
@@ -21,17 +30,56 @@ export async function serverSideAddProductToCart(
   props: ServerSideAddProductToCartProps,
 ) {
   const client = getServerSideImplicitClient();
+  const cookieStore = cookies();
 
   const { cartId, productId, quantity, data, isSku, token, additionalHeaders } =
     props;
 
-  const resolvedDynamicPricing = await getDynamicPricing(productId);
+  const accountMemberCookie = retrieveAccountMemberCredentials(
+    cookieStore,
+    ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  );
 
-  if (!resolvedDynamicPricing?.success) {
-    return client
-      .Cart(cartId)
-      .AddProduct(productId, quantity, data, isSku, token, additionalHeaders);
+  if (!accountMemberCookie) {
+    redirect("/login?returnUrl=/checkout");
+    throw new Error("No account member cookie found");
   }
+
+  const selectedAccount = getSelectedAccount(accountMemberCookie);
+
+  const cartCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_cart`);
+  const cart = await client.Cart(cartCookie?.value).With("items").Get();
+
+  if (!cart) {
+    throw new Error("No cart found");
+  }
+
+  const currentCartItems = cart.included?.items ?? [];
+  const mappedCartItems = currentCartItems.map((item) => ({
+    product_id: item.product_id ?? item.custom_inputs?.product_id,
+    quantity: item.quantity,
+  }));
+
+  // @ts-ignore
+  const customAttributes = cart?.data?.custom_attributes || {};
+
+  const contractTerm = customAttributes?.contract_term_id?.value;
+
+  const currency = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`)?.value;
+
+  // Combine quantities for matching products
+  const combinedProducts = combineProductQuantities(
+    mappedCartItems,
+    productId,
+    quantity ?? 1,
+  );
+
+  const resolvedDynamicPricing = await getDynamicPricing({
+    contract_terms: contractTerm,
+    account: selectedAccount.account_id,
+    products: combinedProducts,
+    currency: currency ?? "USD",
+  });
 
   const originalProduct = await client.ShopperCatalog.Products.With(
     "main_image",
@@ -39,71 +87,72 @@ export async function serverSideAddProductToCart(
     productId,
   });
 
-  const customItem = constructCustomItem({
-    resolvedDynamicPricing,
-    props,
-    originalProduct,
-  });
-
-  return client.Cart(cartId).AddCustomItem(customItem);
-}
-
-function constructCustomItem({
-  resolvedDynamicPricing,
-  props,
-  originalProduct,
-}: {
-  resolvedDynamicPricing: any;
-  props: ServerSideAddProductToCartProps;
-  originalProduct: ShopperCatalogResource<ProductResponse>;
-}) {
-  return {
-    type: "custom_item",
-    quantity: props.quantity || 1,
-    price: {
-      amount: resolvedDynamicPricing.product.price.amount,
-      includes_tax: resolvedDynamicPricing.product.price.includes_tax,
-    },
-    description: originalProduct.data.attributes.description,
-    sku: originalProduct.data.attributes.sku,
-    name: originalProduct.data.attributes.name,
-    custom_inputs: {
-      image_url: resolveCustomItemImage(originalProduct),
-      originalQuantityForContract:
-        resolvedDynamicPricing.originalQuantityForContract,
-    },
-  };
-}
-
-function resolveCustomItemImage(
-  originalProduct: ShopperCatalogResource<ProductResponse>,
-) {
-  // @ts-ignore
-  return originalProduct.included?.main_images?.[0].link.href ?? null;
-}
-
-const MOCK_DYNAMIC_PRICING_LOOKUP: Record<string, any> = {
-  "f6330864-1ba3-4798-a662-28407f42e969": {
-    price: {
-      amount: 1099,
-      includes_tax: true,
-    },
-    originalQuantityForContract: 1,
-  },
-};
-
-async function getDynamicPricing(productId: string) {
-  const result = MOCK_DYNAMIC_PRICING_LOOKUP[productId];
-
-  if (result) {
-    return Promise.resolve({
-      success: true,
-      product: result,
-    });
+  if (!resolvedDynamicPricing?.success) {
+    return client
+      .Cart(cartId)
+      .AddProduct(productId, quantity, data, isSku, token, additionalHeaders);
   }
 
-  return Promise.resolve({
+  const cartItemLookUpByProductId = currentCartItems.reduce(
+    (acc, item) => {
+      const productId = item.custom_inputs?.product_id ?? item.product_id;
+
+      return {
+        ...acc,
+        ...(productId && { [productId]: item }),
+      };
+    },
+    {} as Record<string, CartItem>,
+  );
+
+  const customItems = resolvedDynamicPricing.products?.map((item) =>
+    convertDynamicPricingResponseToCustomItem(
+      item,
+      originalProduct,
+      cartItemLookUpByProductId[item.product_id],
+    ),
+  );
+
+  await client.Cart(cartId).RemoveAllItems();
+  return client.Cart(cartId).AddCustomItem(customItems);
+}
+
+export type DynamicPricingRequest = {
+  contract_terms: string;
+  account: string;
+  products: {
+    product_id: string;
+    quantity: number;
+  }[];
+  currency: string;
+};
+
+type DynamicPricingResponse = DynamicPricingResponseItem[];
+
+export async function getDynamicPricing(request: DynamicPricingRequest) {
+  const response = await fetch(
+    "https://hooks.eu-west-1.elasticpathintegrations.com/trigger/SW5zdGFuY2VGbG93Q29uZmlnOjMxOTllY2JhLTc4MjEtNDRkZS1hYzFkLTYxNjkzNDk4YjJkNQ==",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    },
+  );
+
+  const responseBody: DynamicPricingResponse = await response.json();
+  console.log("dynamic pricing response", responseBody);
+
+  if (responseBody) {
+    return {
+      success: true,
+      products: responseBody,
+    };
+  }
+
+  return {
     success: false,
-    product: null,
-  });
+    products: null,
+  };
 }

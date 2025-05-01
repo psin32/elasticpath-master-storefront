@@ -69,8 +69,10 @@ export function usePaymentComplete(
         paymentMethod,
         cardId,
         quoteId,
+        contractId,
       } = data;
       console.log("quoteId", quoteId);
+      console.log("contractId", contractId);
 
       const client = getEpccImplicitClient();
       const cookieValue =
@@ -134,6 +136,7 @@ export function usePaymentComplete(
             ...checkoutProps,
             purchaseOrderNumber,
             quoteId,
+            contractId,
           })
         : mutateConvertToOrderAsAccount({
             contact: {
@@ -143,6 +146,7 @@ export function usePaymentComplete(
             ...checkoutProps,
             purchaseOrderNumber,
             quoteId,
+            contractId,
           }));
 
       let paymentRequest: any = {};
@@ -162,6 +166,10 @@ export function usePaymentComplete(
           payment: {
             gateway: "elastic_path_payments_stripe",
             method: "purchase",
+            options: {
+              payment_method_types: ["card"],
+              automatic_payment_methods: { enabled: false },
+            },
           },
         };
       }

@@ -1,10 +1,15 @@
 "use server";
 
-import { getServerSideCredentialsClientWihoutAccountToken } from "../../lib/epcc-server-side-credentials-client";
+import {
+  getServerSideCredentialsClient,
+  getServerSideCredentialsClientWihoutAccountToken,
+} from "../../lib/epcc-server-side-credentials-client";
 import { cookies } from "next/headers";
 import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
 import { getContractById } from "../../app/(checkout)/create-quote/contracts-service";
 import { revalidateTag } from "next/cache";
+import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit-client";
+import { ContractOrdersResponse } from "../../types/contract-orders";
 
 export async function updateCartWithContract(contractId: string) {
   const cookieStore = cookies();
@@ -118,7 +123,7 @@ export async function removeContractFromCart() {
     return { success: true, cartId };
   } catch (error) {
     console.error("Error removing contract from cart:", error);
-    return { success: false, error: "Failed to remove contract from cart" };
+    return { success: false, error: "Failed to stop shopping with contract" };
   }
 }
 
@@ -170,7 +175,6 @@ export async function getContractDetails(contractId: string) {
 
   try {
     const contract = await getContractById(contractId);
-    console.log("contract", contract);
     return {
       success: true,
       contractName: contract.data.display_name || "Contract",
@@ -179,5 +183,34 @@ export async function getContractDetails(contractId: string) {
   } catch (error) {
     console.error("Error getting contract details:", error);
     return { success: false, contractName: null, error };
+  }
+}
+
+export async function getContractOrders(
+  contractId: string,
+): Promise<ContractOrdersResponse> {
+  if (!contractId) {
+    return { success: false, error: "No contract ID provided" };
+  }
+
+  try {
+    const client = getServerSideCredentialsClient();
+
+    const response = await client.Orders.Filter({
+      eq: {
+        external_ref: contractId,
+      },
+    })
+      .With(["items"])
+      .All();
+
+    // Return the complete response including the data and included items
+    return {
+      success: true,
+      orders: response,
+    };
+  } catch (error) {
+    console.error("Error getting contract orders:", error);
+    return { success: false, error: "Failed to get contract orders" };
   }
 }

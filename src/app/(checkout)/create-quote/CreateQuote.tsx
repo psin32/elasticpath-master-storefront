@@ -51,6 +51,7 @@ export default function AccountSelector({
   activeContracts: {
     data: {
       id: string;
+      contract_ref: string;
       display_name?: string;
       start_date: string;
       end_date?: string;
@@ -83,7 +84,7 @@ export default function AccountSelector({
   const selectedContract = useMemo(
     () =>
       activeContracts.data.find(
-        (contract) => contract.id === currentContractId,
+        (contract) => contract.contract_ref === currentContractId,
       ),
     [activeContracts, currentContractId],
   );
@@ -135,7 +136,7 @@ export default function AccountSelector({
   const createQuote = async () => {
     // Only continue if a contract is selected
     if (!currentContractId || !selectedContract) {
-      setError("Please apply a contract to the cart before creating a quote");
+      setError("Please shop with a contract before creating a quote");
       return;
     }
 
@@ -188,7 +189,7 @@ export default function AccountSelector({
           {selectedContract ? (
             <div>
               <div className="mb-4 font-bold text-xl">
-                Contract Applied to Quote
+                Shopping With Contract for Quote
               </div>
               <div className="grid grid-cols-3 gap-4 text-gray-600">
                 <div className="p-6 flex items-start justify-between border border-gray-200 bg-blue-50 rounded-lg">
@@ -217,8 +218,8 @@ export default function AccountSelector({
               <div className="grid grid-cols-3 gap-4 text-gray-600">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
                   <p className="text-yellow-700">
-                    Please apply a contract to your cart before creating a
-                    quote. You can select a contract from the Contracts page.
+                    Please shop with a contract before creating a quote. You can
+                    shop with a contract from the Contracts page.
                   </p>
                   <Link
                     href="/contracts"
@@ -379,8 +380,7 @@ export default function AccountSelector({
                   </StatusButton>
                   {!selectedContract && (
                     <p className="text-red-500 text-sm mt-2">
-                      Please apply a contract to your cart before creating a
-                      quote
+                      Please shop with a contract before creating a quote
                     </p>
                   )}
                 </div>
