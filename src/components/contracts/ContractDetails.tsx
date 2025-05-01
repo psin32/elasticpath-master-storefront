@@ -95,7 +95,8 @@ export function ContractDetails({
   }, []);
 
   // Check if this is the currently selected contract
-  const isCurrentContractSelected = selectedContractId === contract.id;
+  const isCurrentContractSelected =
+    selectedContractId === contract.contract_ref;
 
   // Initialize quantities for each line item
   useEffect(() => {
@@ -327,7 +328,8 @@ export function ContractDetails({
     // Contract Name
     doc.setFontSize(16);
     doc.text(
-      contract.display_name || `Contract ${contract.id.substring(0, 8)}`,
+      contract.display_name ||
+        `Contract ${contract.contract_ref.substring(0, 8)}`,
       105,
       35,
       { align: "center" },
@@ -343,6 +345,7 @@ export function ContractDetails({
 
     doc.setFontSize(10);
     doc.text(`Contract ID: ${contract.id}`, 25, 70);
+    doc.text(`Contract Ref: ${contract.contract_ref}`, 25, 70);
     doc.text(`Status: ${getContractStatus(contract)}`, 25, 80);
     doc.text(
       `Start Date: ${new Date(contract.start_date).toLocaleDateString()}`,
@@ -428,7 +431,7 @@ export function ContractDetails({
       align: "center",
     });
 
-    doc.save(`Contract_${contract.id.substring(0, 8)}.pdf`);
+    doc.save(`Contract_${contract.contract_ref.substring(0, 8)}.pdf`);
   };
 
   const handleSelectContract = async () => {
@@ -436,7 +439,7 @@ export function ContractDetails({
     try {
       const result = await updateCartWithContract(contract.contract_ref);
       if (result.success) {
-        setSelectedContractId(contract.id);
+        setSelectedContractId(contract.contract_ref);
         toast.success("Contract applied to cart successfully");
         queryClient.invalidateQueries({
           queryKey: ["contract", "active-contract"],
@@ -499,7 +502,7 @@ export function ContractDetails({
               <DocumentTextIcon className="h-6 w-6 text-gray-500 mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">
                 {contract.display_name ||
-                  `Contract ${contract.id.substring(0, 8)}`}
+                  `Contract ${contract.contract_ref.substring(0, 8)}`}
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -564,6 +567,14 @@ export function ContractDetails({
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">Contract ID</dt>
               <dd className="mt-1 text-sm text-gray-900">{contract.id}</dd>
+            </div>
+            <div className="sm:col-span-1">
+              <dt className="text-sm font-medium text-gray-500">
+                Contract Ref
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900">
+                {contract.contract_ref}
+              </dd>
             </div>
             <div className="sm:col-span-1">
               <dt className="text-sm font-medium text-gray-500">Status</dt>
