@@ -134,7 +134,9 @@ export function ContractDetails({
               const response = await calculateContractItemPrice(
                 item.product_id,
                 1,
+                selectedContractId ? undefined : contract.contract_ref,
               );
+              console.log("init pricing response", response);
               if (response.success && response.data) {
                 if (response.data.price) {
                   initialPrices[item.product_id] = {
@@ -211,6 +213,7 @@ export function ContractDetails({
         const response = await calculateContractItemPrice(
           productId,
           newQuantity,
+          selectedContractId ? undefined : contract.contract_ref,
         );
 
         if (response.success && response.data) {

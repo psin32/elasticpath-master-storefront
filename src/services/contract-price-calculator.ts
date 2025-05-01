@@ -1,6 +1,16 @@
 "use server";
 
+import { cookies } from "next/headers";
+import { getServerSideImplicitClient } from "../lib/epcc-server-side-implicit-client";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "../lib/retrieve-account-member-credentials";
 import { getDynamicPricing } from "./add-to-cart";
+import { combineProductQuantities } from "./cart-utils";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../lib/cookie-constants";
+import { redirect } from "next/navigation";
+import { COOKIE_PREFIX_KEY } from "../lib/resolve-cart-env";
 
 export type PriceCalculationResponse = {
   success: boolean;
@@ -28,36 +38,79 @@ export type PriceCalculationResponse = {
 export async function calculateContractItemPrice(
   productId: string,
   quantity: number,
+  contractRef?: string,
 ): Promise<PriceCalculationResponse> {
   try {
-    // Use the server-side dynamic pricing function
-    const pricingResult = await getDynamicPricing(productId);
+    const client = getServerSideImplicitClient();
+    const cookieStore = cookies();
 
-    if (pricingResult.success && pricingResult.product) {
-      const basePrice = pricingResult.product.price.amount;
-      const includesTax = pricingResult.product.price.includes_tax;
+    const accountMemberCookie = retrieveAccountMemberCredentials(
+      cookieStore,
+      ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+    );
 
-      // Apply volume discounts
-      // In a real implementation, this would follow your business logic
-      const volumeDiscount = quantity > 5 ? 0.9 : quantity > 2 ? 0.95 : 1;
-      const calculatedAmount = Math.round(
-        basePrice * quantity * volumeDiscount,
-      );
+    if (!accountMemberCookie) {
+      redirect("/login?returnUrl=/checkout");
+      throw new Error("No account member cookie found");
+    }
 
+    const selectedAccount = getSelectedAccount(accountMemberCookie);
+
+    let mappedCartItems: { product_id: string; quantity: number }[] = [];
+    let contractTerm = contractRef;
+    if (!contractRef) {
+      const cartCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_cart`);
+      const cart = await client.Cart(cartCookie?.value).With("items").Get();
+
+      if (!cart) {
+        throw new Error("No cart found");
+      }
+
+      const currentCartItems = cart.included?.items ?? [];
+      mappedCartItems = currentCartItems.map((item) => ({
+        product_id: item.product_id ?? item.custom_inputs?.product_id,
+        quantity: item.quantity,
+      }));
+
+      // @ts-ignore
+      const customAttributes = cart?.data?.custom_attributes || {};
+
+      contractTerm = customAttributes?.contract_term_id?.value;
+    }
+
+    // Combine quantities for matching products
+    const combinedProducts = combineProductQuantities(
+      mappedCartItems,
+      productId,
+      quantity ?? 1,
+    );
+
+    const resolvedDynamicPricing = await getDynamicPricing({
+      contract_terms: contractTerm ?? "",
+      account: selectedAccount.account_id,
+      products: combinedProducts,
+    });
+
+    // find the product in the resolvedDynamicPricing.products array
+    const product = resolvedDynamicPricing.products?.find(
+      (product) => product.product_id === productId,
+    );
+
+    if (resolvedDynamicPricing.success && product) {
       return {
         success: true,
         data: {
           price: {
-            amount: calculatedAmount,
+            amount: product.price * quantity,
             currency: "USD",
-            includes_tax: includesTax,
+            includes_tax: true,
           },
           breakdown: {
-            basePrice: basePrice,
+            basePrice: product.listPrice,
             quantity: quantity,
-            discount: (1 - volumeDiscount) * 100,
-            totalBeforeDiscount: basePrice * quantity,
-            totalAfterDiscount: calculatedAmount,
+            discount: product.totalPartnerDiscountPercentage,
+            totalBeforeDiscount: product..partnerPrice,
+            totalAfterDiscount: product.price,
           },
         },
       };
