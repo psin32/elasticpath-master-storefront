@@ -210,48 +210,58 @@ export function ContractOrderHistoryClient({
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {order.relationships?.items?.data.map((itemRef) => {
-                              // Get the full item data from our mapping
-                              const item = itemsMap[itemRef.id];
+                            {order.relationships?.items?.data
+                              .filter((itemRef) => {
+                                const item = itemsMap[itemRef.id];
+                                // Exclude items that don't exist or have SKUs starting with "__shipping"
+                                return (
+                                  item &&
+                                  !(
+                                    item.sku &&
+                                    item.sku.startsWith("__shipping")
+                                  )
+                                );
+                              })
+                              .map((itemRef) => {
+                                // Get the full item data from our mapping
+                                const item = itemsMap[itemRef.id];
 
-                              if (!item) return null;
-
-                              return (
-                                <tr key={item.id} className="text-xs">
-                                  <td className="px-4 py-2 whitespace-nowrap text-gray-900">
-                                    {item.name || "Unnamed Product"}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-gray-500">
-                                    {item.sku || "N/A"}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-gray-500">
-                                    {item.quantity || 0}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-gray-500">
-                                    {item.unit_price
-                                      ? formatPrice(
-                                          item.unit_price.amount,
-                                          item.unit_price.currency,
-                                        )
-                                      : "N/A"}
-                                  </td>
-                                  <td className="px-4 py-2 whitespace-nowrap text-gray-500">
-                                    {item.unit_price && item.quantity
-                                      ? formatPrice(
-                                          item.unit_price.amount *
-                                            item.quantity,
-                                          item.unit_price.currency,
-                                        )
-                                      : item.value
+                                return (
+                                  <tr key={item.id} className="text-xs">
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-900">
+                                      {item.name || "Unnamed Product"}
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                                      {item.sku || "N/A"}
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                                      {item.quantity || 0}
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                                      {item.unit_price
                                         ? formatPrice(
-                                            item.value.amount,
-                                            item.value.currency,
+                                            item.unit_price.amount,
+                                            item.unit_price.currency,
                                           )
                                         : "N/A"}
-                                  </td>
-                                </tr>
-                              );
-                            })}
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                                      {item.unit_price && item.quantity
+                                        ? formatPrice(
+                                            item.unit_price.amount *
+                                              item.quantity,
+                                            item.unit_price.currency,
+                                          )
+                                        : item.value
+                                          ? formatPrice(
+                                              item.value.amount,
+                                              item.value.currency,
+                                            )
+                                          : "N/A"}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
                           </tbody>
                         </table>
                       </div>
