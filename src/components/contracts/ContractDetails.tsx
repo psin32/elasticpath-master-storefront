@@ -440,7 +440,9 @@ export function ContractDetails({
       const result = await updateCartWithContract(contract.contract_ref);
       if (result.success) {
         setSelectedContractId(contract.contract_ref);
-        toast.success("Now shopping with contract successfully");
+        toast.success(
+          "Now shopping with contract successfully. See the banner at the top of the page.",
+        );
         queryClient.invalidateQueries({
           queryKey: ["contract", "active-contract"],
         });

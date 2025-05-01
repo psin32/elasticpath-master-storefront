@@ -129,33 +129,6 @@ export function Contracts() {
         <div className="flex flex-col gap-10 p-5 lg:p-24 w-full">
           <div className="flex justify-between items-center">
             <h1 className="text-4xl font-medium">Contract Terms</h1>
-
-            {/* Display selected contract information */}
-            {selectedContractId && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <div className="flex items-center mb-2">
-                  <CheckCircleIcon className="h-5 w-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-blue-800">
-                    Currently Shopping With Contract
-                  </span>
-                </div>
-                <div className="text-xs text-blue-600">
-                  {(selectedContractId &&
-                    contracts.find((c) => c.contract_ref === selectedContractId)
-                      ?.display_name) ||
-                    "Contract ID: " + selectedContractId}
-                </div>
-                <StatusButton
-                  variant="secondary"
-                  className="mt-2 text-xs py-1 px-2"
-                  onClick={handleRemoveContract}
-                  disabled={actionLoading}
-                  status={actionLoading ? "loading" : "idle"}
-                >
-                  Stop Shopping With Contract
-                </StatusButton>
-              </div>
-            )}
           </div>
 
           {loading ? (

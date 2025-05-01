@@ -4,13 +4,19 @@ import {
   DocumentCheckIcon,
   ShoppingBagIcon,
   ArrowRightIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { getContractDisplayData } from "../../app/(checkout)/create-quote/contracts-service";
-import { getCurrentCartContract } from "./actions";
+import { getCurrentCartContract, removeContractFromCart } from "./actions";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function ContractBanner() {
+  const [isRemoving, setIsRemoving] = useState(false);
+  const queryClient = useQueryClient();
+
   const {
     data: contract,
     isLoading,
@@ -27,6 +33,26 @@ export default function ContractBanner() {
       return getContractDisplayData(cartContractResponse.contractId);
     },
   });
+
+  const handleStopShopping = async () => {
+    setIsRemoving(true);
+    try {
+      const result = await removeContractFromCart();
+      if (result.success) {
+        toast.success("No longer shopping with contract");
+        queryClient.invalidateQueries({
+          queryKey: ["contract", "active-contract"],
+        });
+      } else {
+        toast.error(result.error || "Failed to stop shopping with contract");
+      }
+    } catch (error) {
+      console.error("Error removing contract:", error);
+      toast.error("Failed to stop shopping with contract");
+    } finally {
+      setIsRemoving(false);
+    }
+  };
 
   if (isLoading || isRefetching) {
     return (
@@ -49,7 +75,13 @@ export default function ContractBanner() {
           <div className="flex items-center">
             <ShoppingBagIcon className="h-4 w-4 mr-2 text-gray-500" />
             <span className="text-gray-600">
-              Shop with specific contracts to access custom pricing and products
+              <span className="hidden sm:inline">
+                Shop with specific contracts to access custom pricing and
+                products
+              </span>
+              <span className="sm:hidden">
+                Shop with contracts for custom pricing
+              </span>
             </span>
           </div>
           <Link
@@ -71,16 +103,39 @@ export default function ContractBanner() {
           <DocumentCheckIcon className="h-4 w-4 mr-2 text-green-600" />
           <span className="text-green-700">
             <span className="font-medium">Currently shopping with:</span>{" "}
-            {contract?.name || "Contract"}
+            <span className="hidden xs:inline">
+              {contract?.name || "Contract"}
+            </span>
+            <span className="xs:hidden">Contract</span>
           </span>
         </div>
-        <Link
-          href="/contracts"
-          className="flex items-center gap-1 text-green-700 hover:text-green-800 font-medium transition-colors"
-        >
-          <span>Manage Contracts</span>
-          <ArrowRightIcon className="h-3 w-3" />
-        </Link>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={handleStopShopping}
+            disabled={isRemoving}
+            className="flex items-center gap-1 text-red-600 hover:text-red-800 font-medium transition-colors"
+          >
+            {isRemoving ? (
+              <>
+                <div className="h-3 w-3 rounded-full border-2 border-red-600 border-t-transparent animate-spin mr-1"></div>
+                <span>Stopping...</span>
+              </>
+            ) : (
+              <>
+                <XMarkIcon className="h-3 w-3" />
+                <span>Stop Shopping</span>
+              </>
+            )}
+          </button>
+          <span className="text-gray-300">|</span>
+          <Link
+            href="/contracts"
+            className="flex items-center gap-1 text-green-700 hover:text-green-800 font-medium transition-colors"
+          >
+            <span>Manage Contracts</span>
+            <ArrowRightIcon className="h-3 w-3" />
+          </Link>
+        </div>
       </div>
     </div>
   );
