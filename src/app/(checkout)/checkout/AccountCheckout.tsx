@@ -22,12 +22,14 @@ type AccountCheckoutProps = {
   stripeCustomerId?: string | undefined;
   cart?: any;
   quoteId?: string;
+  contractId?: string;
 };
 
 export async function AccountCheckout({
   cart,
   stripeCustomerId,
   quoteId,
+  contractId,
 }: AccountCheckoutProps) {
   const { enableBuilderIO, enabledStoryblok } = cmsConfig;
   const cookieStore = cookies();
@@ -96,6 +98,7 @@ export async function AccountCheckout({
               <PaymentForm
                 stripeCustomerId={stripeCustomerId}
                 quoteId={quoteId}
+                contractId={contractId}
               />
             </>
           )}
