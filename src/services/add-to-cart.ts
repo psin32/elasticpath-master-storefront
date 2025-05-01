@@ -65,22 +65,32 @@ export async function serverSideAddProductToCart(
 
   const contractTerm = customAttributes?.contract_term_id?.value;
 
-  // CHeck if mappedCartItems has productId
+  // Combine quantities for matching products
+  const productQuantityMap = new Map<string, number>();
 
-  const filteredMappedCartItems = mappedCartItems.filter(
-    (item) => item.product_id !== productId,
+  // First process existing cart items
+  mappedCartItems.forEach((item) => {
+    if (!item.product_id) return;
+    const currentQuantity = productQuantityMap.get(item.product_id) || 0;
+    productQuantityMap.set(item.product_id, currentQuantity + item.quantity);
+  });
+
+  // Then add/update the new product quantity
+  const currentQuantity = productQuantityMap.get(productId) || 0;
+  productQuantityMap.set(productId, currentQuantity + (quantity ?? 1));
+
+  // Create combined products array for dynamic pricing
+  const combinedProducts = Array.from(productQuantityMap.entries()).map(
+    ([product_id, quantity]) => ({
+      product_id,
+      quantity,
+    }),
   );
 
   const resolvedDynamicPricing = await getDynamicPricing({
     contract_terms: contractTerm,
     account: selectedAccount.account_id,
-    products: [
-      ...mappedCartItems,
-      {
-        product_id: productId,
-        quantity: quantity ?? 1,
-      },
-    ],
+    products: combinedProducts,
   });
 
   const originalProduct = await client.ShopperCatalog.Products.With(
