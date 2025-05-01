@@ -33,7 +33,6 @@ export async function getAllActiveContracts() {
 export async function getContractDisplayData(contractId: string) {
   if (!contractId) return null;
   const contract = await getContractById(contractId);
-  console.log("contract", contract);
   return {
     id: contract.data.id,
     name: contract.data.display_name,
@@ -70,12 +69,6 @@ export async function getContractById(contractId: string) {
       },
     },
   );
-
-  console.log(
-    "url: ",
-    `https://${client.config.host}/v2/extensions/contract-terms/${contractId}?filter=eq(elastic_path_account_id,${accountId})`,
-  );
-  console.log("accessToken", accessToken);
 
   const data = await response.json().then((data) => {
     console.log("response data", data);

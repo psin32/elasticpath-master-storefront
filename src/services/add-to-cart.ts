@@ -15,6 +15,11 @@ import { cookies } from "next/headers";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../lib/cookie-constants";
 import { redirect } from "next/navigation";
 import { COOKIE_PREFIX_KEY } from "../lib/resolve-cart-env";
+import {
+  combineProductQuantities,
+  convertDynamicPricingResponseToCustomItem,
+  DynamicPricingResponseItem,
+} from "./cart-utils";
 
 export type ServerSideAddProductToCartProps = {
   cartId: string;
@@ -66,25 +71,10 @@ export async function serverSideAddProductToCart(
   const contractTerm = customAttributes?.contract_term_id?.value;
 
   // Combine quantities for matching products
-  const productQuantityMap = new Map<string, number>();
-
-  // First process existing cart items
-  mappedCartItems.forEach((item) => {
-    if (!item.product_id) return;
-    const currentQuantity = productQuantityMap.get(item.product_id) || 0;
-    productQuantityMap.set(item.product_id, currentQuantity + item.quantity);
-  });
-
-  // Then add/update the new product quantity
-  const currentQuantity = productQuantityMap.get(productId) || 0;
-  productQuantityMap.set(productId, currentQuantity + (quantity ?? 1));
-
-  // Create combined products array for dynamic pricing
-  const combinedProducts = Array.from(productQuantityMap.entries()).map(
-    ([product_id, quantity]) => ({
-      product_id,
-      quantity,
-    }),
+  const combinedProducts = combineProductQuantities(
+    mappedCartItems,
+    productId,
+    quantity ?? 1,
   );
 
   const resolvedDynamicPricing = await getDynamicPricing({
@@ -125,56 +115,9 @@ export async function serverSideAddProductToCart(
     ),
   );
 
-  console.log("original customItems", currentCartItems);
-  console.log("latest customItems", customItems);
-
   await client.Cart(cartId).RemoveAllItems();
   return client.Cart(cartId).AddCustomItem(customItems);
 }
-
-function constructCustomItem({
-  resolvedDynamicPricing,
-  props,
-  originalProduct,
-}: {
-  resolvedDynamicPricing: any;
-  props: ServerSideAddProductToCartProps;
-  originalProduct: ShopperCatalogResource<ProductResponse>;
-}) {
-  return {
-    type: "custom_item",
-    quantity: props.quantity || 1,
-    price: {
-      amount: resolvedDynamicPricing.product.price.amount,
-      includes_tax: resolvedDynamicPricing.product.price.includes_tax,
-    },
-    description: originalProduct.data.attributes.description,
-    sku: originalProduct.data.attributes.sku,
-    name: originalProduct.data.attributes.name,
-    custom_inputs: {
-      image_url: resolveCustomItemImage(originalProduct),
-      originalQuantityForContract:
-        resolvedDynamicPricing.originalQuantityForContract,
-    },
-  };
-}
-
-function resolveCustomItemImage(
-  originalProduct: ShopperCatalogResource<ProductResponse>,
-) {
-  // @ts-ignore
-  return originalProduct.included?.main_images?.[0].link.href ?? null;
-}
-
-const MOCK_DYNAMIC_PRICING_LOOKUP: Record<string, any> = {
-  "f6330864-1ba3-4798-a662-28407f42e969": {
-    price: {
-      amount: 1099,
-      includes_tax: true,
-    },
-    originalQuantityForContract: 1,
-  },
-};
 
 export type DynamicPricingRequest = {
   contract_terms: string;
@@ -184,6 +127,8 @@ export type DynamicPricingRequest = {
     quantity: number;
   }[];
 };
+
+type DynamicPricingResponse = DynamicPricingResponseItem[];
 
 export async function getDynamicPricing(request: DynamicPricingRequest) {
   console.log("dynamic pricing request", request);
@@ -212,50 +157,5 @@ export async function getDynamicPricing(request: DynamicPricingRequest) {
   return {
     success: false,
     products: null,
-  };
-}
-
-type DynamicPricingResponse = [
-  {
-    product_id: string;
-    sku: string;
-    quantity: number;
-    price: number;
-    listPrice: number;
-    regularPrice: number;
-    partnerPrice: number;
-    totalPartnerDiscountPercentage: number;
-    totalDiscounted: number;
-  },
-];
-
-function convertDynamicPricingResponseToCustomItem(
-  response: DynamicPricingResponse[number],
-  originalProduct: ShopperCatalogResource<ProductResponse>,
-  originalCartItem?: CartItem,
-) {
-  return {
-    type: "custom_item",
-    quantity: response.quantity || 1,
-    price: {
-      amount: response.price,
-    },
-    description:
-      originalCartItem?.description ??
-      originalProduct.data.attributes.description,
-    sku: originalCartItem?.sku ?? originalProduct.data.attributes.sku,
-    name: originalCartItem?.name ?? originalProduct.data.attributes.name,
-    custom_inputs: {
-      image_url:
-        originalCartItem?.custom_inputs?.image_url ??
-        resolveCustomItemImage(originalProduct),
-      originalQuantityForContract:
-        originalCartItem?.custom_inputs?.originalQuantityForContract ?? 1,
-      product_id:
-        originalCartItem?.custom_inputs?.product_id ?? originalProduct.data.id,
-      partnerPrice: response.partnerPrice,
-      totalPartnerDiscountPercentage: response.totalPartnerDiscountPercentage,
-      totalDiscounted: response.totalDiscounted,
-    },
   };
 }
