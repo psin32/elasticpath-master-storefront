@@ -26,6 +26,15 @@ export type PriceCalculationResponse = {
       discount: number;
       totalBeforeDiscount: number;
       totalAfterDiscount: number;
+      partnerPrice: number;
+      totalPartnerDiscountPercentage: number;
+      totalDiscounted: number;
+      listPrice: number;
+      regularPrice: number;
+      partnerPriceTotal: number;
+      listPriceTotal: number;
+      regularPriceTotal: number;
+      priceTotal: number;
     };
   };
   error?: string;
@@ -103,7 +112,7 @@ export async function calculateContractItemPrice(
         success: true,
         data: {
           price: {
-            amount: product.price * quantity,
+            amount: product.priceTotal,
             currency: currency ?? "USD",
             includes_tax: true,
           },
@@ -113,6 +122,16 @@ export async function calculateContractItemPrice(
             discount: product.totalPartnerDiscountPercentage,
             totalBeforeDiscount: product.listPrice * quantity,
             totalAfterDiscount: product.price * quantity,
+            partnerPrice: product.partnerPrice,
+            totalPartnerDiscountPercentage:
+              product.totalPartnerDiscountPercentage,
+            totalDiscounted: product.totalDiscounted,
+            listPrice: product.listPrice,
+            regularPrice: product.regularPrice,
+            partnerPriceTotal: product.partnerPriceTotal,
+            listPriceTotal: product.listPriceTotal,
+            regularPriceTotal: product.regularPriceTotal,
+            priceTotal: product.priceTotal,
           },
         },
       };
