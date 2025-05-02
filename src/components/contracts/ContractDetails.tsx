@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   formatIsoDateString,
   formatIsoTimeString,
@@ -19,6 +19,9 @@ import {
   PlusCircleIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
+  PencilSquareIcon,
+  XMarkIcon,
+  ShoppingCartIcon,
 } from "@heroicons/react/24/outline";
 import { jsPDF } from "jspdf";
 import {
@@ -69,6 +72,7 @@ export function ContractDetails({
         currency: string;
         includes_tax?: boolean;
         breakdown?: any;
+        error?: boolean;
       }
     >
   >({});
@@ -82,6 +86,17 @@ export function ContractDetails({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const { state } = useCart() as any;
   const hasCartItems = state?.items?.length > 0;
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedLineItem, setSelectedLineItem] =
+    useState<ContractLineItem | null>(null);
+  const [amendQuantity, setAmendQuantity] = useState(1);
+  const [isAmending, setIsAmending] = useState(false);
+
+  // Add debounce timer refs
+  const priceUpdateTimers = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Add a ref to track if initial prices have been loaded
+  const initialPricesLoaded = useRef(false);
 
   // Check if this contract is currently selected
   useEffect(() => {
@@ -103,97 +118,6 @@ export function ContractDetails({
   const isCurrentContractSelected =
     selectedContractId === contract.contract_ref;
 
-  // Initialize quantities for each line item
-  useEffect(() => {
-    if (contract?.line_items?.data) {
-      const quantities: Record<string, number> = {};
-      const loadingState: Record<string, boolean> = {};
-      contract.line_items.data.forEach((item: ContractLineItem) => {
-        quantities[item.product_id] = 1;
-        loadingState[item.product_id] = true; // Start with loading state
-      });
-      setLineItemQuantities(quantities);
-      setIsLoadingPrices(loadingState);
-
-      // Initialize price data by calling the server action for each product
-      const fetchInitialPrices = async () => {
-        const initialPrices: Record<
-          string,
-          {
-            amount: number;
-            currency: string;
-            includes_tax?: boolean;
-            breakdown?: any;
-          }
-        > = {};
-
-        // Fetch prices for all items in parallel
-        await Promise.all(
-          contract.line_items.data.map(async (item: ContractLineItem) => {
-            try {
-              const response = await calculateContractItemPrice(
-                item.product_id,
-                1,
-                selectedContractId ? undefined : contract.contract_ref,
-              );
-              console.log("init pricing response", response);
-              if (response.success && response.data) {
-                if (response.data.price) {
-                  initialPrices[item.product_id] = {
-                    ...response.data.price,
-                    breakdown: response.data.breakdown || undefined,
-                  };
-                }
-              } else {
-                // Fallback to product data if dynamic pricing fails
-                const product = productLookup[item.product_id];
-                if (product?.meta?.display_price?.with_tax) {
-                  const price = product.meta.display_price.with_tax;
-                  initialPrices[item.product_id] = {
-                    amount: price.amount || 0,
-                    currency: price.currency || "USD",
-                  };
-                } else {
-                  initialPrices[item.product_id] = {
-                    amount: 0,
-                    currency: "USD",
-                  };
-                }
-              }
-            } catch (error) {
-              console.error(
-                `Error fetching price for ${item.product_id}:`,
-                error,
-              );
-              // Fallback to product data if available or set default
-              const product = productLookup[item.product_id];
-              if (product?.meta?.display_price?.with_tax) {
-                const price = product.meta.display_price.with_tax;
-                initialPrices[item.product_id] = {
-                  amount: price.amount || 0,
-                  currency: price.currency || "USD",
-                };
-              } else {
-                initialPrices[item.product_id] = { amount: 0, currency: "USD" };
-              }
-            }
-          }),
-        );
-
-        setPricesByProductId(initialPrices);
-
-        // Update loading states to false after all prices are fetched
-        const updatedLoadingState: Record<string, boolean> = {};
-        contract.line_items.data.forEach((item: ContractLineItem) => {
-          updatedLoadingState[item.product_id] = false;
-        });
-        setIsLoadingPrices(updatedLoadingState);
-      };
-
-      fetchInitialPrices();
-    }
-  }, [contract, productLookup]);
-
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     setLineItemQuantities((prev) => ({
@@ -207,54 +131,62 @@ export function ContractDetails({
       [productId]: true,
     }));
 
-    // Call the server action for price calculation
-    const fetchUpdatedPrice = async () => {
-      try {
-        const response = await calculateContractItemPrice(
-          productId,
-          newQuantity,
-          selectedContractId ? undefined : contract.contract_ref,
-        );
+    // Clear any existing timer for this product
+    if (priceUpdateTimers.current[productId]) {
+      clearTimeout(priceUpdateTimers.current[productId]);
+    }
 
-        if (response.success && response.data) {
-          const priceData = response.data.price;
-          const breakdownData = response.data.breakdown;
+    // Set a new timer for debouncing
+    priceUpdateTimers.current[productId] = setTimeout(() => {
+      // Call the server action for price calculation
+      const fetchUpdatedPrice = async () => {
+        try {
+          const response = await calculateContractItemPrice(
+            productId,
+            newQuantity,
+            selectedContractId ? undefined : contract.contract_ref,
+          );
 
-          if (priceData) {
-            setPricesByProductId((prev) => ({
-              ...prev,
-              [productId]: {
-                ...priceData,
-                breakdown: breakdownData || undefined,
-              },
-            }));
+          if (response.success && response.data) {
+            const priceData = response.data.price;
+            const breakdownData = response.data.breakdown;
+
+            if (priceData) {
+              setPricesByProductId((prev) => ({
+                ...prev,
+                [productId]: {
+                  ...priceData,
+                  breakdown: breakdownData || undefined,
+                },
+              }));
+            } else {
+              // If price data is missing, fall back to scaling
+              scaleBasePriceByQuantity(productId, newQuantity);
+            }
           } else {
-            // If price data is missing, fall back to scaling
+            // If dynamic pricing fails, scale the current price by quantity
             scaleBasePriceByQuantity(productId, newQuantity);
           }
-        } else {
-          // If dynamic pricing fails, scale the current price by quantity
+        } catch (error) {
+          console.error(`Error calculating price for ${productId}:`, error);
+          toast.error("Could not calculate updated price", {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+          });
+          // Attempt to scale the price as a fallback
           scaleBasePriceByQuantity(productId, newQuantity);
+        } finally {
+          // Set loading state back to false
+          setIsLoadingPrices((prev) => ({
+            ...prev,
+            [productId]: false,
+          }));
         }
-      } catch (error) {
-        console.error(`Error calculating price for ${productId}:`, error);
-        toast.error("Could not calculate updated price", {
-          position: "top-center",
-          autoClose: 2000,
-          hideProgressBar: false,
-        });
-        // Attempt to scale the price as a fallback
-        scaleBasePriceByQuantity(productId, newQuantity);
-      } finally {
-        // Set loading state back to false
-        setIsLoadingPrices((prev) => ({
-          ...prev,
-          [productId]: false,
-        }));
-      }
-    };
+      };
 
-    fetchUpdatedPrice();
+      fetchUpdatedPrice();
+    }, 500); // 500ms debounce delay
   };
 
   // Helper function to scale the base price by quantity (fallback method)
@@ -278,7 +210,7 @@ export function ContractDetails({
   };
 
   const handleAddToCart = (productId: string) => {
-    const quantity = lineItemQuantities[productId] || 1;
+    const quantity = amendQuantity;
     const data = {
       custom_inputs: {
         additional_information: [],
@@ -288,6 +220,9 @@ export function ContractDetails({
     addToCart(
       { productId, quantity, data },
       {
+        onSuccess: () => {
+          closeOrderDrawer();
+        },
         onError: (response: any) => {
           if (response?.errors) {
             toast.error(response?.errors?.[0].detail, {
@@ -295,7 +230,14 @@ export function ContractDetails({
               autoClose: 2000,
               hideProgressBar: false,
             });
+          } else {
+            toast.error("Failed to add to cart", {
+              position: "top-center",
+              autoClose: 2000,
+              hideProgressBar: false,
+            });
           }
+          // Drawer stays open on error
         },
       },
     );
@@ -472,6 +414,196 @@ export function ContractDetails({
     } finally {
       setIsSelectingContract(false);
     }
+  };
+
+  const openOrderDrawer = (item: ContractLineItem) => {
+    // If drawer is already open with the same item, just return
+    if (drawerOpen && selectedLineItem?.product_id === item.product_id) {
+      return;
+    }
+
+    setSelectedLineItem(item);
+    // Always start with quantity of 1 for adding more licenses
+    setAmendQuantity(1);
+    setDrawerOpen(true);
+
+    // Set loading state while we fetch new price
+    setIsLoadingPrices((prev) => ({
+      ...prev,
+      [item.product_id]: true,
+    }));
+
+    // No need to debounce here since this is triggered by a button click, not rapid user input
+    // But we'll use the same pattern for consistency in error handling
+    const fetchDrawerPrice = async () => {
+      try {
+        const response = await calculateContractItemPrice(
+          item.product_id,
+          1, // Always use 1 as the initial quantity
+          selectedContractId ? undefined : contract.contract_ref,
+        );
+        if (response.success && response.data) {
+          const priceData = response.data.price;
+          const breakdownData = response.data.breakdown;
+
+          setPricesByProductId((prev) => ({
+            ...prev,
+            [item.product_id]: {
+              ...priceData,
+              breakdown: breakdownData || undefined,
+            },
+          }));
+        } else {
+          // Instead of scaling, set an error flag or default price indicator
+          setPricesByProductId((prev) => ({
+            ...prev,
+            [item.product_id]: {
+              amount: 0,
+              currency: "USD",
+              includes_tax: false,
+              error: true,
+            },
+          }));
+
+          console.error("Could not calculate price from server");
+        }
+      } catch (error) {
+        console.error(`Error calculating price for ${item.product_id}:`, error);
+        // Instead of scaling, set an error flag
+        setPricesByProductId((prev) => ({
+          ...prev,
+          [item.product_id]: {
+            amount: 0,
+            currency: "USD",
+            includes_tax: false,
+            error: true,
+          },
+        }));
+      } finally {
+        setIsLoadingPrices((prev) => ({
+          ...prev,
+          [item.product_id]: false,
+        }));
+      }
+    };
+
+    fetchDrawerPrice();
+  };
+
+  const closeOrderDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedLineItem(null);
+  };
+
+  const handleAmendContract = async () => {
+    if (!selectedLineItem) return;
+
+    setIsAmending(true);
+    try {
+      // Show success message
+      toast.success("Contract line item successfully amended!");
+      closeOrderDrawer();
+
+      // Refresh the contract data
+      // You would implement this to refresh the contract data from the server
+    } catch (error) {
+      console.error("Error amending contract:", error);
+      toast.error("Failed to amend contract line item");
+    } finally {
+      setIsAmending(false);
+    }
+  };
+
+  // Update the quantity input handler in the drawer to recalculate price when changed
+  const handleAmendQuantityChange = (newQuantity: number) => {
+    if (newQuantity < 1 || !selectedLineItem) return;
+
+    setAmendQuantity(newQuantity);
+
+    // Update loading state while we fetch new price
+    setIsLoadingPrices((prev) => ({
+      ...prev,
+      [selectedLineItem.product_id]: true,
+    }));
+
+    // Clear any existing timer for this product
+    if (priceUpdateTimers.current[selectedLineItem.product_id]) {
+      clearTimeout(priceUpdateTimers.current[selectedLineItem.product_id]);
+    }
+
+    // Set a new timer for debouncing
+    priceUpdateTimers.current[selectedLineItem.product_id] = setTimeout(() => {
+      // Call the server action for price calculation
+      const fetchUpdatedPrice = async () => {
+        try {
+          const response = await calculateContractItemPrice(
+            selectedLineItem.product_id,
+            newQuantity,
+            selectedContractId ? undefined : contract.contract_ref,
+          );
+
+          if (response.success && response.data) {
+            const priceData = response.data.price;
+            const breakdownData = response.data.breakdown;
+
+            setPricesByProductId((prev) => ({
+              ...prev,
+              [selectedLineItem.product_id]: {
+                ...priceData,
+                breakdown: breakdownData || undefined,
+                error: false,
+              },
+            }));
+          } else {
+            // Instead of scaling, set an error flag
+            setPricesByProductId((prev) => ({
+              ...prev,
+              [selectedLineItem.product_id]: {
+                amount: 0,
+                currency: "USD",
+                includes_tax: false,
+                error: true,
+              },
+            }));
+
+            toast.error("Could not calculate price for this quantity", {
+              position: "top-center",
+              autoClose: 2000,
+              hideProgressBar: false,
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error calculating price for ${selectedLineItem.product_id}:`,
+            error,
+          );
+          toast.error("Could not calculate updated price", {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+          });
+
+          // Instead of scaling, set an error flag
+          setPricesByProductId((prev) => ({
+            ...prev,
+            [selectedLineItem.product_id]: {
+              amount: 0,
+              currency: "USD",
+              includes_tax: false,
+              error: true,
+            },
+          }));
+        } finally {
+          // Set loading state back to false
+          setIsLoadingPrices((prev) => ({
+            ...prev,
+            [selectedLineItem.product_id]: false,
+          }));
+        }
+      };
+
+      fetchUpdatedPrice();
+    }, 500); // 500ms debounce delay
   };
 
   if (!contract) {
@@ -690,13 +822,7 @@ export function ContractDetails({
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Price
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Add to Cart
+                        Order
                       </th>
                     </tr>
                   </thead>
@@ -722,157 +848,13 @@ export function ContractDetails({
                             {item.quantity}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {isLoadingPrices[item.product_id] ? (
-                              <div className="flex items-center">
-                                <svg
-                                  className="animate-spin h-4 w-4 mr-2 text-blue-500"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Calculating...
-                              </div>
-                            ) : (
-                              <div>
-                                {pricesByProductId[item.product_id] ? (
-                                  <div>
-                                    <div className="font-medium">
-                                      {formatPrice(
-                                        pricesByProductId[item.product_id]
-                                          .amount,
-                                        pricesByProductId[item.product_id]
-                                          .currency,
-                                      )}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      for{" "}
-                                      {lineItemQuantities[item.product_id] || 1}{" "}
-                                      units
-                                    </div>
-                                    {pricesByProductId[item.product_id]
-                                      .breakdown?.discount > 0 && (
-                                      <div className="text-xs text-green-600 mt-1">
-                                        {
-                                          pricesByProductId[item.product_id]
-                                            .breakdown.discount
-                                        }
-                                        % volume discount applied
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  "N/A"
-                                )}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {isCurrentContractSelected ? (
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-start rounded-lg border border-black/10 w-32">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(
-                                        item.product_id,
-                                        (lineItemQuantities[item.product_id] ||
-                                          1) - 1,
-                                      )
-                                    }
-                                    className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
-                                  >
-                                    <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
-                                  </button>
-                                  <svg
-                                    width="2"
-                                    height="36"
-                                    viewBox="0 0 2 36"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      d="M1 0V36"
-                                      stroke="black"
-                                      strokeOpacity="0.1"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-
-                                  <input
-                                    type="number"
-                                    placeholder="Qty"
-                                    className="border-none focus-visible:ring-0 focus-visible:border-black w-14 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    value={
-                                      lineItemQuantities[item.product_id] || 1
-                                    }
-                                    onChange={(e) =>
-                                      handleQuantityChange(
-                                        item.product_id,
-                                        parseInt(e.target.value) || 1,
-                                      )
-                                    }
-                                    min="1"
-                                  />
-
-                                  <svg
-                                    width="2"
-                                    height="36"
-                                    viewBox="0 0 2 36"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      d="M1 0V36"
-                                      stroke="black"
-                                      strokeOpacity="0.1"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuantityChange(
-                                        item.product_id,
-                                        (lineItemQuantities[item.product_id] ||
-                                          1) + 1,
-                                      )
-                                    }
-                                    className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
-                                  >
-                                    <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
-                                  </button>
-                                </div>
-                                <button
-                                  onClick={() =>
-                                    handleAddToCart(item.product_id)
-                                  }
-                                  disabled={isAddingToCart}
-                                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
-                                >
-                                  Add to Cart
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="text-sm text-gray-500 italic">
-                                Shop with contract first
-                              </div>
-                            )}
+                            <button
+                              onClick={() => openOrderDrawer(item)}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              <ShoppingCartIcon className="h-4 w-4 mr-1" />
+                              Add more
+                            </button>
                           </td>
                         </tr>
                       ),
@@ -987,6 +969,473 @@ export function ContractDetails({
           </Dialog.Panel>
         </div>
       </Dialog>
+
+      {/* Amend Contract Drawer */}
+      <div
+        className={`fixed inset-0 overflow-hidden z-50 ${drawerOpen ? "" : "pointer-events-none"}`}
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Backdrop */}
+          <div
+            className={`absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity ${drawerOpen ? "opacity-100" : "opacity-0"}`}
+            onClick={closeOrderDrawer}
+          ></div>
+
+          {/* Drawer panel */}
+          <div className="fixed inset-y-0 right-0 pl-10 max-w-full flex">
+            <div
+              className={`relative w-screen max-w-md transform transition ease-in-out duration-300 ${drawerOpen ? "translate-x-0" : "translate-x-full"}`}
+            >
+              <div className="h-full flex flex-col bg-white shadow-xl overflow-y-auto">
+                <div className="flex-1 py-6 overflow-y-auto px-4 sm:px-6">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-lg font-medium text-gray-900">
+                        Order From Contract
+                      </h2>
+                      <p className="text-sm text-gray-500 mt-1">
+                        View details and add to cart
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="ml-3 h-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-500"
+                      onClick={closeOrderDrawer}
+                    >
+                      <span className="sr-only">Close panel</span>
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {selectedLineItem && (
+                    <div className="mt-8">
+                      <div className="mb-6">
+                        <h3 className="text-base font-medium text-gray-900">
+                          Product Details
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-600">
+                          <span className="font-medium">Name:</span>{" "}
+                          {
+                            productLookup[selectedLineItem.product_id]
+                              ?.attributes.name
+                          }
+                        </p>
+                        <p className="mt-1 text-sm text-gray-600">
+                          <span className="font-medium">SKU:</span>{" "}
+                          {selectedLineItem.sku}
+                        </p>
+                        <p className="mt-1 text-sm text-gray-600">
+                          <span className="font-medium">Current Quantity:</span>{" "}
+                          {selectedLineItem.quantity}
+                        </p>
+                      </div>
+
+                      {/* Price Information */}
+                      <div className="mb-6">
+                        <h3 className="text-base font-medium text-gray-900 mb-2">
+                          Price Information
+                        </h3>
+                        {isLoadingPrices[selectedLineItem.product_id] ? (
+                          <div className="flex items-center">
+                            <svg
+                              className="animate-spin h-4 w-4 mr-2 text-blue-500"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Calculating price...
+                          </div>
+                        ) : (
+                          <div>
+                            {pricesByProductId[selectedLineItem.product_id] ? (
+                              <div>
+                                {pricesByProductId[selectedLineItem.product_id]
+                                  .error ? (
+                                  <div className="text-red-500">
+                                    Unable to calculate price. Please try a
+                                    different quantity.
+                                  </div>
+                                ) : (
+                                  <div className="text-lg font-medium">
+                                    {formatPrice(
+                                      pricesByProductId[
+                                        selectedLineItem.product_id
+                                      ].amount,
+                                      pricesByProductId[
+                                        selectedLineItem.product_id
+                                      ].currency,
+                                    )}
+                                  </div>
+                                )}
+                                {!pricesByProductId[selectedLineItem.product_id]
+                                  .error && (
+                                  <div className="text-sm text-gray-500">
+                                    for {amendQuantity} units
+                                  </div>
+                                )}
+                                {!pricesByProductId[selectedLineItem.product_id]
+                                  .error &&
+                                  pricesByProductId[selectedLineItem.product_id]
+                                    .breakdown?.discount > 0 && (
+                                    <div className="text-sm text-green-600 mt-1">
+                                      {
+                                        pricesByProductId[
+                                          selectedLineItem.product_id
+                                        ].breakdown.discount
+                                      }
+                                      % volume discount applied
+                                    </div>
+                                  )}
+
+                                {/* Detailed Pricing Breakdown */}
+                                {!pricesByProductId[selectedLineItem.product_id]
+                                  .error &&
+                                  pricesByProductId[selectedLineItem.product_id]
+                                    .breakdown && (
+                                    <div className="mt-4 border-t border-gray-200 pt-3">
+                                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                                        Detailed Pricing
+                                      </h4>
+                                      <table className="w-full text-xs">
+                                        <tbody>
+                                          {/* Unit Prices */}
+                                          <tr>
+                                            <td className="py-1 text-gray-500">
+                                              List Price (Unit):
+                                            </td>
+                                            <td className="py-1 text-right">
+                                              {formatPrice(
+                                                pricesByProductId[
+                                                  selectedLineItem.product_id
+                                                ].breakdown.listPrice,
+                                                pricesByProductId[
+                                                  selectedLineItem.product_id
+                                                ].currency,
+                                              )}
+                                            </td>
+                                          </tr>
+
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.regularPrice && (
+                                            <tr>
+                                              <td className="py-1 text-gray-500">
+                                                Regular Price (Unit):
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.regularPrice,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.partnerPrice && (
+                                            <tr>
+                                              <td className="py-1 text-gray-500">
+                                                Partner Price (Unit):
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.partnerPrice,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* Quantity row */}
+                                          <tr className="border-t border-gray-100 mt-2">
+                                            <td className="py-1 text-gray-500">
+                                              Quantity:
+                                            </td>
+                                            <td className="py-1 text-right">
+                                              {amendQuantity}
+                                            </td>
+                                          </tr>
+
+                                          {/* Total Prices */}
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.listPriceTotal && (
+                                            <tr>
+                                              <td className="py-1 text-gray-500">
+                                                List Price Total:
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.listPriceTotal,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.regularPriceTotal && (
+                                            <tr>
+                                              <td className="py-1 text-gray-500">
+                                                Regular Price Total:
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.regularPriceTotal,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.partnerPriceTotal && (
+                                            <tr>
+                                              <td className="py-1 text-gray-500">
+                                                Partner Price Total:
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.partnerPriceTotal,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {/* Final Price and Discount */}
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown.priceTotal && (
+                                            <tr className="border-t border-gray-100 font-medium">
+                                              <td className="py-1 text-gray-700">
+                                                Final Price Total:
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {formatPrice(
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown.priceTotal,
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].currency,
+                                                )}
+                                              </td>
+                                            </tr>
+                                          )}
+
+                                          {pricesByProductId[
+                                            selectedLineItem.product_id
+                                          ].breakdown
+                                            .totalPartnerDiscountPercentage >
+                                            0 && (
+                                            <tr className="text-green-600">
+                                              <td className="py-1">
+                                                Total Discount:
+                                              </td>
+                                              <td className="py-1 text-right">
+                                                {
+                                                  pricesByProductId[
+                                                    selectedLineItem.product_id
+                                                  ].breakdown
+                                                    .totalPartnerDiscountPercentage
+                                                }
+                                                %
+                                              </td>
+                                            </tr>
+                                          )}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+                              </div>
+                            ) : (
+                              <div className="text-gray-500">
+                                Price information not available
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Order Quantity Section */}
+                      {isCurrentContractSelected && (
+                        <div className="mb-6">
+                          <h3 className="text-base font-medium text-gray-900 mb-2">
+                            Order Quantity
+                          </h3>
+                          <div className="flex items-center">
+                            <div className="flex items-start rounded-lg border border-black/10">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleAmendQuantityChange(
+                                    Math.max(1, amendQuantity - 1),
+                                  )
+                                }
+                                className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                              >
+                                <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
+                              </button>
+                              <svg
+                                width="2"
+                                height="36"
+                                viewBox="0 0 2 36"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1 0V36"
+                                  stroke="black"
+                                  strokeOpacity="0.1"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+
+                              <input
+                                type="number"
+                                placeholder="Qty"
+                                className="border-none focus-visible:ring-0 focus-visible:border-black w-14 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                value={amendQuantity}
+                                onChange={(e) =>
+                                  handleAmendQuantityChange(
+                                    parseInt(e.target.value) || 1,
+                                  )
+                                }
+                                min="1"
+                              />
+
+                              <svg
+                                width="2"
+                                height="36"
+                                viewBox="0 0 2 36"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1 0V36"
+                                  stroke="black"
+                                  strokeOpacity="0.1"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleAmendQuantityChange(amendQuantity + 1)
+                                }
+                                className="ease flex w-9 h-9 justify-center items-center transition-all duration-200"
+                              >
+                                <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-sm text-gray-500">
+                            Select how many additional licenses you want to add
+                            to your cart
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
+                  {selectedLineItem && (
+                    <div className="flex justify-between items-center">
+                      <button
+                        type="button"
+                        className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        onClick={closeOrderDrawer}
+                      >
+                        Close
+                      </button>
+
+                      {isCurrentContractSelected && (
+                        <button
+                          onClick={() => {
+                            handleAddToCart(selectedLineItem.product_id);
+                          }}
+                          disabled={isAddingToCart}
+                          className="inline-flex justify-center items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300"
+                        >
+                          {isAddingToCart ? (
+                            <>
+                              <svg
+                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              Adding...
+                            </>
+                          ) : (
+                            "Add to Cart"
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Order History Section */}
       {orderHistoryResponse && (

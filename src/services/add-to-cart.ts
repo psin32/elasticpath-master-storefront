@@ -139,12 +139,28 @@ export async function getDynamicPricing(request: DynamicPricingRequest) {
   });
 
   const responseBody: DynamicPricingResponse = await response.json();
-  console.log("dynamic pricing response", responseBody);
+
+  // if the responseBody object properties are a number, convert them to an integer with Math.ceil
+  const responseBodyWithIntegers = responseBody.map((item) => ({
+    ...item,
+    price: Math.ceil(item.price),
+    listPrice: Math.ceil(item.listPrice),
+    regularPrice: Math.ceil(item.regularPrice),
+    partnerPrice: Math.ceil(item.partnerPrice),
+    totalDiscounted: Math.ceil(item.totalDiscounted),
+    totalPartnerDiscountPercentage: Math.ceil(
+      item.totalPartnerDiscountPercentage,
+    ),
+    partnerPriceTotal: Math.ceil(item.partnerPriceTotal),
+    listPriceTotal: Math.ceil(item.listPriceTotal),
+    regularPriceTotal: Math.ceil(item.regularPriceTotal),
+    priceTotal: Math.ceil(item.priceTotal),
+  }));
 
   if (responseBody) {
     return {
       success: true,
-      products: responseBody,
+      products: responseBodyWithIntegers,
     };
   }
 
