@@ -45,6 +45,16 @@ export function CartItem({
     });
   };
 
+  // Format price values with the correct currency
+  const formatPrice = (value: number) => {
+    const currency = item.meta.display_price.with_tax.value.currency;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+      minimumFractionDigits: 2,
+    }).format(value / 100);
+  };
+
   return (
     <div className="flex gap-5">
       <div className="flex w-16 sm:w-24 h-20 sm:h-[7.5rem] justify-center shrink-0 items-start">
@@ -101,6 +111,53 @@ export function CartItem({
             <span className="text-sm text-black/60">
               Quantity: {item.quantity}
             </span>
+
+            {/* Display additional price information from custom_inputs when available */}
+            {item.custom_inputs?.listPrice && (
+              <span className="text-sm text-black/60">
+                List Price: {formatPrice(item.custom_inputs.listPrice)}
+              </span>
+            )}
+            {item.custom_inputs?.regularPrice && (
+              <span className="text-sm text-black/60">
+                Regular Price: {formatPrice(item.custom_inputs.regularPrice)}
+              </span>
+            )}
+            {item.custom_inputs?.partnerPrice && (
+              <span className="text-sm text-black/60">
+                Partner Price: {formatPrice(item.custom_inputs.partnerPrice)}
+              </span>
+            )}
+            {item.custom_inputs?.totalPartnerDiscountPercentage && (
+              <span className="text-sm text-black/60">
+                Partner Discount:{" "}
+                {item.custom_inputs.totalPartnerDiscountPercentage}%
+              </span>
+            )}
+            {item.custom_inputs?.totalDiscounted && (
+              <span className="text-sm text-black/60">
+                Partner Total Discounted:{" "}
+                {formatPrice(item.custom_inputs.totalDiscounted)}
+              </span>
+            )}
+            {item.custom_inputs?.listPriceTotal && (
+              <span className="text-sm text-black/60">
+                List Price Total:{" "}
+                {formatPrice(item.custom_inputs.listPriceTotal)}
+              </span>
+            )}
+            {item.custom_inputs?.regularPriceTotal && (
+              <span className="text-sm text-black/60">
+                Regular Price Total:{" "}
+                {formatPrice(item.custom_inputs.regularPriceTotal)}
+              </span>
+            )}
+            {item.custom_inputs?.partnerPriceTotal && (
+              <span className="text-sm text-black/60">
+                Partner Price Total:{" "}
+                {formatPrice(item.custom_inputs.partnerPriceTotal)}
+              </span>
+            )}
           </div>
           <div className="flex h-7 gap-2 flex-col">
             <span className="font-medium">

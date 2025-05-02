@@ -40,8 +40,6 @@ export default function ContractBanner() {
     },
   });
 
-  console.log("contract client", contract);
-
   const handleStopShoppingClick = () => {
     if (hasCartItems) {
       setShowConfirmation(true);

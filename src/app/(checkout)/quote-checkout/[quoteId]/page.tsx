@@ -46,6 +46,9 @@ export default async function Page({
 
   const contractTerm = customAttributes?.contract_term_id?.value;
 
+  console.log("contractTerm at checkout page: ", contractTerm);
+  console.log("cart customAttributes at checkout page: ", customAttributes);
+
   const accountMemberCookie = retrieveAccountMemberCredentials(
     cookieStore,
     ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
