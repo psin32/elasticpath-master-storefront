@@ -41,6 +41,11 @@ export default async function Page({
     redirect("/cart");
   }
 
+  // @ts-ignore
+  const customAttributes = cart?.data?.custom_attributes || {};
+
+  const contractTerm = customAttributes?.contract_term_id?.value;
+
   const accountMemberCookie = retrieveAccountMemberCredentials(
     cookieStore,
     ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
@@ -59,7 +64,11 @@ export default async function Page({
         {!accountMemberCookie ? (
           <GuestCheckout cart={cart} />
         ) : (
-          <AccountCheckout cart={cart} quoteId={params.quoteId} />
+          <AccountCheckout
+            cart={cart}
+            quoteId={params.quoteId}
+            contractId={contractTerm}
+          />
         )}
       </CheckoutViews>
     </CheckoutProvider>
