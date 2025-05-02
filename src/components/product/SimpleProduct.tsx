@@ -17,7 +17,7 @@ import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 import { toast } from "react-toastify";
 import ProductExtensions from "./ProductExtensions";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import QuantitySelector from "./QuantitySelector";
 import StoreLocator from "./StoreLocator";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
@@ -26,6 +26,8 @@ import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { RecommendedProducts } from "../recommendations/RecommendationProducts";
 import ProductRelationship from "./related-products/ProductRelationship";
+import { calculateContractItemPrice } from "../../services/contract-price-calculator";
+import { getCurrentCartContract } from "../contracts/actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 import moment from "moment";
 import Link from "next/link";
@@ -36,6 +38,17 @@ interface ISimpleProductDetail {
   content: any;
   relationship: any[];
   purchaseHistory: any;
+  initialPricing?: {
+    priceData: {
+      amount: number;
+      currency: string;
+      includes_tax?: boolean;
+      breakdown?: any;
+      error?: boolean;
+    } | null;
+    isLoading: boolean;
+  } | null;
+  contractId?: string | null;
 }
 
 function SimpleProductDetail({
@@ -44,6 +57,8 @@ function SimpleProductDetail({
   content,
   relationship,
   purchaseHistory,
+  initialPricing,
+  contractId,
 }: ISimpleProductDetail): JSX.Element {
   return (
     <SimpleProductProvider simpleProduct={simpleProduct}>
@@ -52,6 +67,8 @@ function SimpleProductDetail({
         content={content}
         relationship={relationship}
         purchaseHistory={purchaseHistory}
+        initialPricing={initialPricing}
+        contractId={contractId}
       />
     </SimpleProductProvider>
   );
@@ -62,11 +79,24 @@ function SimpleProductContainer({
   content,
   relationship,
   purchaseHistory,
+  initialPricing,
+  contractId,
 }: {
   offerings: any;
   content: any;
   relationship: any[];
   purchaseHistory: any;
+  initialPricing?: {
+    priceData: {
+      amount: number;
+      currency: string;
+      includes_tax?: boolean;
+      breakdown?: any;
+      error?: boolean;
+    } | null;
+    isLoading: boolean;
+  } | null;
+  contractId?: string | null;
 }): JSX.Element {
   const { enableBuilderIO } = cmsConfig;
   const { product } = useSimpleProduct() as any;
@@ -81,6 +111,22 @@ function SimpleProductContainer({
   const [quantity, setQuantity] = useState<number>(1);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
 
+  // Add states for dynamic pricing, initialized with server-side data if available
+  const [priceData, setPriceData] = useState<{
+    amount: number;
+    currency: string;
+    includes_tax?: boolean;
+    breakdown?: any;
+    error?: boolean;
+  } | null>(initialPricing?.priceData || null);
+  const [isLoadingPrice, setIsLoadingPrice] = useState(
+    initialPricing?.isLoading || false,
+  );
+  const [selectedContractId] = useState<string | null>(contractId || null);
+
+  // Add debounce timer ref
+  const priceUpdateTimer = useRef<NodeJS.Timeout | null>(null);
+
   const { main_image, response, otherImages } = product;
   const { extensions } = response.attributes;
   const {
@@ -90,12 +136,83 @@ function SimpleProductContainer({
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
 
+  // Calculate price when quantity changes (but skip initial calculation if initialPricing is provided)
+  useEffect(() => {
+    // Only calculate price if we have a selected product and either:
+    // 1. We don't have initialPricing, or
+    // 2. Quantity has changed from the initial value of 1
+    if (
+      !response?.id ||
+      (initialPricing && quantity === 1 && initialPricing.priceData)
+    )
+      return;
+
+    setIsLoadingPrice(true);
+
+    // Clear existing timer
+    if (priceUpdateTimer.current) {
+      clearTimeout(priceUpdateTimer.current);
+    }
+
+    // Set new timer for debouncing
+    priceUpdateTimer.current = setTimeout(async () => {
+      try {
+        // The contract ID needs to be a string or undefined (not null)
+        const priceResponse = await calculateContractItemPrice(
+          response.id,
+          quantity,
+          selectedContractId || undefined,
+        );
+
+        if (priceResponse.success && priceResponse.data) {
+          setPriceData({
+            ...priceResponse.data.price,
+            breakdown: priceResponse.data.breakdown || undefined,
+            error: false,
+          });
+        } else {
+          // Default to the product's base price if contract pricing fails
+          setPriceData({
+            amount: response.meta.display_price.with_tax.amount,
+            currency: response.meta.display_price.with_tax.currency,
+            error: false,
+          });
+        }
+      } catch (error) {
+        console.error("Error calculating price:", error);
+        // Fall back to the product's base price
+        setPriceData({
+          amount: response.meta.display_price.with_tax.amount,
+          currency: response.meta.display_price.with_tax.currency,
+          error: false,
+        });
+      } finally {
+        setIsLoadingPrice(false);
+      }
+    }, 300); // 300ms debounce
+
+    // Cleanup timer on unmount
+    return () => {
+      if (priceUpdateTimer.current) {
+        clearTimeout(priceUpdateTimer.current);
+      }
+    };
+  }, [quantity, response?.id, selectedContractId, initialPricing]);
+
   const handleOverlay = (
     event: React.FormEvent<HTMLFormElement>,
     value: boolean,
   ) => {
     event.preventDefault();
     setIsOverlayOpen(value);
+  };
+
+  // Format price helper function
+  const formatPrice = (amount: number, currency: string = "USD") => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount / 100); // Assuming the amount is in cents
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -204,7 +321,14 @@ function SimpleProductContainer({
                 readOnly
               ></input>
 
-              <ProductSummary product={response} offerings={offerings} />
+              <ProductSummary
+                product={response}
+                offerings={offerings}
+                dynamicPricing={{
+                  priceData,
+                  isLoading: isLoadingPrice,
+                }}
+              />
               {offerings && offerings.data.length > 0 && (
                 <SubscriptionOfferPlans
                   offerings={offerings}
@@ -218,10 +342,13 @@ function SimpleProductContainer({
               <StatusButton
                 type="submit"
                 status={
-                  isPendingAddItem || isPendingSubscriptionItem
+                  isPendingAddItem ||
+                  isPendingSubscriptionItem ||
+                  isLoadingPrice
                     ? "loading"
                     : "idle"
                 }
+                disabled={isLoadingPrice}
               >
                 ADD TO CART
               </StatusButton>
@@ -230,6 +357,7 @@ function SimpleProductContainer({
                   type="submit"
                   onClick={(event: any) => handleOverlay(event, true)}
                   className="uppercase"
+                  disabled={isLoadingPrice}
                 >
                   Click & Collect
                 </StatusButton>

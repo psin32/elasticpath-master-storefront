@@ -20,6 +20,8 @@ import {
 } from "../../../../lib/retrieve-account-member-credentials";
 import { cookies } from "next/headers";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
+import { calculateContractItemPrice } from "../../../../services/contract-price-calculator";
+import { getCurrentCartContract } from "../../../../components/contracts/actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const dynamic = "force-dynamic";
@@ -125,6 +127,42 @@ export default async function ProductPage({ params }: Props) {
     }
   }
 
+  // Get the current contract ID if any
+  let contractRef = null;
+  try {
+    const cartContract = await getCurrentCartContract();
+    if (cartContract.success) {
+      contractRef = cartContract.contractId;
+    }
+  } catch (error) {
+    console.error("Error checking selected contract:", error);
+  }
+
+  // Calculate initial price with contract pricing if available
+  let initialPricing = null;
+  if (contractRef && shopperProduct?.response?.id) {
+    try {
+      const priceResponse = await calculateContractItemPrice(
+        shopperProduct.response.id,
+        1, // Initial quantity of 1
+        contractRef,
+      );
+
+      if (priceResponse.success && priceResponse.data) {
+        initialPricing = {
+          priceData: {
+            ...priceResponse.data.price,
+            breakdown: priceResponse.data.breakdown || undefined,
+            error: false,
+          },
+          isLoading: false,
+        };
+      }
+    } catch (error) {
+      console.error("Error calculating initial price:", error);
+    }
+  }
+
   return (
     <div key={"page_" + params.productId}>
       <ProductProvider>
@@ -135,6 +173,8 @@ export default async function ProductPage({ params }: Props) {
           content={content}
           relationship={relationship}
           purchaseHistory={purchaseHistory}
+          initialPricing={initialPricing}
+          contractId={contractRef}
         />
       </ProductProvider>
     </div>
