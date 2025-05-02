@@ -94,6 +94,7 @@ export default function HitComponentElasticPath({
                 ></span>
               )}
             </div>
+            {/* Removed price display from search results
             {gatedSetting != "fully_gated" && (
               <div>
                 {currencyPrice && (
@@ -130,6 +131,7 @@ export default function HitComponentElasticPath({
                 )}
               </div>
             )}
+            */}
           </div>
         </div>
       </LinkWrapper>
