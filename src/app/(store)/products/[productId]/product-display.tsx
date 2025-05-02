@@ -33,6 +33,8 @@ export function resolveProductDetailComponent(
   content: any,
   relationship: any[],
   purchaseHistory: any,
+  initialPricing: any = null,
+  contractId: string | null = null,
 ): JSX.Element {
   switch (product.kind) {
     case "base-product":
@@ -63,6 +65,8 @@ export function resolveProductDetailComponent(
           content={content}
           relationship={relationship}
           purchaseHistory={purchaseHistory}
+          initialPricing={initialPricing}
+          contractId={contractId}
         />
       );
     case "bundle-product":
@@ -84,6 +88,8 @@ export function ProductDetailsComponent({
   content,
   relationship,
   purchaseHistory,
+  initialPricing = null,
+  contractId = null,
 }: {
   product: ShopperProduct;
   breadcrumb: Node[];
@@ -91,6 +97,8 @@ export function ProductDetailsComponent({
   content: any;
   relationship: any[];
   purchaseHistory: any;
+  initialPricing?: any;
+  contractId?: string | null;
 }) {
   return (
     <div className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] lg:max-w-[80rem] w-full">
@@ -105,6 +113,8 @@ export function ProductDetailsComponent({
           content,
           relationship,
           purchaseHistory,
+          initialPricing,
+          contractId,
         )}
       </div>
     </div>
