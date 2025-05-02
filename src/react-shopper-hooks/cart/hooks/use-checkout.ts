@@ -44,6 +44,9 @@ export const useCheckout = (
       if (purchaseOrderNumber) {
         body.data.purchase_order_number = purchaseOrderNumber;
       }
+
+      console.log("quoteId at checkout time", quoteId);
+      console.log("contractId at checkout time", contractId);
       if (quoteId) {
         body.data.quote_ref = quoteId;
       }

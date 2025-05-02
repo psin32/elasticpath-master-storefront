@@ -58,6 +58,10 @@ export type DynamicPricingResponseItem = {
   partnerPrice: number;
   totalPartnerDiscountPercentage: number;
   totalDiscounted: number;
+  listPriceTotal: number;
+  regularPriceTotal: number;
+  partnerPriceTotal: number;
+  priceTotal: number;
 };
 
 /**
@@ -90,6 +94,12 @@ export function convertDynamicPricingResponseToCustomItem(
       partnerPrice: response.partnerPrice,
       totalPartnerDiscountPercentage: response.totalPartnerDiscountPercentage,
       totalDiscounted: response.totalDiscounted,
+      listPrice: response.listPrice,
+      regularPrice: response.regularPrice,
+      partnerPriceTotal: response.partnerPriceTotal,
+      listPriceTotal: response.listPriceTotal,
+      regularPriceTotal: response.regularPriceTotal,
+      priceTotal: response.priceTotal,
     },
   };
 }
