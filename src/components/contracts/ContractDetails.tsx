@@ -1097,7 +1097,7 @@ export function ContractDetails({
                                           selectedLineItem.product_id
                                         ].breakdown.discount
                                       }
-                                      % volume discount applied
+                                      % discount applied
                                     </div>
                                   )}
 

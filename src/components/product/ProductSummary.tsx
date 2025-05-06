@@ -106,7 +106,7 @@ const ProductSummary = ({
                   {dynamicPricing.priceData.breakdown
                     ?.totalPartnerDiscountPercentage > 0 && (
                     <div className="text-sm text-green-600 mt-1">
-                      Contract price with{" "}
+                      with{" "}
                       {
                         dynamicPricing.priceData.breakdown
                           .totalPartnerDiscountPercentage
