@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
 import { Label } from "../../../components/label/Label";
 import { Input } from "../../../components/input/Input";
 import { FormStatusButton } from "../../../components/button/FormStatusButton";
-import { useState } from 'react'
-import { Switch } from '@headlessui/react'
+import { useState } from "react";
+import { Switch } from "@headlessui/react";
 import { addCustomItemToCart } from "./actions";
 import { useCart } from "../../../react-shopper-hooks";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 
 export default function CustomItem() {
-  const [enabled, setEnabled] = useState(false)
+  const [enabled, setEnabled] = useState(false);
   const { useScopedUpdateCartItem } = useCart();
   const { mutate, isPending } = useScopedUpdateCartItem();
 
   const addCart = async (data: FormData) => {
-    const response = await addCustomItemToCart(data)
+    const response = await addCustomItemToCart(data);
     mutate({
       itemId: response.data[0].id,
       quantity: response.data[0].quantity,
-    })
-  }
+    });
+  };
 
   return (
     <div className="mt-10 sm:mx-auto w-full sm:max-w-2xl mb-10">
@@ -41,24 +41,14 @@ export default function CustomItem() {
           <div>
             <Label htmlFor="description">Product Description</Label>
             <div className="mt-1">
-              <Input
-                id="description"
-                name="description"
-                type="text"
-                required
-              />
+              <Input id="description" name="description" type="text" required />
             </div>
           </div>
 
           <div>
             <Label htmlFor="sku">SKU</Label>
             <div className="mt-1">
-              <Input
-                id="sku"
-                name="sku"
-                type="text"
-                required
-              />
+              <Input id="sku" name="sku" type="text" required />
             </div>
           </div>
 
@@ -90,13 +80,15 @@ export default function CustomItem() {
                 <Switch
                   checked={enabled}
                   onChange={setEnabled}
-                  className={`${enabled ? 'bg-blue-600' : 'bg-gray-200'
-                    } relative inline-flex h-6 w-11 items-center rounded-full`}
+                  className={`${
+                    enabled ? "bg-blue-600" : "bg-gray-200"
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
                   name="include_tax"
                 >
                   <span
-                    className={`${enabled ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                    className={`${
+                      enabled ? "translate-x-6" : "translate-x-1"
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                   />
                 </Switch>
               </div>
@@ -110,7 +102,8 @@ export default function CustomItem() {
                 id="tax_rate"
                 name="tax_rate"
                 type="number"
-                defaultValue={0.20}
+                step="0.01"
+                defaultValue={0.2}
               />
             </div>
           </div>
@@ -118,31 +111,24 @@ export default function CustomItem() {
           <div>
             <Label htmlFor="quantity">Image URL</Label>
             <div className="mt-1">
-              <Input
-                id="image_url"
-                name="image_url"
-                type="text"
-              />
+              <Input id="image_url" name="image_url" type="text" />
             </div>
           </div>
 
           <div>
             <Label htmlFor="quantity">Variations</Label>
             <div className="mt-1">
-              <Input
-                id="options"
-                name="options"
-                type="text"
-              />
+              <Input id="options" name="options" type="text" />
             </div>
           </div>
         </div>
 
         <div>
-          <FormStatusButton className="w-full uppercase">Add To Cart</FormStatusButton>
+          <FormStatusButton className="w-full uppercase">
+            Add To Cart
+          </FormStatusButton>
         </div>
       </form>
-
     </div>
   );
 }
