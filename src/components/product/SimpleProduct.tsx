@@ -17,7 +17,7 @@ import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 import { toast } from "react-toastify";
 import ProductExtensions from "./ProductExtensions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QuantitySelector from "./QuantitySelector";
 import StoreLocator from "./StoreLocator";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
@@ -29,6 +29,8 @@ import ProductRelationship from "./related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 import moment from "moment";
 import Link from "next/link";
+import { getInventoryDetails } from "./actions";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/20/solid";
 
 interface ISimpleProductDetail {
   simpleProduct: SimpleProduct;
@@ -80,6 +82,9 @@ function SimpleProductContainer({
   } = useScopedAddSubscriptionItemToCart();
   const [quantity, setQuantity] = useState<number>(1);
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const [inventory, setInventory] = useState<number>(0);
+  const [unlimitedStock, setUnlimitedStock] = useState<boolean>(false);
+  const [loaded, setLoaded] = useState<boolean>(false);
 
   const { main_image, response, otherImages } = product;
   const { extensions } = response.attributes;
@@ -89,6 +94,20 @@ function SimpleProductContainer({
   } = response;
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
+
+  useEffect(() => {
+    const init = async () => {
+      setLoaded(false);
+      const response = await getInventoryDetails(id);
+      if (response) {
+        setInventory(response.data.available);
+      } else {
+        setUnlimitedStock(true);
+      }
+      setLoaded(true);
+    };
+    init();
+  }, [id]);
 
   const handleOverlay = (
     event: React.FormEvent<HTMLFormElement>,
@@ -214,6 +233,33 @@ function SimpleProductContainer({
               <PersonalisedInfo
                 custom_inputs={response.attributes?.custom_inputs}
               />
+              {loaded && unlimitedStock && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                  <CheckIcon
+                    className="h-5 w-5 flex-shrink-0 text-green-500"
+                    aria-hidden="true"
+                  />
+                  <span>In stock</span>
+                </div>
+              )}
+              {loaded && !unlimitedStock && inventory > 0 && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                  <CheckIcon
+                    className="h-5 w-5 flex-shrink-0 text-green-500"
+                    aria-hidden="true"
+                  />
+                  <span>In stock ({inventory} available)</span>
+                </div>
+              )}
+              {loaded && !unlimitedStock && inventory === 0 && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                  <XMarkIcon
+                    className="h-5 w-5 flex-shrink-0 text-red-800"
+                    aria-hidden="true"
+                  />
+                  <span>Out of stock</span>
+                </div>
+              )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
               <StatusButton
                 type="submit"
@@ -222,6 +268,7 @@ function SimpleProductContainer({
                     ? "loading"
                     : "idle"
                 }
+                disabled={!unlimitedStock && inventory === 0}
               >
                 ADD TO CART
               </StatusButton>

@@ -18,7 +18,7 @@ import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 import { toast } from "react-toastify";
 import ProductExtensions from "../ProductExtensions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QuantitySelector from "../QuantitySelector";
 import StoreLocator from "../StoreLocator";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
@@ -28,6 +28,8 @@ import { builderComponent } from "../../../components/builder-io/BuilderComponen
 import { RecommendedProducts } from "../../recommendations/RecommendationProducts";
 import ProductRelationship from "../related-products/ProductRelationship";
 import moment from "moment";
+import { getInventoryDetails } from "../actions";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/20/solid";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const VariationProductDetail = ({
@@ -89,6 +91,23 @@ export function VariationProductContainer({
   const [isOverlayOpen, setIsOverlayOpen] = useState(false);
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
+  const [inventory, setInventory] = useState<number>(0);
+  const [unlimitedStock, setUnlimitedStock] = useState<boolean>(false);
+  const [loaded, setLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoaded(false);
+      const response = await getInventoryDetails(id);
+      if (response) {
+        setInventory(response.data.available);
+      } else {
+        setUnlimitedStock(true);
+      }
+      setLoaded(true);
+    };
+    init();
+  }, [id]);
 
   const handleOverlay = (
     event: React.FormEvent<HTMLFormElement>,
@@ -242,9 +261,39 @@ export function VariationProductContainer({
               <PersonalisedInfo
                 custom_inputs={response.attributes.custom_inputs}
               />
+              {loaded && unlimitedStock && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                  <CheckIcon
+                    className="h-5 w-5 flex-shrink-0 text-green-500"
+                    aria-hidden="true"
+                  />
+                  <span>In stock</span>
+                </div>
+              )}
+              {loaded && !unlimitedStock && inventory > 0 && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                  <CheckIcon
+                    className="h-5 w-5 flex-shrink-0 text-green-500"
+                    aria-hidden="true"
+                  />
+                  <span>In stock ({inventory} available)</span>
+                </div>
+              )}
+              {loaded && !unlimitedStock && inventory === 0 && (
+                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                  <XMarkIcon
+                    className="h-5 w-5 flex-shrink-0 text-red-800"
+                    aria-hidden="true"
+                  />
+                  <span>Out of stock</span>
+                </div>
+              )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
               <StatusButton
-                disabled={product.kind === "base-product"}
+                disabled={
+                  product.kind === "base-product" ||
+                  (!unlimitedStock && inventory === 0)
+                }
                 type="submit"
                 status={
                   isPendingAddItem || isPendingSubscriptionItem
