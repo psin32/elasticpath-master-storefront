@@ -261,7 +261,7 @@ export function VariationProductContainer({
               <PersonalisedInfo
                 custom_inputs={response.attributes.custom_inputs}
               />
-              {loaded && unlimitedStock && (
+              {loaded && unlimitedStock && product.kind != "base-product" && (
                 <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
                   <CheckIcon
                     className="h-5 w-5 flex-shrink-0 text-green-500"
@@ -270,24 +270,30 @@ export function VariationProductContainer({
                   <span>In stock</span>
                 </div>
               )}
-              {loaded && !unlimitedStock && inventory > 0 && (
-                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
-                  <CheckIcon
-                    className="h-5 w-5 flex-shrink-0 text-green-500"
-                    aria-hidden="true"
-                  />
-                  <span>In stock ({inventory} available)</span>
-                </div>
-              )}
-              {loaded && !unlimitedStock && inventory === 0 && (
-                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
-                  <XMarkIcon
-                    className="h-5 w-5 flex-shrink-0 text-red-800"
-                    aria-hidden="true"
-                  />
-                  <span>Out of stock</span>
-                </div>
-              )}
+              {loaded &&
+                !unlimitedStock &&
+                product.kind != "base-product" &&
+                inventory > 0 && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                    <CheckIcon
+                      className="h-5 w-5 flex-shrink-0 text-green-500"
+                      aria-hidden="true"
+                    />
+                    <span>In stock ({inventory} available)</span>
+                  </div>
+                )}
+              {loaded &&
+                !unlimitedStock &&
+                product.kind != "base-product" &&
+                inventory === 0 && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                    <XMarkIcon
+                      className="h-5 w-5 flex-shrink-0 text-red-800"
+                      aria-hidden="true"
+                    />
+                    <span>Out of stock</span>
+                  </div>
+                )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
               <StatusButton
                 disabled={
