@@ -209,7 +209,7 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
                         <select
                           value={selectedSalesRep}
                           onChange={(e) => setSelectedSalesRep(e.target.value)}
-                          className="py-2 border rounded-lg text-xs"
+                          className="py-2 border rounded-lg text-xs w-full"
                         >
                           {salesReps.map((rep: any) => (
                             <option key={rep.email} value={rep.email}>
