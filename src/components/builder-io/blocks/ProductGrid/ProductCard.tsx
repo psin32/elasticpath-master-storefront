@@ -7,7 +7,19 @@ import StrikePrice from "../../../product/StrikePrice";
 import Price from "../../../product/Price";
 import clsx from "clsx";
 import { LockClosedIcon } from "@heroicons/react/20/solid";
-import { useAuthedAccountMember } from "../../../../react-shopper-hooks";
+import {
+  useAuthedAccountMember,
+  useCart,
+} from "../../../../react-shopper-hooks";
+import { StatusButton } from "../../../button/StatusButton";
+import { Sheet, SheetContent } from "../../../sheet/Sheet";
+import { useState, useEffect } from "react";
+import { parseProductResponse } from "../../../../shopper-common/src/products/util/shopper-product-helpers";
+import {
+  ProductDetailsComponent,
+  ProductProvider,
+} from "../../../../app/(store)/products/[productId]/product-display";
+import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 
 export interface ProductCardProps {
   product: any;
@@ -30,6 +42,34 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const currencyPrice =
     display_price?.without_tax?.formatted || display_price?.with_tax?.formatted;
+
+  const { useScopedAddProductToCart } = useCart();
+  const { mutate, isPending } = useScopedAddProductToCart();
+  const isStandardProduct =
+    product.kind === "simple-product" && !components && !variation_matrix;
+  const [open, setOpen] = useState(false);
+  const isVariationProduct = !!variation_matrix;
+
+  const [shopperProduct, setShopperProduct] = useState<any>(null);
+
+  useEffect(() => {
+    const init = async () => {
+      const client = getEpccImplicitClient();
+      const result = await client.ShopperCatalog.Products.With([
+        "main_image",
+        "files",
+        "component_products",
+      ])
+        .Filter({
+          eq: {
+            sku: product.response.attributes.sku,
+          },
+        })
+        .All();
+      setShopperProduct(await parseProductResponse(result, client));
+    };
+    init();
+  }, [product]);
 
   return (
     <div className="max-w-full sm:max-w-lg p-3 flex flex-col">
@@ -121,11 +161,66 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     />
                   </div>
                 )}
+                {isStandardProduct && gatedSetting !== "fully_gated" && (
+                  <div className="flex justify-center mt-4">
+                    <StatusButton
+                      status={isPending ? "loading" : "idle"}
+                      className="w-full p-2 text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        mutate({ productId: id, quantity: 1 });
+                      }}
+                    >
+                      Add to Cart
+                    </StatusButton>
+                  </div>
+                )}
+                {!isStandardProduct && (
+                  <div className="flex justify-center mt-4">
+                    <StatusButton
+                      className="w-full p-2 text-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setOpen(true);
+                      }}
+                    >
+                      {isVariationProduct ? "View Product" : "View Bundle"}
+                    </StatusButton>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </LinkWrapper>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side={undefined}
+          className="w-[60vw] sm:max-w-full max-h-screen overflow-y-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fixed rounded-lg shadow-lg bg-white mt-5"
+        >
+          <div className="p-2">
+            <ProductProvider>
+              <ProductDetailsComponent
+                product={shopperProduct}
+                breadcrumb={[]}
+                offerings={{
+                  links: {},
+                  meta: {
+                    page: { current: 1, limit: 0, offset: 0, total: 0 },
+                    results: { total: 0 },
+                  },
+                  data: [],
+                }}
+                content={null}
+                relationship={[]}
+                purchaseHistory={[]}
+              />
+            </ProductProvider>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
