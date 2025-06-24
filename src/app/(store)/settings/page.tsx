@@ -89,11 +89,12 @@ export default function SettingsPage() {
               aria-label="Toggle product source"
               className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
                 ${productSource === "elasticpath" ? "bg-brand-primary" : "bg-gray-300"}`}
-              onClick={() =>
+              onClick={() => {
                 setProductSource(
                   productSource === "elasticpath" ? "external" : "elasticpath",
-                )
-              }
+                );
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
             >
               <span
                 className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
