@@ -19,9 +19,12 @@ import { AddPromotion } from "../checkout-sidebar/AddPromotion";
 import Link from "next/link";
 import { LoadingDots } from "../LoadingDots";
 import { CartItemsGrouped } from "./CartItemsGrouped";
+import Cookies from "js-cookie";
+import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
 
 export function Cart() {
   const { state, useScopedRemoveCartItem } = useCart() as any;
+  const isRegisteredUser = !!Cookies.get(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME);
 
   const { items, __extended } = state ?? {};
 
@@ -152,16 +155,18 @@ export function Cart() {
               <Separator />
 
               <div className="flex w-full gap-4">
-                <SheetClose asChild className="flex-1">
-                  <Button
-                    type="button"
-                    asChild
-                    className="self-stretch"
-                    variant="secondary"
-                  >
-                    <Link href="/create-quote">Create Quote</Link>
-                  </Button>
-                </SheetClose>
+                {isRegisteredUser && (
+                  <SheetClose asChild className="flex-1">
+                    <Button
+                      type="button"
+                      asChild
+                      className="self-stretch"
+                      variant="secondary"
+                    >
+                      <Link href="/create-quote">Create Quote</Link>
+                    </Button>
+                  </SheetClose>
+                )}
                 <SheetClose asChild className="flex-1">
                   <Button type="button" asChild className="self-stretch">
                     <Link href="/checkout">
