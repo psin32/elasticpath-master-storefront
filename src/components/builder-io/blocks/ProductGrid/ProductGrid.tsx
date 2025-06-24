@@ -15,6 +15,7 @@ import Slider from "react-slick";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { getProductByIds } from "../../../../services/products";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
+import { getCookie } from "cookies-next";
 
 export interface CarouselProps {
   slidesToShow: number;
@@ -38,6 +39,13 @@ export const ProductGrid: FC<ProductGridProps> = ({
 }) => {
   const [products, setProducts] = useState<any>();
   const [loading, setLoading] = useState(false);
+  const [productSource, setProductSource] = useState<string>("elasticpath");
+
+  useEffect(() => {
+    // Check product_source cookie
+    const source = (getCookie("product_source") as string) || "elasticpath";
+    setProductSource(source);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -52,6 +60,11 @@ export const ProductGrid: FC<ProductGridProps> = ({
     };
     init();
   }, [productsList]);
+
+  // Return null if product_source is external
+  if (productSource === "external") {
+    return null;
+  }
 
   const NextArrow = (props: any) => {
     const { onClick } = props;

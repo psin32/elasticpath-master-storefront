@@ -1,4 +1,5 @@
 import FeaturedProducts from "../../components/featured-products/FeaturedProducts";
+import SampleProductCarousel from "../../components/featured-products/SampleProductCarousel";
 import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { getHomePageContent } from "../../services/storyblok";
@@ -14,6 +15,9 @@ export default async function Home() {
 
   const cookieStore = cookies();
   const locale = cookieStore.get("locale")?.value || "en";
+  const productSource =
+    cookieStore.get("product_source")?.value || "elasticpath";
+
   const contentData = async () => {
     if (enabledStoryblok) {
       return await getHomePageContent(locale);
@@ -40,6 +44,7 @@ export default async function Home() {
           customComponents={builderComponent}
         />
       )}
+      {productSource === "external" && <SampleProductCarousel />}
       {enabledStoryblok && (
         <div className="grid gap-12 p-[2rem] md:p-[4em]">
           <div className="gap-3 p-8 md:p-16">

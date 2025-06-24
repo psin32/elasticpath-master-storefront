@@ -15,10 +15,10 @@ export default async function NavBar() {
       <div className="flex w-full">
         <nav className="flex gap-6 p-4">
           <a
-            href="/external-product"
+            href="/collections"
             className="text-sm font-medium text-black hover:underline focus:text-brand-primary focus:outline-none active:text-brand-primary"
           >
-            External Products
+            All Products
           </a>
         </nav>
       </div>
