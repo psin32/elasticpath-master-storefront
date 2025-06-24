@@ -169,7 +169,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        mutate({ productId: id, quantity: 1 });
+                        mutate({
+                          productId: id,
+                          quantity: 1,
+                          data: {
+                            custom_inputs: {
+                              additional_information: [],
+                            },
+                          },
+                        });
                       }}
                     >
                       Add to Cart
