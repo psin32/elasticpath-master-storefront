@@ -131,45 +131,43 @@ const SampleProductCarousel: FC<SampleProductCarouselProps> = ({
         {sampleProducts.map((product) => (
           <div key={product.id} className="px-2">
             <div className="relative group border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
-              <Link href={`/products/${product.slug}`}>
-                <div className="aspect-square block w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
-                  <div className="relative w-full h-full rounded-lg text-center animate-fadeIn transition duration-300 ease-in-out group-hover:scale-105">
-                    <Image
-                      alt={product.name}
-                      src={product.image}
-                      className="rounded-lg"
-                      sizes="(max-width: 200px)"
-                      fill
-                      style={{
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                    />
-                  </div>
+              <div className="aspect-square block w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:ring-offset-gray-100">
+                <div className="relative w-full h-full rounded-lg text-center animate-fadeIn transition duration-300 ease-in-out group-hover:scale-105">
+                  <Image
+                    alt={product.name}
+                    src={product.image}
+                    className="rounded-lg"
+                    sizes="(max-width: 200px)"
+                    fill
+                    style={{
+                      objectFit: "cover",
+                      objectPosition: "center",
+                    }}
+                  />
                 </div>
-                <p className="pointer-events-none mt-2 block truncate text-sm font-medium text-gray-900">
-                  {product.name}
-                </p>
-                <div className="pointer-events-none text-xs text-gray-500 mt-1">
-                  SKU: {product.sku}
-                </div>
-                <div className="pointer-events-none text-sm font-medium text-gray-500 flex items-center gap-2">
-                  {product.originalPrice && (
-                    <span className="line-through text-gray-400">
-                      {new Intl.NumberFormat("en", {
-                        style: "currency",
-                        currency: currency,
-                      }).format((product.originalPrice || 0) / 100)}
-                    </span>
-                  )}
-                  <span className="text-gray-900">
+              </div>
+              <p className="mt-2 block truncate text-sm font-medium text-gray-900">
+                {product.name}
+              </p>
+              <div className="text-xs text-gray-500 mt-1">
+                SKU: {product.sku}
+              </div>
+              <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                {product.originalPrice && (
+                  <span className="line-through text-gray-400">
                     {new Intl.NumberFormat("en", {
                       style: "currency",
                       currency: currency,
-                    }).format((product.amount || 0) / 100)}
+                    }).format((product.originalPrice || 0) / 100)}
                   </span>
-                </div>
-              </Link>
+                )}
+                <span className="text-gray-900">
+                  {new Intl.NumberFormat("en", {
+                    style: "currency",
+                    currency: currency,
+                  }).format((product.amount || 0) / 100)}
+                </span>
+              </div>
               <div className="mt-3">
                 <StatusButton
                   onClick={(e) => {
