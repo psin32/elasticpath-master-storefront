@@ -184,7 +184,7 @@ function CheckboxComponentOption({
       className={clsx(
         "w-full",
         checked
-          ? "border-2 rounded-lg border-brand-primary"
+          ? "border-4 rounded-lg border-brand-primary bg-gradient-to-br from-slate-100 to-slate-300"
           : "border-2 rounded-lg border-gray-500",
       )}
     >
