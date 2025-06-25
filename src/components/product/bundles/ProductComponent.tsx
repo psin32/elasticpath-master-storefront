@@ -104,7 +104,7 @@ function CheckboxComponentOptions({
   product: ShopperProduct["response"];
 }): JSX.Element {
   // Determine if this should be radio button behavior
-  const isRadio = max === 1 && min === 1;
+  const isRadio = max === 1;
   return (
     <div className="flex py-2 flex-wrap gap-2" role="group">
       {options.sort(sortByOrder).map((option) => {
@@ -184,7 +184,7 @@ function CheckboxComponentOption({
       className={clsx(
         "w-full",
         checked
-          ? "border-4 rounded-lg border-brand-primary bg-gradient-to-br from-slate-100 to-slate-300"
+          ? "border-4 rounded-lg border-brand-primary bg-gradient-to-br from-brand-primary/5 via-brand-primary/10 to-brand-primary/15"
           : "border-2 rounded-lg border-gray-500",
       )}
     >
