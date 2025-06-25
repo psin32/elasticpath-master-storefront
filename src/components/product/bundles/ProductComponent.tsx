@@ -80,7 +80,6 @@ export const ProductComponent = ({
             componentLookupKey={componentLookupKey}
             options={component.options}
             max={component.max}
-            min={component.min}
             product={product}
           />
         </div>
@@ -94,12 +93,10 @@ function CheckboxComponentOptions({
   componentLookupKey,
   product,
   max,
-  min,
 }: {
   componentProducts: ProductResponse[];
   options: ProductComponentOption[];
   max?: number | null;
-  min?: number | null;
   componentLookupKey: string;
   product: ShopperProduct["response"];
 }): JSX.Element {
