@@ -93,6 +93,8 @@ function CheckboxComponentOptions({
   options,
   componentLookupKey,
   product,
+  max,
+  min,
 }: {
   componentProducts: ProductResponse[];
   options: ProductComponentOption[];
@@ -101,6 +103,8 @@ function CheckboxComponentOptions({
   componentLookupKey: string;
   product: ShopperProduct["response"];
 }): JSX.Element {
+  // Determine if this should be radio button behavior
+  const isRadio = max === 1 && min === 1;
   return (
     <div className="flex py-2 flex-wrap gap-2" role="group">
       {options.sort(sortByOrder).map((option) => {
@@ -110,6 +114,7 @@ function CheckboxComponentOptions({
             option={option}
             componentKey={componentLookupKey}
             product={product}
+            isRadio={isRadio}
           />
         );
       })}
@@ -121,10 +126,12 @@ function CheckboxComponentOption({
   option,
   componentKey,
   product,
+  isRadio = false,
 }: {
   option: ProductComponentOption;
   componentKey: string;
   product: ShopperProduct["response"];
+  isRadio?: boolean;
 }): JSX.Element {
   const { selected, component } = useBundleComponent(componentKey);
   const { optionProduct, mainImage } = useBundleComponentOption(
@@ -137,27 +144,46 @@ function CheckboxComponentOption({
   const reachedMax =
     !!component.max && Object.keys(selected).length === component.max;
 
-  const isDisabled =
-    reachedMax &&
-    !selectedOptionKey.some((optionKey) => optionKey === option.id);
-  const { display_price, original_display_price } =
+  const isDisabled = isRadio
+    ? false // radios are only disabled if the whole field is disabled
+    : reachedMax &&
+      !selectedOptionKey.some((optionKey) => optionKey === option.id);
+  const { display_price, original_display_price, sale_id } =
     (product?.meta?.component_products?.[optionProduct.id] as any) || {};
   const name = `selectedOptions.${componentKey}`;
   const inputId = `${name}.${option.id}`;
 
-  const [field] = useField({
+  // For radio, value is just the option id, for checkbox it's the JSON string
+  const [field, , helpers] = useField({
     name,
-    type: "checkbox",
-    value: JSON.stringify({ [option.id]: option.quantity }),
+    type: isRadio ? "radio" : "checkbox",
+    value: isRadio
+      ? option.id
+      : JSON.stringify({ [option.id]: option.quantity }),
     disabled: isDisabled,
     id: inputId,
   });
+
+  // For radio, checked if selected has this option id
+  const checked = isRadio
+    ? Object.keys(selected)[0] === option.id
+    : field.checked;
+
+  // For radio, onChange should set the selected option directly
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isRadio) {
+      // Store as array with a single JSON string, matching checkbox structure
+      helpers.setValue([JSON.stringify({ [option.id]: option.quantity })]);
+    } else {
+      field.onChange(e);
+    }
+  };
 
   return (
     <div
       className={clsx(
         "w-full",
-        field.checked
+        checked
           ? "border-2 rounded-lg border-brand-primary"
           : "border-2 rounded-lg border-gray-500",
       )}
@@ -166,18 +192,20 @@ function CheckboxComponentOption({
         htmlFor={inputId}
         className={clsx(
           "cursor-pointer",
-          !field.checked && isDisabled ? "opacity-50" : "",
+          !checked && isDisabled ? "opacity-50" : "",
         )}
       >
         <input
           {...field}
-          type="checkbox"
+          type={isRadio ? "radio" : "checkbox"}
           id={inputId}
           disabled={isDisabled}
           className="hidden"
           hidden
+          checked={checked}
+          onChange={handleChange}
         />
-        <div className="flex flex-row">
+        <div className="flex flex-row items-center justify-between w-full">
           <div
             className={clsx(isDisabled && "opacity-50", "w-14 ml-4 mt-2")}
             key={option.id}
@@ -202,7 +230,7 @@ function CheckboxComponentOption({
               </div>
             </div>
           </div>
-          <div className="ml-4 mt-2">
+          <div className="ml-4 mt-2 flex-1">
             <p className="text-sm">{optionProduct.attributes.name}</p>
             <p className="text-sm">
               {display_price && (
@@ -240,6 +268,24 @@ function CheckboxComponentOption({
               )}
             </p>
           </div>
+          {/* Sale ID and Bestseller tags on the right, stacked vertically */}
+          {sale_id ||
+          optionProduct?.attributes?.extensions?.["products(cards)"]
+            ?.bestsellers ? (
+            <div className="flex flex-col items-end h-full pr-4 space-y-1">
+              {sale_id ? (
+                <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700">
+                  {sale_id}
+                </span>
+              ) : null}
+              {optionProduct?.attributes?.extensions?.["products(cards)"]
+                ?.bestsellers ? (
+                <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700">
+                  Bestseller
+                </span>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </label>
     </div>
