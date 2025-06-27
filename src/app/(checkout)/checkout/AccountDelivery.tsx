@@ -1,5 +1,4 @@
 import Link from "next/link";
-import EpIcon from "../../../components/icons/ep-icon";
 import { Separator } from "../../../components/separator/Separator";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
@@ -13,7 +12,6 @@ import { builderComponent } from "../../../components/builder-io/BuilderComponen
 import { DeliveryContinueButton } from "./DeliveryContinueButton";
 import { CheckoutProgress } from "./CheckoutProgress";
 import { ShippingGroupManager } from "./ShippingGroupManager";
-import { AccountAddressSelector } from "./AccountAddressSelector";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 type AccountDeliveryProps = {
@@ -56,7 +54,7 @@ export async function AccountDelivery({ cart }: AccountDeliveryProps) {
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
-        <div className="flex flex-col px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-20 gap-10">
+        <div className="flex flex-col px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-10 gap-8">
           <div className="justify-center items-center hidden lg:flex py-5">
             <Link href="/" aria-label="Go to home page">
               {enabledStoryblok && <Content content={content}></Content>}

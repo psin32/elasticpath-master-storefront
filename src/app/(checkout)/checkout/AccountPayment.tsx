@@ -13,7 +13,6 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
-import { PaymentBackButton } from "./PaymentBackButton";
 import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
 import { CheckoutProgress } from "./CheckoutProgress";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
@@ -67,7 +66,7 @@ export async function AccountPayment({
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
-        <div className="flex flex-col px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-20 gap-10">
+        <div className="flex flex-col px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-10 gap-8">
           <div className="justify-center items-center hidden lg:flex py-5">
             <Link href="/" aria-label="Go to home page">
               {enabledStoryblok && <Content content={content}></Content>}
@@ -86,9 +85,6 @@ export async function AccountPayment({
           <div className="flex flex-col flex-1 gap-5">
             <span className="text-2xl font-medium">Your Info</span>
             <AccountDisplay />
-          </div>
-          <div className="flex justify-start">
-            <PaymentBackButton />
           </div>
           {!enableExpressCheckout && (
             <>

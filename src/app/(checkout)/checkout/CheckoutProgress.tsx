@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { CheckIcon } from "@heroicons/react/24/solid";
 
 type CheckoutProgressProps = {
@@ -9,12 +9,24 @@ type CheckoutProgressProps = {
 
 export function CheckoutProgress({ className = "" }: CheckoutProgressProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isDeliveryPage = pathname === "/checkout/delivery";
   const isPaymentPage = pathname === "/checkout/payment";
 
+  const handleDeliveryClick = () => {
+    if (isPaymentPage) {
+      router.push("/checkout/delivery");
+    }
+  };
+
   return (
     <div className={`flex items-center justify-center gap-4 py-4 ${className}`}>
-      <div className="flex items-center gap-2">
+      <div
+        className={`flex items-center gap-2 ${
+          isPaymentPage ? "cursor-pointer hover:opacity-80" : ""
+        }`}
+        onClick={handleDeliveryClick}
+      >
         <div
           className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
             isDeliveryPage || isPaymentPage

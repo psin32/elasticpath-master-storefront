@@ -191,6 +191,18 @@ export default async function Orders({
                             {group.shipping_type}
                           </span>
                         </span>
+                        {group.meta?.shipping_display_price?.total
+                          ?.formatted && (
+                          <span>
+                            Shipping:{" "}
+                            <span className="font-medium text-black">
+                              {
+                                group.meta?.shipping_display_price.total
+                                  .formatted
+                              }
+                            </span>
+                          </span>
+                        )}
                         {group.tracking_reference && (
                           <span>
                             Tracking:{" "}

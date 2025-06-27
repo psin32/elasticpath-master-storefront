@@ -5,7 +5,6 @@ import { useCart } from "../../../react-shopper-hooks";
 import { useFormContext } from "react-hook-form";
 import { CheckoutForm as CheckoutFormSchemaType } from "../../../components/checkout/form-schema/checkout-form-schema";
 import { Button } from "../../../components/button/Button";
-import { Input } from "../../../components/input/Input";
 import { Label } from "../../../components/label/Label";
 import { Checkbox } from "../../../components/Checkbox";
 import { toast } from "react-toastify";
@@ -18,19 +17,24 @@ import {
 } from "../../../components/select/Select";
 import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
-import { AccountAddress } from "@elasticpath/js-sdk";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { cartQueryKeys } from "../../../react-shopper-hooks/cart/hooks/use-get-cart";
-import { Separator } from "../../../components/separator/Separator";
 import { accountAddressesQueryKeys } from "../../../react-shopper-hooks/account/hooks/use-account-addresses";
 import { Dialog } from "@headlessui/react";
 import { AddressForm } from "./AddressForm";
+import { ProductThumbnail } from "../../(store)/account/orders/[orderId]/ProductThumbnail";
 
 interface ShippingGroup {
   id: string;
   type: string;
   shipping_type: string;
   tracking_reference: string;
+  shipping_price?: {
+    total: number;
+    base: number;
+    tax: number;
+    fees: number;
+  };
   address: {
     first_name: string;
     last_name: string;
@@ -52,6 +56,13 @@ interface ShippingGroup {
   created_at: string;
   updated_at: string;
   items?: string[];
+  meta?: {
+    shipping_display_price: {
+      total: {
+        formatted: string;
+      };
+    };
+  };
 }
 
 export function ShippingGroupManager() {
@@ -143,11 +154,13 @@ export function ShippingGroupManager() {
             type: group.type,
             shipping_type: group.shipping_type,
             tracking_reference: group.tracking_reference || "",
+            shipping_price: group.shipping_price,
             address: group.address,
             delivery_estimate: group.delivery_estimate,
             created_at: group.created_at,
             updated_at: group.updated_at,
             items: [], // Will be populated by matching with cart items
+            meta: group.meta,
           }));
           setShippingGroups(groups);
           hasLoadedGroups.current = true;
@@ -303,11 +316,13 @@ export function ShippingGroupManager() {
       }
 
       const groupData = await groupResponse.json();
+      console.log(groupData);
       const newGroup: ShippingGroup = {
         id: groupData.data.id,
         type: groupData.data.type,
         shipping_type: groupData.data.shipping_type,
         tracking_reference: groupData.data.tracking_reference || "",
+        meta: groupData.data.meta,
         address: groupData.data.address,
         delivery_estimate: groupData.data.delivery_estimate,
         created_at: groupData.data.created_at,
@@ -841,82 +856,109 @@ export function ShippingGroupManager() {
       ) : shippingGroups.length > 0 ? (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Existing Shipping Groups</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-6 w-full">
             {shippingGroups.map((group) => {
               const groupItems = getItemsForGroup(group.id);
               return (
                 <div
                   key={group.id}
-                  className="border rounded-lg p-6 bg-white shadow-sm"
+                  className="rounded-2xl border border-gray-200 bg-white shadow-sm mb-6"
                 >
-                  <div className="mb-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-lg font-semibold">
+                  <div className="sticky top-0 z-10 bg-white rounded-t-2xl border-b border-gray-100 px-6 py-4 flex justify-between items-start">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-semibold text-brand-primary">
                           Shipping Group
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          Type: {group.shipping_type}
-                        </p>
-                        {group.tracking_reference && (
-                          <p className="text-sm text-gray-500">
-                            Tracking: {group.tracking_reference}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2">
+                        </span>
                         <span className="text-xs text-gray-400">
                           {new Date(group.created_at).toLocaleDateString()}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="small"
-                          onClick={() => deleteShippingGroup(group.id)}
-                          className="text-red-600 hover:text-red-700 text-xs"
-                          title="Delete shipping group"
-                        >
-                          Delete
-                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <span>
+                          Type:{" "}
+                          <span className="font-medium text-black">
+                            {group.shipping_type}
+                          </span>
+                        </span>
+                        {group.meta?.shipping_display_price?.total
+                          ?.formatted && (
+                          <span>
+                            Shipping:{" "}
+                            <span className="font-medium text-black">
+                              {
+                                group.meta?.shipping_display_price.total
+                                  .formatted
+                              }
+                            </span>
+                          </span>
+                        )}
+                        {group.tracking_reference && (
+                          <span>
+                            Tracking:{" "}
+                            <span className="font-medium text-black">
+                              {group.tracking_reference}
+                            </span>
+                          </span>
+                        )}
+                        <span>
+                          {group.address.first_name} {group.address.last_name},{" "}
+                          {[
+                            group.address.line_1,
+                            group.address.line_2,
+                            group.address.city,
+                            group.address.region,
+                            group.address.postcode,
+                            group.address.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </span>
                       </div>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="small"
+                      onClick={() => deleteShippingGroup(group.id)}
+                      className="text-red-600 hover:text-red-700 text-xs"
+                      title="Delete shipping group"
+                    >
+                      Delete Group
+                    </Button>
                   </div>
-                  <div>
-                    <div className="mb-3 p-3 bg-gray-50 rounded-lg text-sm">
-                      <p className="font-medium">
-                        {group.address.first_name} {group.address.last_name}
-                      </p>
-                      <p>{formatAddress(group.address)}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">
-                        Items in this group:
-                      </h4>
-                      {groupItems.length > 0 ? (
-                        groupItems.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded"
-                          >
-                            <span>
-                              {item.name} (Qty: {item.quantity})
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="small"
-                              onClick={() => removeFromGroup(group.id, item.id)}
-                              className="text-red-600 hover:text-red-700 text-xs"
-                            >
-                              Remove
-                            </Button>
+                  <div className="grid grid-cols-1 gap-0 divide-y divide-gray-100">
+                    {groupItems.length > 0 ? (
+                      groupItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-4 py-4 px-6 my-4"
+                        >
+                          <div className="w-16 sm:w-20 min-h-[6.25rem] flex-shrink-0">
+                            <ProductThumbnail productId={item.product_id} />
                           </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-gray-500">
-                          No items assigned to this group
-                        </p>
-                      )}
-                    </div>
+                          <div className="flex flex-col flex-1">
+                            <span className="font-medium text-base">
+                              {item.name}
+                            </span>
+                            <span className="text-sm text-black/60">
+                              Quantity: {item.quantity}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="small"
+                            onClick={() => removeFromGroup(group.id, item.id)}
+                            className="text-red-600 hover:text-red-700 text-xs ml-2"
+                          >
+                            Remove from this group
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 p-4">
+                        No items assigned to this group
+                      </p>
+                    )}
                   </div>
                 </div>
               );

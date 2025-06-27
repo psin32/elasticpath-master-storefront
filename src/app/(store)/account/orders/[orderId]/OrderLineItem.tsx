@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function OrderLineItem({ orderItem }: { orderItem: OrderItem }) {
   return (
-    <div className="flex gap-5 py-5 px-4 my-2 bg-gray-50 rounded-lg border border-gray-100 hover:shadow-sm transition-shadow">
+    <div className="flex gap-5 py-5 px-4 my-2">
       <div className="w-16 sm:w-20 min-h-[6.25rem]">
         <Link href={`/products/${orderItem.product_id}`}>
           <ProductThumbnail productId={orderItem.product_id} />

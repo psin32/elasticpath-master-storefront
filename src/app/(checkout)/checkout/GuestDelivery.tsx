@@ -57,7 +57,7 @@ export async function GuestDelivery({ cart }: GuestDeliveryProps) {
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
-        <div className="flex flex-col self-stretch px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-20 items-center gap-10">
+        <div className="flex flex-col self-stretch px-5 lg:px-20 lg:w-[37.5rem] flex-1 lg:py-10 items-center gap-8">
           <div className="justify-center items-center hidden lg:flex py-5">
             <Link href="/" aria-label="Go to home page">
               {enabledStoryblok && <Content content={content}></Content>}
