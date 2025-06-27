@@ -80,10 +80,14 @@ function resolveOrderItemsFromRelationship(
   itemRelationships: RelationshipToMany<"item">["data"],
   itemMap: Record<string, OrderItem>,
 ): OrderItem[] {
-  return itemRelationships.reduce((orderItems, itemRel) => {
-    const includedItem: OrderItem | undefined = itemMap[itemRel.id];
-    return [...orderItems, ...(includedItem && [includedItem])];
-  }, [] as OrderItem[]);
+  console.log("itemRelationships", itemRelationships);
+  console.log("itemMap", itemMap);
+  return itemRelationships
+    .filter((itemRel) => itemRel.type === "item")
+    .reduce((orderItems, itemRel) => {
+      const includedItem: OrderItem | undefined = itemMap[itemRel.id];
+      return [...orderItems, ...(includedItem && [includedItem])];
+    }, [] as OrderItem[]);
 }
 
 function resolveShopperOrder(

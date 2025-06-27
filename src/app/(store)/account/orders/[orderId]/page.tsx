@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../../lib/cookie-constants";
 import { notFound, redirect } from "next/navigation";
 import { getServerSideImplicitClient } from "../../../../../lib/epcc-server-side-implicit-client";
+import { getServerSideCredentialsClientWihoutAccountToken } from "../../../../../lib/epcc-server-side-credentials-client";
 import {
   Order,
   OrderIncluded,
@@ -15,6 +16,7 @@ import Link from "next/link";
 import { formatIsoDateString } from "../../../../../lib/format-iso-date-string";
 import { OrderLineItem } from "./OrderLineItem";
 import { Reorder } from "../Reorder";
+import React from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +66,38 @@ export default async function Orders({
     item.sku.startsWith("__shipping_"),
   );
 
+  // Fetch shipping groups for this order (cart)
+  let shippingGroups: any[] = [];
+  try {
+    const shippingGroupsClient =
+      getServerSideCredentialsClientWihoutAccountToken();
+    const shippingGroupsResponse = await shippingGroupsClient.request.send(
+      `orders/${params.orderId}/shipping-groups`,
+      "GET",
+      undefined,
+      undefined,
+      shippingGroupsClient,
+      undefined,
+      "v2",
+    );
+    shippingGroups = shippingGroupsResponse.data || [];
+  } catch (e) {
+    // ignore error, just don't show shipping groups
+    shippingGroups = [];
+  }
+
+  // Group productItems by shipping_group_id
+  const itemsByShippingGroup: Record<string, OrderItem[]> = {};
+  productItems.forEach((item) => {
+    const groupId = item.shipping_group_id || "__no_group__";
+    if (!itemsByShippingGroup[groupId]) itemsByShippingGroup[groupId] = [];
+    itemsByShippingGroup[groupId].push(item);
+  });
+
+  // Helper to get group details by id
+  const getShippingGroupById = (id: string) =>
+    shippingGroups.find((g) => g.id === id);
+
   return (
     <div className="flex flex-col gap-5 items-start w-full">
       <div className="flex self-stretch">
@@ -83,36 +117,118 @@ export default async function Orders({
           </time>
         </div>
       </div>
-      <div className="flex py-4 self-stretch justify-between">
-        <div className="flex flex-col gap-2.5">
-          <span className="font-medium">Shipping address</span>
-          <p translate="no">
-            {shippingAddress.first_name} {shippingAddress.last_name}
-            <br />
-            {shippingAddress.line_1}
-            <br />
-            {shippingAddress.city ?? shippingAddress.county},{" "}
-            {shippingAddress.postcode} {shippingAddress.country}
-          </p>
+
+      {/* Shipping address, only if no shipping groups */}
+      {shippingGroups.length === 0 && (
+        <div className="flex py-4 self-stretch justify-between">
+          <div className="flex flex-col gap-2.5">
+            <span className="font-medium">Shipping address</span>
+            <p translate="no">
+              {shippingAddress.first_name} {shippingAddress.last_name}
+              <br />
+              {shippingAddress.line_1}
+              <br />
+              {shippingAddress.city ?? shippingAddress.county},{" "}
+              {shippingAddress.postcode} {shippingAddress.country}
+            </p>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <span className="font-medium">Shipping status</span>
+            <span>{shopperOrder.raw.shipping}</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <span className="font-medium">Payment status</span>
+            <span>{shopperOrder.raw.payment}</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-2.5">
-          <span className="font-medium">Shipping status</span>
-          <span>{shopperOrder.raw.shipping}</span>
+      )}
+      {shippingGroups.length > 0 && (
+        <div className="flex py-4 self-stretch justify-between">
+          <div className="flex flex-col gap-2.5">
+            <span className="font-medium">Shipping status</span>
+            <span>{shopperOrder.raw.shipping}</span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <span className="font-medium">Payment status</span>
+            <span>{shopperOrder.raw.payment}</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-2.5">
-          <span className="font-medium">Payment status</span>
-          <span>{shopperOrder.raw.payment}</span>
-        </div>
-      </div>
+      )}
       <Reorder orderId={params.orderId}></Reorder>
       <div className="flex self-stretch">
-        <ul role="list" className="w-full border-b border-zinc-300">
-          {productItems.map((item) => (
-            <li key={item.id}>
-              <OrderLineItem orderItem={item} />
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-6 w-full">
+          {/* Render items grouped by shipping group */}
+          {Object.entries(itemsByShippingGroup).map(([groupId, items]) => {
+            const group =
+              groupId !== "__no_group__" ? getShippingGroupById(groupId) : null;
+            // If there are no shipping groups at all, render ungrouped items plainly
+            if (!group && shippingGroups.length === 0) {
+              return items.map((item) => (
+                <OrderLineItem key={item.id} orderItem={item} />
+              ));
+            }
+            // Otherwise, render the group card (including 'No Shipping Group' if there are groups)
+            return (
+              <div
+                key={groupId}
+                className="rounded-2xl border border-gray-200 bg-white shadow-sm mb-6"
+              >
+                <div className="sticky top-0 z-10 bg-white rounded-t-2xl border-b border-gray-100 px-6 py-4 flex flex-col gap-1">
+                  {group ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-semibold text-brand-primary">
+                          Shipping Group
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(group.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <span>
+                          Type:{" "}
+                          <span className="font-medium text-black">
+                            {group.shipping_type}
+                          </span>
+                        </span>
+                        {group.tracking_reference && (
+                          <span>
+                            Tracking:{" "}
+                            <span className="font-medium text-black">
+                              {group.tracking_reference}
+                            </span>
+                          </span>
+                        )}
+                        <span>
+                          {group.address.first_name} {group.address.last_name},{" "}
+                          {[
+                            group.address.line_1,
+                            group.address.line_2,
+                            group.address.city,
+                            group.address.region,
+                            group.address.postcode,
+                            group.address.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="text-lg font-semibold text-gray-400">
+                      No Shipping Group
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-0 divide-y divide-gray-100">
+                  {items.map((item) => (
+                    <OrderLineItem key={item.id} orderItem={item} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
       <div className="flex self-stretch items-end flex-col gap-5">
         <div className="flex flex-col gap-2 w-[22.5rem]">
@@ -162,10 +278,12 @@ function resolveOrderItemsFromRelationship(
   itemRelationships: RelationshipToMany<"item">["data"],
   itemMap: Record<string, OrderItem>,
 ): OrderItem[] {
-  return itemRelationships.reduce((orderItems, itemRel) => {
-    const includedItem: OrderItem | undefined = itemMap[itemRel.id];
-    return [...orderItems, ...(includedItem && [includedItem])];
-  }, [] as OrderItem[]);
+  return itemRelationships
+    .filter((itemRel) => itemRel.type === "item")
+    .reduce((orderItems, itemRel) => {
+      const includedItem: OrderItem | undefined = itemMap[itemRel.id];
+      return [...orderItems, ...(includedItem && [includedItem])];
+    }, [] as OrderItem[]);
 }
 
 function resolveShopperOrder(
