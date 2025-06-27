@@ -80,8 +80,6 @@ function resolveOrderItemsFromRelationship(
   itemRelationships: RelationshipToMany<"item">["data"],
   itemMap: Record<string, OrderItem>,
 ): OrderItem[] {
-  console.log("itemRelationships", itemRelationships);
-  console.log("itemMap", itemMap);
   return itemRelationships
     .filter((itemRel) => itemRel.type === "item")
     .reduce((orderItems, itemRel) => {

@@ -158,8 +158,8 @@ export function StripeCheckoutProvider({
               queryKey: cartQueryKeys.all,
             });
 
-            // Refresh the router to update the UI
-            router.refresh();
+            // Don't navigate - let CheckoutViews handle showing the confirmation
+            // The confirmationData will trigger the OrderConfirmation component to display
           } catch (error) {
             console.error("Failed to clear cart after order placement:", error);
           }

@@ -316,7 +316,6 @@ export function ShippingGroupManager() {
       }
 
       const groupData = await groupResponse.json();
-      console.log(groupData);
       const newGroup: ShippingGroup = {
         id: groupData.data.id,
         type: groupData.data.type,

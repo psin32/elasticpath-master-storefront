@@ -1,41 +1,25 @@
 "use client";
 import { Separator } from "../../../components/separator/Separator";
-import { CartDiscountsReadOnly } from "../../../components/cart/CartDiscounts";
 import * as React from "react";
-import {
-  groupCartItems,
-  useCurrencies,
-} from "../../../react-shopper-hooks";
-import {
-  ItemSidebarHideable,
-  ItemSidebarItems,
-  ItemSidebarTotals,
-  ItemSidebarTotalsDiscount,
-  ItemSidebarTotalsSubTotal,
-  ItemSidebarTotalsTax,
-  resolveTotalInclShipping,
-} from "../../../components/checkout-sidebar/ItemSidebar";
 import { useCheckout } from "./checkout-provider";
-import { staticDeliveryMethods } from "./useShippingMethod";
-import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
-import { LoadingDots } from "../../../components/LoadingDots";
 
 export function ConfirmationSidebar() {
   const { confirmationData } = useCheckout();
-
-  const { data: currencyData } = useCurrencies();
 
   if (!confirmationData) {
     return null;
   }
 
-  const { order, cart } = confirmationData;
+  const { order } = confirmationData;
 
-  const groupedItems: any = groupCartItems(cart.data);
+  // Use order items directly
+  const orderItems = (order as any).included?.items || [];
 
-  const items = groupedItems.regular.concat(groupedItems.custom.filter((item: any) => !item.sku.startsWith("__shipping_")), groupedItems.subscription)
-
-  const shippingMethodCustomItem = groupedItems.custom.find((item: any) =>
+  // Filter out shipping items and separate regular items
+  const regularItems = orderItems.filter(
+    (item: any) => !item.sku.startsWith("__shipping_"),
+  );
+  const shippingItems = orderItems.filter((item: any) =>
     item.sku.startsWith("__shipping_"),
   );
 
@@ -43,68 +27,97 @@ export function ConfirmationSidebar() {
     display_price: order.data.meta.display_price,
   };
 
-  const shippingAmount = staticDeliveryMethods.find(
-    (method) =>
-      !!shippingMethodCustomItem &&
-      method.value === shippingMethodCustomItem.sku,
-  )?.amount;
-
-  const storeCurrency = currencyData?.find(
-    (currency) => currency.code === EP_CURRENCY_CODE,
-  );
-
-  const formattedTotalAmountInclShipping =
-    meta?.display_price?.with_tax?.amount !== undefined &&
-      shippingAmount !== undefined &&
-      storeCurrency
-      ? resolveTotalInclShipping(
-        shippingAmount,
-        meta.display_price.with_tax.amount,
-        storeCurrency,
-      )
-      : undefined;
+  const shippingMethodCustomItem = shippingItems[0]; // Take the first shipping item if any
 
   return (
-    <ItemSidebarHideable meta={meta}>
-      <div className="inline-flex flex-col items-start gap-5 w-full lg:w-[24.375rem] px-5 lg:px-0">
-        <div className="flex flex-col gap-5">
-          <ItemSidebarItems items={items} />
-        </div>
-        <span className="text-sm text-black/60">Discounts applied</span>
-        <CartDiscountsReadOnly promotions={groupedItems.promotion} />
-        {/* Totals */}
-        <ItemSidebarTotals>
-          <ItemSidebarTotalsSubTotal meta={meta} />
-          {shippingMethodCustomItem && (
-            <div className="flex justify-between items-baseline self-stretch">
-              <span className="text-sm">Shipping</span>
-              <span className="font-medium">
-                {
-                  shippingMethodCustomItem.meta.display_price.with_tax.value
-                    .formatted
-                }
-              </span>
-            </div>
-          )}
-          <ItemSidebarTotalsDiscount meta={meta} />
-          <ItemSidebarTotalsTax meta={meta} />
-        </ItemSidebarTotals>
-        <Separator />
-        {/* Sum total incl shipping */}
-        {formattedTotalAmountInclShipping ? (
-          <div className="flex justify-between items-baseline self-stretch">
-            <span>Total</span>
-            <div className="flex items-center gap-2.5">
-              <span>{meta?.display_price?.with_tax?.currency}</span>
-              <span className="font-medium text-2xl">
-                {formattedTotalAmountInclShipping}
-              </span>
-            </div>
+    <div className="inline-flex flex-col items-start gap-5 w-full lg:w-[24.375rem] px-5 lg:px-0">
+      {/* Order Items */}
+      <div className="flex flex-col gap-4 w-full">
+        <h3 className="text-lg font-semibold">Order Items</h3>
+        {regularItems.length > 0 ? (
+          <div className="space-y-3">
+            {regularItems.map((item: any) => (
+              <div
+                key={item.id}
+                className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg"
+              >
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{item.name}</div>
+                  <div className="text-xs text-gray-600">SKU: {item.sku}</div>
+                  <div className="text-xs text-gray-600">
+                    Quantity: {item.quantity}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-medium text-sm">
+                    {item.meta?.display_price?.with_tax?.value?.formatted ||
+                      item.meta?.display_price?.without_tax?.value?.formatted ||
+                      "N/A"}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <LoadingDots className="h-2 bg-black" />
+          <div className="text-gray-500 text-sm">No items found</div>
         )}
       </div>
-    </ItemSidebarHideable>
+
+      <Separator />
+
+      {/* Order Summary */}
+      <div className="flex flex-col gap-3 w-full">
+        <h3 className="text-lg font-semibold">Order Summary</h3>
+
+        {/* Subtotal */}
+        <div className="flex justify-between items-center">
+          <span className="text-sm">Subtotal</span>
+          <span className="font-medium">
+            {meta?.display_price?.without_tax?.formatted ||
+              meta?.display_price?.with_tax?.formatted ||
+              "N/A"}
+          </span>
+        </div>
+
+        {/* Shipping */}
+        {shippingMethodCustomItem && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Shipping</span>
+            <span className="font-medium">
+              {shippingMethodCustomItem.meta?.display_price?.with_tax?.value
+                ?.formatted || "N/A"}
+            </span>
+          </div>
+        )}
+
+        {/* Discount */}
+        {meta?.display_price?.discount?.amount < 0 && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Discount</span>
+            <span className="font-medium text-red-600">
+              {meta?.display_price?.discount?.formatted || "N/A"}
+            </span>
+          </div>
+        )}
+
+        {/* Tax */}
+        <div className="flex justify-between items-center">
+          <span className="text-sm">Tax</span>
+          <span className="font-medium">
+            {meta?.display_price?.tax?.formatted || "N/A"}
+          </span>
+        </div>
+
+        <Separator />
+
+        {/* Total */}
+        <div className="flex justify-between items-center">
+          <span className="font-medium">Total</span>
+          <span className="font-bold text-lg">
+            {meta?.display_price?.with_tax?.formatted || "N/A"}
+          </span>
+        </div>
+      </div>
+    </div>
   );
 }
