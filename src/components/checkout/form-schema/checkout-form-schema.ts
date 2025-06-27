@@ -15,53 +15,39 @@ const accountMemberInformationSchema = z.object({
 });
 
 const billingAddressSchema = z.object({
-  first_name: z
-    .string({ required_error: "You need to provided a first name." })
-    .min(2),
-  last_name: z
-    .string({ required_error: "You need to provided a last name." })
-    .min(2),
-  company_name: z.string().min(1).optional().or(emptyStringToUndefined),
-  line_1: z
-    .string({ required_error: "You need to provided an address." })
-    .min(1),
-  line_2: z.string().min(1).optional().or(emptyStringToUndefined),
-  city: z.string().min(1).optional().or(emptyStringToUndefined),
-  county: z.string().min(1).optional().or(emptyStringToUndefined),
-  region: z
-    .string({ required_error: "You need to provided a region." })
-    .optional()
-    .or(emptyStringToUndefined),
-  postcode: z
-    .string({ required_error: "You need to provided a postcode." })
-    .min(1),
-  country: z
-    .string({ required_error: "You need to provided a country." })
-    .min(1),
+  first_name: z.string().optional().or(emptyStringToUndefined),
+  last_name: z.string().optional().or(emptyStringToUndefined),
+  company_name: z.string().optional().or(emptyStringToUndefined),
+  line_1: z.string().optional().or(emptyStringToUndefined),
+  line_2: z.string().optional().or(emptyStringToUndefined),
+  city: z.string().optional().or(emptyStringToUndefined),
+  county: z.string().optional().or(emptyStringToUndefined),
+  region: z.string().optional().or(emptyStringToUndefined),
+  postcode: z.string().optional().or(emptyStringToUndefined),
+  country: z.string().optional().or(emptyStringToUndefined),
 });
 
-export const shippingAddressSchema = z
-  .object({
-    phone_number: z
-      .string()
-      .regex(
-        /^(\+?\d{0,4})?\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{3}\)?)\s?-?\s?(\(?\d{4}\)?)?$/,
-        "Phone number is not valid",
-      )
-      .optional()
-      .or(emptyStringToUndefined),
-    instructions: z.string().min(1).optional().or(emptyStringToUndefined),
-  })
-  .merge(billingAddressSchema);
+export const shippingAddressSchema = z.object({
+  first_name: z.string({ required_error: "First name is required" }),
+  last_name: z.string({ required_error: "Last name is required" }),
+  company_name: z.string().optional().or(emptyStringToUndefined),
+  line_1: z.string({ required_error: "Address is required" }),
+  line_2: z.string().optional().or(emptyStringToUndefined),
+  city: z.string({ required_error: "City is required" }),
+  county: z.string().optional().or(emptyStringToUndefined),
+  region: z.string({ required_error: "Region is required" }),
+  postcode: z.string({ required_error: "Postcode is required" }),
+  country: z.string({ required_error: "Country is required" }),
+  phone_number: z.string().optional().or(emptyStringToUndefined),
+  instructions: z.string().optional().or(emptyStringToUndefined),
+});
 
 export const anonymousCheckoutFormSchema = z.object({
   guest: guestInformationSchema,
   shippingAddress: shippingAddressSchema,
   sameAsShipping: z.boolean().default(true),
-  billingAddress: billingAddressSchema.optional().or(emptyStringToUndefined),
-  shippingMethod: z
-    .union([z.literal("__shipping_standard"), z.literal("__shipping_express")])
-    .default("__shipping_standard"),
+  billingAddress: billingAddressSchema.optional(),
+  shippingMethod: z.string().optional(),
   purchaseOrderNumber: z.string().optional(),
   paymentMethod: z.string().optional(),
   cardId: z.string().optional(),
@@ -76,10 +62,8 @@ export const accountMemberCheckoutFormSchema = z.object({
   account: accountMemberInformationSchema,
   shippingAddress: shippingAddressSchema,
   sameAsShipping: z.boolean().default(true),
-  billingAddress: billingAddressSchema.optional().or(emptyStringToUndefined),
-  shippingMethod: z
-    .union([z.literal("__shipping_standard"), z.literal("__shipping_express")])
-    .default("__shipping_standard"),
+  billingAddress: billingAddressSchema.optional(),
+  shippingMethod: z.string().optional(),
   purchaseOrderNumber: z.string().optional(),
   paymentMethod: z.string().optional(),
   cardId: z.string().optional(),

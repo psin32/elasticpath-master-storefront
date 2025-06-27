@@ -25,6 +25,13 @@ import { StripeElementsOptions } from "@stripe/stripe-js";
 import { epPaymentsEnvData } from "../../../lib/resolve-ep-stripe-env";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 import { Toaster } from "../../../components/toast/toaster";
+import { toast } from "react-toastify";
+import { deleteCookie, setCookie } from "cookies-next";
+import { CART_COOKIE_NAME } from "../../../lib/cookie-constants";
+import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { cartQueryKeys } from "../../../react-shopper-hooks/cart/hooks/use-get-cart";
 
 const stripePromise = loadStripe(epPaymentsEnvData.publishableKey, {
   stripeAccount: epPaymentsEnvData.accountId,
@@ -60,16 +67,65 @@ export function StripeCheckoutProvider({
   const [confirmationData, setConfirmationData] =
     useState<ReturnType<typeof usePaymentComplete>["data"]>(undefined);
 
+  const { selectedAccountToken } = useAuthedAccountMember();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  // Determine if user is authenticated and set appropriate default values
+  const isAuthenticated = !!selectedAccountToken;
+
   const formMethods = useForm<CheckoutForm>({
     reValidateMode: "onChange",
     resolver: zodResolver(checkoutFormSchema),
-    defaultValues: {
-      sameAsShipping: true,
-      shippingMethod: "__shipping_standard",
-    },
+    defaultValues: isAuthenticated
+      ? {
+          // For authenticated users
+          account: {
+            email: "",
+            name: "",
+          },
+          shippingAddress: {
+            first_name: "",
+            last_name: "",
+            company_name: "",
+            line_1: "",
+            line_2: "",
+            city: "",
+            county: "",
+            region: "",
+            postcode: "",
+            country: "",
+            phone_number: "",
+            instructions: "",
+          },
+          sameAsShipping: true,
+          shippingMethod: "__shipping_standard",
+          paymentMethod: "ep_payment",
+        }
+      : {
+          // For guest users
+          guest: {
+            email: "",
+          },
+          shippingAddress: {
+            first_name: "",
+            last_name: "",
+            company_name: "",
+            line_1: "",
+            line_2: "",
+            city: "",
+            county: "",
+            region: "",
+            postcode: "",
+            country: "",
+            phone_number: "",
+            instructions: "",
+          },
+          sameAsShipping: true,
+          shippingMethod: "__shipping_standard",
+          paymentMethod: "ep_payment",
+        },
   });
-
-  const { selectedAccountToken } = useAuthedAccountMember();
 
   const { data: shippingMethods, isLoading: isShippingMethodsLoading } =
     useShippingMethod();
@@ -82,12 +138,40 @@ export function StripeCheckoutProvider({
     {
       onSuccess: async (data) => {
         setConfirmationData(data);
-        cart?.data?.id
-          ? cart?.data?.id
-          : state?.id &&
-            (await mutateClearCart({
-              cartId: cart?.data?.id ? cart?.data?.id : state?.id,
-            }));
+
+        // Clear the cart after successful order placement
+        const cartIdToClear = cart?.data?.id || state?.id;
+        if (cartIdToClear) {
+          try {
+            await mutateClearCart({ cartId: cartIdToClear });
+
+            // Delete the cart cookie
+            deleteCookie(CART_COOKIE_NAME);
+
+            // Create a new cart and set the cookie
+            const client = getEpccImplicitClient();
+            const response = await client.Cart().CreateCart({ name: "Cart" });
+            setCookie(CART_COOKIE_NAME, response.data.id);
+
+            // Invalidate all cart queries to refresh the UI
+            await queryClient.invalidateQueries({
+              queryKey: cartQueryKeys.all,
+            });
+
+            // Refresh the router to update the UI
+            router.refresh();
+          } catch (error) {
+            console.error("Failed to clear cart after order placement:", error);
+          }
+        }
+      },
+      onError: (error: any) => {
+        // Surface error to user and console
+        const message =
+          error?.message ||
+          (typeof error === "string" ? error : "Unknown error");
+        toast.error("Payment failed: " + message);
+        console.error("Payment error:", error);
       },
     },
   );

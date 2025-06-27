@@ -7,6 +7,9 @@ export default function SettingsPage() {
   const [productSource, setProductSource] = useState<string | undefined>(
     undefined,
   );
+  const [useShippingGroups, setUseShippingGroups] = useState<
+    boolean | undefined
+  >(undefined);
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -14,6 +17,9 @@ export default function SettingsPage() {
     const cookieValue =
       (getCookie("product_source") as string) || "elasticpath";
     setProductSource(cookieValue);
+
+    const shippingGroupsValue = getCookie("use_shipping_groups");
+    setUseShippingGroups(shippingGroupsValue === "true");
   }, []);
 
   useEffect(() => {
@@ -28,7 +34,19 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [productSource]);
 
-  if (productSource === undefined) {
+  useEffect(() => {
+    if (useShippingGroups === undefined) return;
+    setCookie("use_shipping_groups", useShippingGroups.toString(), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      sameSite: "lax",
+    });
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [useShippingGroups]);
+
+  if (productSource === undefined || useShippingGroups === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-gray-400">Loading...</div>
@@ -114,6 +132,62 @@ export default function SettingsPage() {
               }
             >
               External Product
+            </span>
+          </div>
+        </div>
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">
+              Use Shipping Groups
+            </span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Enable shipping groups to organize items into different shipping
+            destinations.
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                !useShippingGroups
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Disabled
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle shipping groups"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${useShippingGroups ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setUseShippingGroups(!useShippingGroups);
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${
+                    useShippingGroups
+                      ? "translate-x-7 bg-white border border-brand-primary"
+                      : "translate-x-1 bg-white border border-gray-400"
+                  }
+                `}
+              />
+            </button>
+            <span
+              className={
+                useShippingGroups
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Enabled
             </span>
           </div>
         </div>

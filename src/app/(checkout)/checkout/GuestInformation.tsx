@@ -11,13 +11,13 @@ import {
   FormMessage,
 } from "../../../components/form/Form";
 import { Input } from "../../../components/input/Input";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 export function GuestInformation() {
   const pathname = usePathname();
 
-  const { control } = useFormContext<CheckoutFormSchemaType>();
+  const { control, getValues } = useFormContext<CheckoutFormSchemaType>();
 
   return (
     <fieldset className="flex flex-1 flex-col gap-6 self-stretch">
@@ -42,6 +42,9 @@ export function GuestInformation() {
             <FormControl>
               <Input
                 {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
                 autoComplete="email"
                 aria-label="Email Address"
                 sizeKind="mediumUntilSm"

@@ -5,6 +5,10 @@ import { getServerSideImplicitClient } from "../../lib/epcc-server-side-implicit
 import { Providers } from "../providers";
 import clsx from "clsx";
 import NextAuthSessionProvider from "../../components/header/admin/SessionProviders";
+import { CheckoutProvider } from "./checkout/checkout-provider";
+import { cookies } from "next/headers";
+import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
+import { getServerSideCredentialsClient } from "../../lib/epcc-server-side-credentials-client";
 
 const { SITE_NAME } = process.env;
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -37,6 +41,12 @@ export default async function CheckoutLayout({
   const client = getServerSideImplicitClient();
   const initialState = await getStoreInitialState(client);
 
+  // Get cart data for CheckoutProvider
+  const cookieStore = cookies();
+  const cartCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_cart`);
+  const epccClient = getServerSideCredentialsClient();
+  const cart = await epccClient.Cart(cartCookie?.value).With("items").Get();
+
   return (
     <NextAuthSessionProvider>
       <html lang="en" className={clsx(inter.variable, "h-full bg-white")}>
@@ -44,7 +54,9 @@ export default async function CheckoutLayout({
           {/* headless ui needs this div - https://github.com/tailwindlabs/headlessui/issues/2752#issuecomment-1745272229 */}
           <div className="h-full">
             <Providers initialState={initialState}>
-              <main className="h-full">{children}</main>
+              <CheckoutProvider cart={cart}>
+                <main className="h-full">{children}</main>
+              </CheckoutProvider>
             </Providers>
           </div>
         </body>

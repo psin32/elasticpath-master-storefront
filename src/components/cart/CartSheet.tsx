@@ -21,6 +21,7 @@ import { LoadingDots } from "../LoadingDots";
 import { CartItemsGrouped } from "./CartItemsGrouped";
 import Cookies from "js-cookie";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
+import { useState, useEffect } from "react";
 
 export function Cart() {
   const { state, useScopedRemoveCartItem } = useCart() as any;
@@ -38,6 +39,14 @@ export function Cart() {
 
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
+
+  // Add state for useShippingGroups
+  const [useShippingGroups, setUseShippingGroups] = useState(false);
+  useEffect(() => {
+    const shippingGroupsValue = Cookies.get("use_shipping_groups");
+    setUseShippingGroups(shippingGroupsValue === "true");
+  }, []);
+  const checkoutUrl = useShippingGroups ? "/checkout/delivery" : "/checkout";
 
   return (
     <Sheet>
@@ -169,7 +178,7 @@ export function Cart() {
                 )}
                 <SheetClose asChild className="flex-1">
                   <Button type="button" asChild className="self-stretch">
-                    <Link href="/checkout">
+                    <Link href={checkoutUrl}>
                       <LockClosedIcon className="w-5 h-5 mr-2" />
                       Checkout
                     </Link>

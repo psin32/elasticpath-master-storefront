@@ -1,6 +1,6 @@
 import {
   useAddCustomItemToCart,
-  useCheckout as useCheckoutCart,
+  useCheckout,
   useCheckoutWithAccount,
   useOrderConfirm,
   usePayments,
@@ -46,10 +46,10 @@ export function usePaymentComplete(
   >,
 ) {
   const { mutateAsync: mutatePayment } = usePayments();
-  const { mutateAsync: mutateConvertToOrder } = useCheckoutCart(cartId ?? "");
-  const { mutateAsync: mutateConvertToOrderAsAccount } = useCheckoutWithAccount(
+  const { mutateAsync: mutateConvertToOrder } = useCheckoutWithAccount(
     cartId ?? "",
   );
+  const { mutateAsync: mutateConvertToOrderGuest } = useCheckout(cartId ?? "");
   const { mutateAsync: mutateAddCustomItemToCart } = useAddCustomItemToCart(
     cartId ?? "",
   );
@@ -70,7 +70,6 @@ export function usePaymentComplete(
         cardId,
         quoteId,
       } = data;
-      console.log("quoteId", quoteId);
 
       const client = getEpccImplicitClient();
       const cookieValue =
@@ -88,12 +87,26 @@ export function usePaymentComplete(
         }
       }
 
-      const customerName = `${shippingAddress.first_name} ${shippingAddress.last_name}`;
+      // Use shipping address from shipping groups or fallback to form data
+      const effectiveShippingAddress = shippingAddress || {
+        first_name: "",
+        last_name: "",
+        line_1: "",
+        city: "",
+        postcode: "",
+        country: "",
+      };
+
+      const customerName =
+        `${effectiveShippingAddress.first_name || ""} ${effectiveShippingAddress.last_name || ""}`.trim() ||
+        "Customer";
 
       const checkoutProps = {
         billingAddress:
-          billingAddress && !sameAsShipping ? billingAddress : shippingAddress,
-        shippingAddress: shippingAddress,
+          billingAddress && !sameAsShipping
+            ? billingAddress
+            : effectiveShippingAddress,
+        shippingAddress: effectiveShippingAddress,
       };
 
       /**
@@ -106,17 +119,24 @@ export function usePaymentComplete(
 
       /**
        * Using a cart custom_item to represent shipping for demo purposes.
+       * Skip adding shipping item for standard shipping method.
        */
-      const cartInclShipping = await mutateAddCustomItemToCart({
-        type: "custom_item",
-        name: "Shipping",
-        sku: shippingMethod,
-        quantity: 1,
-        price: {
-          amount: shippingAmount,
-          includes_tax: true,
-        },
-      });
+      let cartInclShipping;
+      if (shippingMethod && shippingMethod !== "__shipping_standard") {
+        cartInclShipping = await mutateAddCustomItemToCart({
+          type: "custom_item",
+          name: "Shipping",
+          sku: shippingMethod || "standard",
+          quantity: 1,
+          price: {
+            amount: shippingAmount,
+            includes_tax: true,
+          },
+        });
+      } else {
+        // For standard shipping, get the current cart items without adding shipping item
+        cartInclShipping = await client.Cart(cartId || "").Items();
+      }
 
       if (paymentMethod === "ep_payment") {
         await elements?.submit();
@@ -126,7 +146,7 @@ export function usePaymentComplete(
        * 1. Convert our cart to an order we can pay
        */
       const createdOrder: any = await ("guest" in data
-        ? mutateConvertToOrder({
+        ? mutateConvertToOrderGuest({
             customer: {
               email: data.guest.email,
               name: customerName,
@@ -135,7 +155,7 @@ export function usePaymentComplete(
             purchaseOrderNumber,
             quoteId,
           })
-        : mutateConvertToOrderAsAccount({
+        : mutateConvertToOrder({
             contact: {
               name: data.account.name,
               email: data.account.email,
@@ -186,19 +206,22 @@ export function usePaymentComplete(
         stripe_customer_id &&
         paymentMethod === "ep_payment"
       ) {
+        const effectiveBillingAddress =
+          billingAddress || effectiveShippingAddress;
         const { error, paymentMethod } = await stripe?.createPaymentMethod({
           elements,
           params: {
             billing_details: {
               name:
-                billingAddress?.first_name + " " + billingAddress?.last_name,
+                `${effectiveBillingAddress.first_name || ""} ${effectiveBillingAddress.last_name || ""}`.trim() ||
+                "Customer",
               address: {
-                country: billingAddress?.country,
-                postal_code: billingAddress?.postcode,
-                state: billingAddress?.region,
-                city: billingAddress?.city,
-                line1: billingAddress?.line_1,
-                line2: billingAddress?.line_2,
+                country: effectiveBillingAddress.country || "",
+                postal_code: effectiveBillingAddress.postcode || "",
+                state: effectiveBillingAddress.region || "",
+                city: effectiveBillingAddress.city || "",
+                line1: effectiveBillingAddress.line_1 || "",
+                line2: effectiveBillingAddress.line_2 || "",
               },
             },
           },
@@ -229,6 +252,8 @@ export function usePaymentComplete(
         /**
          * 3. Confirm the payment with Stripe
          */
+        const effectiveBillingAddress =
+          billingAddress || effectiveShippingAddress;
         const stripeConfirmResponse = await stripe?.confirmPayment({
           elements: elements!,
           clientSecret: confirmedPayment.data.payment_intent.client_secret,
@@ -238,12 +263,12 @@ export function usePaymentComplete(
             payment_method_data: {
               billing_details: {
                 address: {
-                  country: billingAddress?.country,
-                  postal_code: billingAddress?.postcode,
-                  state: billingAddress?.region,
-                  city: billingAddress?.city,
-                  line1: billingAddress?.line_1,
-                  line2: billingAddress?.line_2,
+                  country: effectiveBillingAddress.country || "",
+                  postal_code: effectiveBillingAddress.postcode || "",
+                  state: effectiveBillingAddress.region || "",
+                  city: effectiveBillingAddress.city || "",
+                  line1: effectiveBillingAddress.line_1 || "",
+                  line2: effectiveBillingAddress.line_2 || "",
                 },
               },
             },

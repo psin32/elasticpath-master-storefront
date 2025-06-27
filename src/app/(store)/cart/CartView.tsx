@@ -5,9 +5,22 @@ import { Button } from "../../../components/button/Button";
 import Link from "next/link";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useCart } from "../../../react-shopper-hooks";
+import { getCookie } from "cookies-next";
+import { useState, useEffect } from "react";
 
 export function CartView() {
   const { state } = useCart() as any;
+  const [useShippingGroups, setUseShippingGroups] = useState<boolean>(false);
+
+  // Check the use_shipping_groups setting on component mount
+  useEffect(() => {
+    const shippingGroupsValue = getCookie("use_shipping_groups");
+    setUseShippingGroups(shippingGroupsValue === "true");
+  }, []);
+
+  // Determine the checkout URL based on shipping groups setting
+  const checkoutUrl = useShippingGroups ? "/checkout/delivery" : "/checkout";
+
   return (
     <>
       {state?.items.length && state.items.length > 0 ? (
@@ -24,7 +37,7 @@ export function CartView() {
           <div className="flex flex-col items-start gap-5 self-stretch px-5 py-5 lg:px-16 lg:py-40 bg-[#F9F9F9] flex-none">
             <CartSidebar />
             <Button type="button" asChild className="self-stretch">
-              <Link href="checkout">
+              <Link href={checkoutUrl}>
                 <LockClosedIcon className="w-5 h-5 mr-2" />
                 Checkout
               </Link>

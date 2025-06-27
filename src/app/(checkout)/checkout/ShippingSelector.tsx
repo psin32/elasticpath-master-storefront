@@ -22,12 +22,12 @@ export function ShippingSelector() {
 
   const client = getEpccImplicitClient();
 
-  const { setValue } = useFormContext<CheckoutFormSchemaType>();
+  const { setValue, getValues } = useFormContext<CheckoutFormSchemaType>();
 
   function updateAddress(addressId: string, addresses: AccountAddress[]) {
     const address = addresses.find((address) => address.id === addressId);
     if (address) {
-      setValue("shippingAddress", {
+      const shippingAddress = {
         postcode: address.postcode,
         line_1: address.line_1,
         line_2: address.line_2,
@@ -39,19 +39,29 @@ export function ShippingSelector() {
         last_name: address.last_name,
         phone_number: address.phone_number,
         instructions: address.instructions,
-        region: address.region,
-      });
+        region: address.region || "",
+      };
+      setValue("shippingAddress", shippingAddress);
     }
   }
 
   useEffect(() => {
     const init = async () => {
-      const addresses = await client.AccountAddresses.All({
-        account: selectedAccountToken?.account_id || "",
-      });
-      if (addresses?.data?.length > 0) {
-        updateAddress(addresses.data[0].id, addresses.data);
-        setAccountAddresses(addresses.data);
+      if (selectedAccountToken?.account_id) {
+        try {
+          const addresses = await client.AccountAddresses.All({
+            account: selectedAccountToken.account_id,
+          });
+          if (addresses?.data?.length > 0) {
+            updateAddress(addresses.data[0].id, addresses.data);
+            setAccountAddresses(addresses.data);
+          } else {
+            setAccountAddresses([]);
+          }
+        } catch (error) {
+          console.error("Error fetching addresses:", error);
+          setAccountAddresses([]);
+        }
       } else {
         setAccountAddresses([]);
       }
