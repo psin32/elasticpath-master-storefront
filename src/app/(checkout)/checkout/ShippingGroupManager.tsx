@@ -15,6 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/select/Select";
+import {
+  RadioGroup,
+  RadioGroupItem,
+} from "../../../components/radio-group/RadioGroup";
 import { useAuthedAccountMember } from "../../../react-shopper-hooks";
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -23,6 +27,19 @@ import { accountAddressesQueryKeys } from "../../../react-shopper-hooks/account/
 import { Dialog } from "@headlessui/react";
 import { AddressForm } from "./AddressForm";
 import { ProductThumbnail } from "../../(store)/account/orders/[orderId]/ProductThumbnail";
+
+interface ShippingDetails {
+  shipping_method: string;
+  shipping_cost: number;
+  currency: string;
+  shipping_message: string;
+  delivery_estimate: {
+    start: string;
+    end: string;
+    unit: string;
+  };
+  sort_order: number;
+}
 
 interface ShippingGroup {
   id: string;
@@ -72,7 +89,7 @@ export function ShippingGroupManager() {
   const queryClient = useQueryClient();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [shippingGroups, setShippingGroups] = useState<ShippingGroup[]>([]);
-  const [shippingType, setShippingType] = useState("standard");
+  const [shippingType, setShippingType] = useState<string>("");
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,8 +101,87 @@ export function ShippingGroupManager() {
   const [isAttaching, setIsAttaching] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
+  const [shippingDetails, setShippingDetails] = useState<
+    Record<string, ShippingDetails>
+  >({});
+  const [isLoadingShippingDetails, setIsLoadingShippingDetails] =
+    useState(false);
 
   const client = getEpccImplicitClient();
+
+  // Fetch shipping details when shipping type changes
+  const fetchShippingDetails = async () => {
+    setIsLoadingShippingDetails(true);
+    try {
+      const response = await fetch(`/api/shipping/details`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Transform the API response to match our expected format
+          let transformedData: Record<string, ShippingDetails> = {};
+
+          // If data is an array (from Custom API), transform it
+          if (Array.isArray(data.data)) {
+            // Sort by sort_order in descending order (highest first)
+            const sortedData = data.data.sort((a: any, b: any) => {
+              const sortOrderA = a?.sort_order || 0;
+              const sortOrderB = b?.sort_order || 0;
+              return sortOrderB - sortOrderA; // Descending order
+            });
+
+            sortedData.forEach((shipping: any) => {
+              const shippingType =
+                shipping.attributes?.shipping_type || shipping.attributes?.slug;
+              if (shippingType) {
+                transformedData[shippingType] = {
+                  shipping_method:
+                    shipping?.shipping_method || shipping?.name || "Shipping",
+                  shipping_cost: shipping?.shipping_cost || 0,
+                  currency: shipping?.currency || "USD",
+                  shipping_message:
+                    shipping?.shipping_message || shipping?.description || "",
+                  delivery_estimate: {
+                    start: shipping.attributes?.delivery_start_days || "3",
+                    end: shipping.attributes?.delivery_end_days || "5",
+                    unit: shipping.attributes?.delivery_unit || "business days",
+                  },
+                  sort_order: shipping?.sort_order || 0,
+                };
+              }
+            });
+          } else {
+            // If data is already in the expected format (from mock data)
+            transformedData = data.data;
+          }
+
+          setShippingDetails(data.data);
+
+          // Auto-select the first shipping type if none is selected
+          if (!shippingType && Object.keys(transformedData).length > 0) {
+            setShippingType(Object.keys(transformedData)[0]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching shipping details:", error);
+    } finally {
+      setIsLoadingShippingDetails(false);
+    }
+  };
+
+  // Fetch all shipping details on component mount
+  useEffect(() => {
+    if (showCreateForm) {
+      fetchShippingDetails();
+    }
+  }, [showCreateForm]);
+
+  // Fetch shipping details when shipping type changes
+  useEffect(() => {
+    if (showCreateForm && shippingType && !shippingDetails[shippingType]) {
+      fetchShippingDetails();
+    }
+  }, [shippingType, showCreateForm]);
 
   // Use React Query to fetch account addresses
   const { data: accountAddressesData } = useQuery({
@@ -203,6 +299,13 @@ export function ShippingGroupManager() {
     return accountAddresses.find((addr) => addr.id === selectedAddressId);
   };
 
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount / 100); // Convert cents to dollars
+  };
+
   const createShippingGroup = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item");
@@ -266,13 +369,16 @@ export function ShippingGroupManager() {
 
     setIsCreating(true);
     try {
+      // Get shipping details for the selected type
+      const currentShippingDetails = shippingDetails[shippingType];
+
       // Prepare shipping group request with all required fields
       const shippingGroupRequest = {
         type: "shipping_group",
         shipping_type: shippingType,
         shipping_price: {
-          total: 0,
-          base: 0,
+          total: currentShippingDetails?.shipping_cost || 0,
+          base: currentShippingDetails?.shipping_cost || 0,
           tax: 0,
           fees: 0,
           discount: 0,
@@ -292,10 +398,31 @@ export function ShippingGroupManager() {
           instructions: shippingAddress.instructions || "",
         },
         includes_tax: true,
-        delivery_estimate: {
-          start: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
-          end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-        },
+        delivery_estimate: currentShippingDetails?.delivery_estimate
+          ? {
+              start: new Date(
+                Date.now() +
+                  parseInt(currentShippingDetails.delivery_estimate.start) *
+                    24 *
+                    60 *
+                    60 *
+                    1000,
+              ).toISOString(),
+              end: new Date(
+                Date.now() +
+                  parseInt(currentShippingDetails.delivery_estimate.end) *
+                    24 *
+                    60 *
+                    60 *
+                    1000,
+              ).toISOString(),
+            }
+          : {
+              start: new Date(
+                Date.now() + 3 * 24 * 60 * 60 * 1000,
+              ).toISOString(), // 3 days from now
+              end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            },
       };
 
       // Create shipping group
@@ -659,110 +786,182 @@ export function ShippingGroupManager() {
           <div className="mb-4">
             <h3 className="text-lg font-semibold">Create New Shipping Group</h3>
           </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-8">
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="shippingType">Shipping Type</Label>
-                <Select value={shippingType} onValueChange={setShippingType}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select shipping type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="standard">Standard</SelectItem>
-                    <SelectItem value="express">Express</SelectItem>
-                    <SelectItem value="overnight">Overnight</SelectItem>
-                    <SelectItem value="economy">Economy</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="shippingType" className="mb-4 block mt-2">
+                  Select Shipping Method
+                </Label>
+                <RadioGroup
+                  value={shippingType}
+                  onValueChange={setShippingType}
+                  className="space-y-3"
+                >
+                  {Object.keys(shippingDetails).length > 0 ? (
+                    Object.entries(shippingDetails)
+                      .sort(
+                        ([, a], [, b]) =>
+                          (b.sort_order || 0) - (a.sort_order || 0),
+                      ) // Sort by sort_order descending
+                      .map(([type, details]) => (
+                        <div key={type} className="relative w-full">
+                          <RadioGroupItem
+                            value={type}
+                            id={type}
+                            className="sr-only"
+                          />
+                          <Label
+                            htmlFor={type}
+                            className={`block cursor-pointer p-4 border rounded-lg transition-all hover:border-brand-primary/30 hover:shadow-sm w-full ${
+                              shippingType === type
+                                ? "border-brand-primary bg-brand-primary/5 shadow-sm"
+                                : "border-gray-200 bg-white"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start w-full">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2">
+                                  <div
+                                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                      shippingType === type
+                                        ? "border-brand-primary bg-brand-primary"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    {shippingType === type && (
+                                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                                    )}
+                                  </div>
+                                  <span className="font-medium text-gray-900">
+                                    {details.shipping_method ||
+                                      type.charAt(0).toUpperCase() +
+                                        type.slice(1)}
+                                  </span>
+                                </div>
+                                {details.shipping_message &&
+                                  details.shipping_message.trim() !== "" && (
+                                    <p className="text-sm text-gray-600 mt-2 ml-6">
+                                      {details.shipping_message}
+                                    </p>
+                                  )}
+                              </div>
+                              <div className="text-right ml-4">
+                                <div className="text-lg font-semibold text-gray-900">
+                                  {formatCurrency(
+                                    details.shipping_cost,
+                                    details.currency,
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Label>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="text-sm text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50 w-full">
+                      {isLoadingShippingDetails
+                        ? "Loading shipping options..."
+                        : "No shipping options available"}
+                    </div>
+                  )}
+                </RadioGroup>
               </div>
 
-              {selectedAccountToken?.account_id && (
-                <div>
-                  <Label htmlFor="addressSelect">Shipping Address</Label>
-                  <Select
-                    value={selectedAddressId}
-                    onValueChange={(value) => {
-                      if (value === "new") {
-                        setIsAddressDialogOpen(true);
-                      } else {
-                        setSelectedAddressId(value);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select an address" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accountAddresses.map((address) => (
-                        <SelectItem key={address.id} value={address.id}>
-                          {address.name ||
-                            `${address.first_name} ${address.last_name}`}{" "}
-                          - {address.line_1}, {address.city}
-                        </SelectItem>
-                      ))}
-                      <SelectItem
-                        value="new"
-                        className="text-blue-600 font-medium"
-                      >
-                        + Add New Address
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+              {isLoadingShippingDetails && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">
+                    Loading shipping details...
+                  </p>
                 </div>
               )}
             </div>
 
-            {selectedAddressId && (
-              <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                <p className="font-medium">
-                  {getSelectedAddress()?.name ||
-                    `${getSelectedAddress()?.first_name} ${getSelectedAddress()?.last_name}`}
-                </p>
-                <p>{getSelectedAddress()?.line_1}</p>
-                {getSelectedAddress()?.line_2 && (
-                  <p>{getSelectedAddress()?.line_2}</p>
-                )}
-                <p>
-                  {getSelectedAddress()?.city}, {getSelectedAddress()?.region}{" "}
-                  {getSelectedAddress()?.postcode}
-                </p>
-                <p>{getSelectedAddress()?.country}</p>
+            {selectedAccountToken?.account_id && (
+              <div>
+                <Label htmlFor="addressSelect">Select Delivery Address</Label>
+                <Select
+                  value={selectedAddressId}
+                  onValueChange={(value) => {
+                    if (value === "new") {
+                      setIsAddressDialogOpen(true);
+                    } else {
+                      setSelectedAddressId(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select an address" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accountAddresses.map((address) => (
+                      <SelectItem key={address.id} value={address.id}>
+                        {address.name ||
+                          `${address.first_name} ${address.last_name}`}{" "}
+                        - {address.line_1}, {address.city}
+                      </SelectItem>
+                    ))}
+                    <SelectItem
+                      value="new"
+                      className="text-blue-600 font-medium"
+                    >
+                      + Add New Address
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
-
-            <div>
-              <Label className="mb-2 block">Select Items</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-                {getItemsNotInGroups().map((item) => (
-                  <div key={item.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`item-${item.id}`}
-                      checked={selectedItems.includes(item.id)}
-                      onCheckedChange={(checked) =>
-                        handleItemSelection(item.id, checked as boolean)
-                      }
-                    />
-                    <Label htmlFor={`item-${item.id}`} className="text-sm">
-                      {item.name} (Qty: {item.quantity})
-                    </Label>
-                  </div>
-                ))}
-                {getItemsNotInGroups().length === 0 && (
-                  <p className="text-sm text-gray-500 col-span-full">
-                    All items are already in shipping groups
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <Button
-              onClick={createShippingGroup}
-              disabled={isCreating || selectedItems.length === 0}
-              className="w-full"
-            >
-              {isCreating ? "Creating..." : "Create Shipping Group"}
-            </Button>
           </div>
+
+          {selectedAddressId && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm mt-2">
+              <p className="font-medium">
+                {getSelectedAddress()?.name ||
+                  `${getSelectedAddress()?.first_name} ${getSelectedAddress()?.last_name}`}
+              </p>
+              <p>{getSelectedAddress()?.line_1}</p>
+              {getSelectedAddress()?.line_2 && (
+                <p>{getSelectedAddress()?.line_2}</p>
+              )}
+              <p>
+                {getSelectedAddress()?.city}, {getSelectedAddress()?.region}{" "}
+                {getSelectedAddress()?.postcode}
+              </p>
+              <p>{getSelectedAddress()?.country}</p>
+            </div>
+          )}
+
+          <div>
+            <Label className="mb-2 block mt-6">Select Items</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+              {getItemsNotInGroups().map((item) => (
+                <div key={item.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`item-${item.id}`}
+                    checked={selectedItems.includes(item.id)}
+                    onCheckedChange={(checked) =>
+                      handleItemSelection(item.id, checked as boolean)
+                    }
+                  />
+                  <Label htmlFor={`item-${item.id}`} className="text-sm">
+                    {item.name} (Qty: {item.quantity})
+                  </Label>
+                </div>
+              ))}
+              {getItemsNotInGroups().length === 0 && (
+                <p className="text-sm text-gray-500 col-span-full">
+                  All items are already in shipping groups
+                </p>
+              )}
+            </div>
+          </div>
+
+          <Button
+            onClick={createShippingGroup}
+            disabled={isCreating || selectedItems.length === 0}
+            className="w-full"
+          >
+            {isCreating ? "Creating..." : "Create Shipping Group"}
+          </Button>
         </div>
       )}
 
