@@ -18,6 +18,7 @@ import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 export function ShippingSelector() {
   const [accountAddresses, setAccountAddresses] = useState<any>();
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const { selectedAccountToken } = useAuthedAccountMember();
 
   const client = getEpccImplicitClient();
@@ -53,31 +54,35 @@ export function ShippingSelector() {
             account: selectedAccountToken.account_id,
           });
           if (addresses?.data?.length > 0) {
-            updateAddress(addresses.data[0].id, addresses.data);
             setAccountAddresses(addresses.data);
+            setSelectedAddressId(addresses.data[0].id);
+            updateAddress(addresses.data[0].id, addresses.data);
           } else {
             setAccountAddresses([]);
+            setSelectedAddressId("");
           }
         } catch (error) {
           console.error("Error fetching addresses:", error);
           setAccountAddresses([]);
+          setSelectedAddressId("");
         }
       } else {
         setAccountAddresses([]);
+        setSelectedAddressId("");
       }
     };
     init();
   }, [selectedAccountToken?.account_id]);
 
+  const handleSelectChange = (value: string) => {
+    setSelectedAddressId(value);
+    updateAddress(value, accountAddresses ?? []);
+  };
+
   return (
     <div>
       {accountAddresses ? (
-        <Select
-          onValueChange={(value) =>
-            updateAddress(value, accountAddresses ?? [])
-          }
-          defaultValue={accountAddresses[0]?.id}
-        >
+        <Select value={selectedAddressId} onValueChange={handleSelectChange}>
           <SelectTrigger className="p-5">
             <SelectValue placeholder="Select address" />
           </SelectTrigger>
