@@ -132,43 +132,47 @@ export default function PreviousOrders({ account_id }: { account_id: string }) {
                             (itm: any) => itm.id === item.id,
                           );
                           return (
-                            <div
-                              key={item.id}
-                              className="flex items-center space-x-2 mb-4"
-                            >
-                              <StatusButton
-                                onClick={() => handleAddItem(itemDetails)}
-                                disabled={!itemDetails.product_id}
-                                className="rounded-lg text-xs py-2 px-4"
-                                status={
-                                  loadingAdd && itemId === itemDetails.id
-                                    ? "loading"
-                                    : "idle"
-                                }
+                            itemDetails && (
+                              <div
+                                key={item.id}
+                                className="flex items-center space-x-2 mb-4"
                               >
-                                Add
-                              </StatusButton>
-                              <div>
-                                {itemDetails.quantity} x{" "}
-                                {itemDetails.name.length > 50
-                                  ? `${itemDetails.name.substring(0, 50)}...`
-                                  : itemDetails.name}
-                                <div>
-                                  <span className="font-bold">Item Price:</span>{" "}
-                                  {
-                                    itemDetails?.meta?.display_price?.with_tax
-                                      ?.unit?.formatted
+                                <StatusButton
+                                  onClick={() => handleAddItem(itemDetails)}
+                                  disabled={!itemDetails?.product_id}
+                                  className="rounded-lg text-xs py-2 px-4"
+                                  status={
+                                    loadingAdd && itemId === itemDetails.id
+                                      ? "loading"
+                                      : "idle"
                                   }
-                                </div>
+                                >
+                                  Add
+                                </StatusButton>
                                 <div>
-                                  <span className="font-bold">Total:</span>{" "}
-                                  {
-                                    itemDetails?.meta?.display_price?.with_tax
-                                      ?.value?.formatted
-                                  }
+                                  {itemDetails.quantity} x{" "}
+                                  {itemDetails.name.length > 50
+                                    ? `${itemDetails.name.substring(0, 50)}...`
+                                    : itemDetails.name}
+                                  <div>
+                                    <span className="font-bold">
+                                      Item Price:
+                                    </span>{" "}
+                                    {
+                                      itemDetails?.meta?.display_price?.with_tax
+                                        ?.unit?.formatted
+                                    }
+                                  </div>
+                                  <div>
+                                    <span className="font-bold">Total:</span>{" "}
+                                    {
+                                      itemDetails?.meta?.display_price?.with_tax
+                                        ?.value?.formatted
+                                    }
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+                            )
                           );
                         })}
                       </td>
