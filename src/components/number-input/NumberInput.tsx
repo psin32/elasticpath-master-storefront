@@ -1,7 +1,7 @@
 "use client";
 import type { CartItem } from "@elasticpath/js-sdk";
 import { EditItemQuantityButton } from "./EditQuantityButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "../../react-shopper-hooks";
 
 interface NumberInputProps {
@@ -12,6 +12,11 @@ export const NumberInput = ({ item }: NumberInputProps): JSX.Element => {
   const { useScopedUpdateCartItem } = useCart();
   const { mutate, isPending } = useScopedUpdateCartItem();
   const [inputValue, setInputValue] = useState(item.quantity.toString());
+
+  // Sync input value with item.quantity when it changes
+  useEffect(() => {
+    setInputValue(item.quantity.toString());
+  }, [item.quantity]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
