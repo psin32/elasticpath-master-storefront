@@ -6,7 +6,6 @@ const mockShippingDetails = {
   standard: {
     shipping_method: "Standard Delivery",
     shipping_cost: 0,
-    currency: "USD",
     shipping_message: "Free standard shipping (3-5 business days)",
     delivery_estimate: {
       start: "3",
@@ -17,7 +16,6 @@ const mockShippingDetails = {
   express: {
     shipping_method: "Express Delivery",
     shipping_cost: 1200, // $12.00 in cents
-    currency: "USD",
     shipping_message: "Express shipping (1-2 business days)",
     delivery_estimate: {
       start: "1",
@@ -28,7 +26,6 @@ const mockShippingDetails = {
   overnight: {
     shipping_method: "Overnight Delivery",
     shipping_cost: 2500, // $25.00 in cents
-    currency: "USD",
     shipping_message: "Overnight shipping (next business day)",
     delivery_estimate: {
       start: "1",
@@ -39,7 +36,6 @@ const mockShippingDetails = {
   economy: {
     shipping_method: "Economy Delivery",
     shipping_cost: 500, // $5.00 in cents
-    currency: "USD",
     shipping_message: "Economy shipping (5-7 business days)",
     delivery_estimate: {
       start: "5",

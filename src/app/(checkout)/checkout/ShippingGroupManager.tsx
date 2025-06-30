@@ -27,6 +27,7 @@ import { accountAddressesQueryKeys } from "../../../react-shopper-hooks/account/
 import { Dialog } from "@headlessui/react";
 import { AddressForm } from "./AddressForm";
 import { ProductThumbnail } from "../../(store)/account/orders/[orderId]/ProductThumbnail";
+import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 
 interface ShippingDetails {
   shipping_method: string;
@@ -130,14 +131,16 @@ export function ShippingGroupManager() {
             });
 
             sortedData.forEach((shipping: any) => {
-              const shippingType =
-                shipping.attributes?.shipping_type || shipping.attributes?.slug;
+              const shippingType = shipping.shipping_type;
               if (shippingType) {
+                // Get currency from API response or fallback to cookie
+                const currency = shipping?.currency || EP_CURRENCY_CODE;
+
                 transformedData[shippingType] = {
                   shipping_method:
                     shipping?.shipping_method || shipping?.name || "Shipping",
                   shipping_cost: shipping?.shipping_cost || 0,
-                  currency: shipping?.currency || "USD",
+                  currency,
                   shipping_message:
                     shipping?.shipping_message || shipping?.description || "",
                   delivery_estimate: {
@@ -302,7 +305,7 @@ export function ShippingGroupManager() {
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: currency,
+      currency: currency || EP_CURRENCY_CODE,
     }).format(amount / 100); // Convert cents to dollars
   };
 
@@ -375,7 +378,7 @@ export function ShippingGroupManager() {
       // Prepare shipping group request with all required fields
       const shippingGroupRequest = {
         type: "shipping_group",
-        shipping_type: shippingType,
+        shipping_type: currentShippingDetails?.shipping_method || shippingType,
         shipping_price: {
           total: currentShippingDetails?.shipping_cost || 0,
           base: currentShippingDetails?.shipping_cost || 0,
@@ -958,7 +961,7 @@ export function ShippingGroupManager() {
           <Button
             onClick={createShippingGroup}
             disabled={isCreating || selectedItems.length === 0}
-            className="w-full"
+            className="w-full mt-6"
           >
             {isCreating ? "Creating..." : "Create Shipping Group"}
           </Button>
