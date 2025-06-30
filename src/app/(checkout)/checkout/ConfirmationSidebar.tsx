@@ -25,7 +25,8 @@ export function ConfirmationSidebar() {
 
   const meta = {
     display_price: order.data.meta.display_price,
-  };
+  } as any;
+  console.log("meta", meta);
 
   const shippingMethodCustomItem = shippingItems[0]; // Take the first shipping item if any
 
@@ -69,16 +70,6 @@ export function ConfirmationSidebar() {
       <div className="flex flex-col gap-3 w-full">
         <h3 className="text-lg font-semibold">Order Summary</h3>
 
-        {/* Subtotal */}
-        <div className="flex justify-between items-center">
-          <span className="text-sm">Subtotal</span>
-          <span className="font-medium">
-            {meta?.display_price?.without_tax?.formatted ||
-              meta?.display_price?.with_tax?.formatted ||
-              "N/A"}
-          </span>
-        </div>
-
         {/* Shipping */}
         {shippingMethodCustomItem && (
           <div className="flex justify-between items-center">
@@ -86,6 +77,16 @@ export function ConfirmationSidebar() {
             <span className="font-medium">
               {shippingMethodCustomItem.meta?.display_price?.with_tax?.value
                 ?.formatted || "N/A"}
+            </span>
+          </div>
+        )}
+
+        {/* Shipping */}
+        {!shippingMethodCustomItem && (
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Shipping</span>
+            <span className="font-medium">
+              {meta?.display_price?.shipping?.formatted || "N/A"}
             </span>
           </div>
         )}

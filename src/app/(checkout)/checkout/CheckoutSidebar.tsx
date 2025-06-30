@@ -38,9 +38,11 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
     return null;
   }
 
-  const shippingAmount = staticDeliveryMethods.find(
-    (method) => method.value === shippingMethod,
-  )?.amount;
+  const shipping = state.meta?.display_price as any;
+  const shippingAmount =
+    shipping?.shipping?.amount ||
+    staticDeliveryMethods.find((method) => method.value === shippingMethod)
+      ?.amount;
 
   const { meta, __extended } = cart?.data ? cart?.data : (state as any);
 
@@ -53,17 +55,6 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
         __extended.groupedItems.subscription,
       );
 
-  const formattedTotalAmountInclShipping =
-    meta?.display_price?.with_tax?.amount !== undefined &&
-    shippingAmount !== undefined &&
-    storeCurrency
-      ? resolveTotalInclShipping(
-          shippingAmount,
-          meta.display_price.with_tax.amount,
-          storeCurrency,
-        )
-      : undefined;
-
   return (
     <ItemSidebarHideable meta={meta}>
       <div className="inline-flex flex-col items-start gap-5 w-full lg:w-[24.375rem] px-5 lg:px-0">
@@ -73,7 +64,6 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
         <CartDiscounts promotions={state.__extended.groupedItems.promotion} />
         {/* Totals */}
         <ItemSidebarTotals>
-          <ItemSidebarTotalsSubTotal meta={meta} />
           <div className="flex justify-between items-baseline self-stretch">
             <span className="text-sm">Shipping</span>
             <span
@@ -96,19 +86,14 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
         </ItemSidebarTotals>
         <Separator />
         {/* Sum total incl shipping */}
-        {formattedTotalAmountInclShipping ? (
-          <div className="flex justify-between items-baseline self-stretch">
-            <span>Total</span>
-            <div className="flex items-center gap-2.5">
-              <span>{meta?.display_price?.with_tax?.currency}</span>
-              <span className="font-medium text-2xl">
-                {formattedTotalAmountInclShipping}
-              </span>
-            </div>
+        <div className="flex justify-between items-baseline self-stretch">
+          <span>Total</span>
+          <div className="flex items-center gap-2.5">
+            <span className="font-medium text-2xl">
+              {meta?.display_price?.with_tax?.formatted}
+            </span>
           </div>
-        ) : (
-          <LoadingDots className="h-2 bg-black" />
-        )}
+        </div>
       </div>
     </ItemSidebarHideable>
   );
