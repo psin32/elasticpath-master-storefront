@@ -518,7 +518,7 @@ export default function HitsElasticPath({
                                 </Link>
                               </h2>
                               <div className="text-gray-600 text-sm">{sku}</div>
-                              {child_variations.map((variation: any) => {
+                              {child_variations?.map((variation: any) => {
                                 return (
                                   <span
                                     className="line-clamp-6 text-xs font-medium leading-5 text-gray-500"
