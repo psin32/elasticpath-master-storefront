@@ -7,7 +7,7 @@ import {
 } from "../../../react-shopper-hooks";
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { CheckoutForm } from "../../../components/checkout/form-schema/checkout-form-schema";
-import { staticDeliveryMethods } from "./useShippingMethod";
+import { useShippingMethod } from "./useShippingMethod";
 import {
   CartItemsResponse,
   ConfirmPaymentResponse,
@@ -57,6 +57,8 @@ export function usePaymentComplete(
 
   const stripe = useStripe() as any;
   const elements = useElements();
+
+  const { shippingMethods } = useShippingMethod();
 
   const paymentComplete = useMutation({
     mutationFn: async ({ data }) => {
@@ -114,7 +116,7 @@ export function usePaymentComplete(
        * You must implement your own based on your business needs.
        */
       const shippingAmount =
-        staticDeliveryMethods.find((method) => method.value === shippingMethod)
+        shippingMethods.find((method) => method.value === shippingMethod)
           ?.amount ?? 0;
 
       /**

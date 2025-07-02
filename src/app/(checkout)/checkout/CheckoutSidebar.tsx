@@ -13,7 +13,7 @@ import {
   ItemSidebarTotalsTax,
   resolveTotalInclShipping,
 } from "../../../components/checkout-sidebar/ItemSidebar";
-import { staticDeliveryMethods } from "./useShippingMethod";
+import { useShippingMethod } from "./useShippingMethod";
 import { cn } from "../../../lib/cn";
 import { useWatch } from "react-hook-form";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
@@ -29,6 +29,7 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
   const shippingMethod = useWatch({ name: "shippingMethod" });
 
   const { data } = useCurrencies();
+  const { shippingMethods, isLoading } = useShippingMethod();
 
   const storeCurrency = data?.find(
     (currency) => currency.code === EP_CURRENCY_CODE,
@@ -41,8 +42,7 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
   const shipping = state.meta?.display_price as any;
   const shippingAmount =
     shipping?.shipping?.amount ||
-    staticDeliveryMethods.find((method) => method.value === shippingMethod)
-      ?.amount;
+    shippingMethods.find((method) => method.value === shippingMethod)?.amount;
 
   const { meta, __extended } = cart?.data ? cart?.data : (state as any);
 
@@ -54,6 +54,18 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
         __extended.groupedItems.custom,
         __extended.groupedItems.subscription,
       );
+
+  const formattedTotalAmountInclShipping =
+    meta?.display_price?.with_tax?.amount !== undefined &&
+    shippingAmount !== undefined &&
+    shipping?.shipping?.amount === 0 &&
+    storeCurrency
+      ? resolveTotalInclShipping(
+          shippingAmount,
+          meta.display_price.with_tax.amount,
+          storeCurrency,
+        )
+      : meta.display_price.with_tax.formatted;
 
   return (
     <ItemSidebarHideable meta={meta}>
@@ -86,14 +98,18 @@ export function CheckoutSidebar({ cart }: CheckoutSidebarProps) {
         </ItemSidebarTotals>
         <Separator />
         {/* Sum total incl shipping */}
-        <div className="flex justify-between items-baseline self-stretch">
-          <span>Total</span>
-          <div className="flex items-center gap-2.5">
-            <span className="font-medium text-2xl">
-              {meta?.display_price?.with_tax?.formatted}
-            </span>
+        {formattedTotalAmountInclShipping ? (
+          <div className="flex justify-between items-baseline self-stretch">
+            <span>Total</span>
+            <div className="flex items-center gap-2.5">
+              <span className="font-medium text-2xl">
+                {formattedTotalAmountInclShipping}
+              </span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <LoadingDots className="h-2 bg-black" />
+        )}
       </div>
     </ItemSidebarHideable>
   );

@@ -10,17 +10,10 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "../../../components/form/Form";
 import { useFormContext } from "react-hook-form";
 import { useShippingMethod } from "./useShippingMethod";
-import { LightBulbIcon } from "@heroicons/react/24/outline";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "../../../components/alert/Alert";
 import { Skeleton } from "../../../components/skeleton/Skeleton";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
 
@@ -35,16 +28,6 @@ export function DeliveryForm() {
       <div>
         <legend className="text-2xl font-medium">Delivery</legend>
       </div>
-      <Alert>
-        <LightBulbIcon className="h-4 w-4" />
-        <AlertTitle>Delivery is using fixed rates!</AlertTitle>
-        <AlertDescription className="flex flex-col gap-2">
-          <p>
-            Delivery is fixed rate data for testing. You can replace this with a
-            3rd party service.
-          </p>
-        </AlertDescription>
-      </Alert>
       {!deliveryOptions ? (
         <div className="flex flex-col flex-1 items-center gap-2 h-10">
           <Skeleton className="h-10 w-full" />
@@ -56,7 +39,6 @@ export function DeliveryForm() {
           name="shippingMethod"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Shipping Method</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -70,13 +52,13 @@ export function DeliveryForm() {
                           "flex items-center border border-black/40 py-2.5 px-5",
                           optionIndex === 0
                             ? "rounded-tl-md rounded-tr-md"
-                            : "",
+                            : "border-b-1",
                           optionIndex === 0 && deliveryOptions.length !== 1
                             ? "border-b-0"
                             : "",
                           optionIndex === deliveryOptions.length - 1
                             ? "rounded-bl-md rounded-br-md"
-                            : "",
+                            : "border-b-0",
                         )}
                       >
                         <div
@@ -94,6 +76,11 @@ export function DeliveryForm() {
                           >
                             {option.label}
                           </Label>
+                          {option.message && (
+                            <div className="text-xs text-gray-500 ml-6 mt-1">
+                              {option.message}
+                            </div>
+                          )}
                         </div>
                         <span className="">
                           {option.amount === 0 && "FREE"}

@@ -26,7 +26,6 @@ export function ConfirmationSidebar() {
   const meta = {
     display_price: order.data.meta.display_price,
   } as any;
-  console.log("meta", meta);
 
   const shippingMethodCustomItem = shippingItems[0]; // Take the first shipping item if any
 
