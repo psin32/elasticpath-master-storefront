@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
-export function OrderConfirmation() {
+export function OrderConfirmation({ order: orderProp }: { order?: any } = {}) {
   const { confirmationData } = useCheckout();
   const [content, setContent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,16 +51,17 @@ export function OrderConfirmation() {
     loadContent();
   }, []);
 
-  if (!confirmationData) {
+  // Use the prop if provided, otherwise use context
+  const order = orderProp || confirmationData?.order;
+  if (!order) {
     return null;
   }
 
-  const { order } = confirmationData;
   const { enableBuilderIO, enabledStoryblok } = cmsConfig;
 
   const customerName = (
     order.data.contact?.name ??
-    order.data.customer.name ??
+    order.data.customer?.name ??
     ""
   ).split(" ")[0];
 
