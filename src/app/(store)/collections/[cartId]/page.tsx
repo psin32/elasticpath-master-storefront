@@ -72,6 +72,7 @@ export default function SharedListDetailPage() {
       type: "cart_item",
       id: item.product_id,
       quantity: item.quantity,
+      custom_inputs: item.custom_inputs || {},
     }));
     addBulkToCart(bulkItems, {
       onSuccess: () => {

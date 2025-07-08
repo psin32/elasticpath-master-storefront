@@ -74,6 +74,7 @@ export function Cart() {
         type: "cart_item",
         ...(item.sku ? { sku: item.sku } : { id: item.id }),
         quantity: item.quantity,
+        custom_inputs: item.custom_inputs || {},
       })) || [];
     if (items.length > 0) {
       const client = getEpccImplicitClient();
