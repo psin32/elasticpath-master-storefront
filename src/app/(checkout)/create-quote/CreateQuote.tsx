@@ -298,7 +298,7 @@ export default function AccountSelector({
       )}
 
       {quoteStarted && selectedAddress && state && (
-        <div className="mt-6">
+        <div className="mt-6 w-[90%]">
           <div className="bg-gray-100 px-4 py-6 sm:rounded-lg sm:px-6 lg:grid lg:grid-cols-12 lg:gap-x-8 lg:px-8 lg:py-8">
             <dl className="text-sm lg:col-span-3 lg:mt-0 mb-8 lg:mb-0">
               <div className="flex mb-4">
