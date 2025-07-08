@@ -53,7 +53,6 @@ export async function createPayPalPayment(client: any, orderId: string) {
   };
   // Call the Elastic Path API to create the PayPal payment
   const response = await client.Orders.Payment(orderId, payment);
-  console.log("response payment", response);
   // Return the redirect_url for PayPal authorization
   return response.data?.client_parameters?.redirect_url;
 }

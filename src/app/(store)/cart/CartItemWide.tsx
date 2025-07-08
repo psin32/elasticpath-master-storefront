@@ -14,7 +14,7 @@ export function CartItemWide({ item }: CartItemProps) {
   const { mutate, isPending } = useScopedRemoveCartItem();
 
   return (
-    <div className="flex gap-5 self-stretch">
+    <div className="grid grid-cols-[auto,1fr,160px] gap-5 items-center w-full self-stretch">
       {/* Thumbnail */}
       <div className="flex h-20 sm:h-[7.5rem] justify-center lg:shrink-0 items-start">
         {item.product_id && <ProductThumbnail productId={item.product_id} />}
@@ -90,7 +90,7 @@ export function CartItemWide({ item }: CartItemProps) {
           </div>
         </div>
       </div>
-      <div className="flex lg:pl-14 flex-col h-7 items-end">
+      <div className="flex flex-col h-7 items-end w-40 min-w-[160px]">
         <span className="font-medium">
           {item.meta.display_price.with_tax.value.formatted}
         </span>

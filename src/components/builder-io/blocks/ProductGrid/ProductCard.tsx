@@ -31,6 +31,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     response: {
       meta: { display_price, original_display_price, variation_matrix },
       attributes: { name, components, slug, extensions },
+      quantity,
       id,
     },
   } = product;
@@ -120,7 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
             <div className="h-full">
               <Link href={`/products/${slug}`} passHref legacyBehavior>
-                <p className="pointer-events-none mt-2 block truncate text-lg font-medium text-gray-900">
+                <p className="pointer-events-none mt-2 block truncate text-md font-medium text-gray-900">
                   {name}
                 </p>
               </Link>
@@ -171,7 +172,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                         e.preventDefault();
                         mutate({
                           productId: id,
-                          quantity: 1,
+                          quantity: quantity || 1,
                           data: {
                             custom_inputs: {
                               additional_information: [],

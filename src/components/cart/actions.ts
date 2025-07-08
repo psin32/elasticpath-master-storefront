@@ -1,6 +1,9 @@
 "use server";
 
-import { getServerSideCredentialsClient } from "../../lib/epcc-server-side-credentials-client";
+import {
+  getServerSideCredentialsClient,
+  getServerSideCredentialsClientWihoutAccountToken,
+} from "../../lib/epcc-server-side-credentials-client";
 
 export async function upsertCart(
   newCart: boolean,
@@ -13,4 +16,9 @@ export async function upsertCart(
   } else {
     await client.Cart(cartId).UpdateCart(updatedCartRequest);
   }
+}
+
+export async function createNewCart(name: string) {
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  return await client.Cart().CreateCart({ name });
 }
