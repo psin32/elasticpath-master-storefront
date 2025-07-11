@@ -9,9 +9,9 @@ import { searchClient } from "../../lib/search-client";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { useDebouncedEffect } from "../../lib/use-debounced";
 import NoImage from "../NoImage";
-import { Dialog } from "@headlessui/react";
+import { Dialog, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { reviewsEnv } from "../../lib/resolve-reviews-field-env";
 import StarRatings from "react-star-ratings";
 import { SendEventForHits } from "instantsearch.js/es/lib/utils";
@@ -20,6 +20,7 @@ import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import { getProductByIds } from "../../services/products";
 import StrikePrice from "../product/StrikePrice";
 import Price from "../product/Price";
+import { Fragment } from "react";
 
 const SearchBox = ({
   onChange,
@@ -44,21 +45,10 @@ const SearchBox = ({
   return (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-        <svg
-          className="h-6 w-6 text-gray-300"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path d="M21 21l-4.35-4.35" />
-          <circle cx="10.5" cy="10.5" r="7.5" />
-        </svg>
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
       </div>
       <input
-        className="block w-full pl-16 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+        className="block w-full pl-12 pr-12 py-4 border-0 border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500 text-lg placeholder-gray-400 bg-transparent"
         value={search}
         onChange={(event) => {
           setSearch(event.target.value);
@@ -69,28 +59,19 @@ const SearchBox = ({
             onSearchEnd(search);
           }
         }}
-        placeholder="Search"
+        placeholder="Search products..."
+        autoFocus
       />
       {query && (
         <button
-          className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center"
+          className="absolute inset-y-0 right-0 pr-4 flex items-center justify-center hover:text-gray-600 transition-colors"
           onClick={() => {
             clear();
             onChange("");
             setSearch("");
           }}
         >
-          <svg
-            className="h-6 w-6 text-gray-400"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <XMarkIcon className="h-5 w-5 text-gray-400" />
         </button>
       )}
     </div>
@@ -115,83 +96,85 @@ const HitComponent = ({
 
   return (
     <div
-      className="group"
+      className="group cursor-pointer hover:bg-gray-50 transition-colors duration-200 rounded-lg p-3 -mx-3 px-8"
       onClick={() => sendEvent("click", hit, "Autocomplete: Product Clicked")}
     >
-      <div className="grid grid-cols-6 grid-rows-3 h-100 gap-2">
-        <div className="col-span-2 row-span-3">
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
           {ep_main_image_url ? (
             <img
-              className="w-16 h-16 object-cover"
+              className="w-16 h-16 object-cover rounded-lg shadow-sm"
               src={ep_main_image_url}
               alt={ep_name}
             />
           ) : (
-            <NoImage />
-          )}
-        </div>
-        <div className="col-span-4">
-          <h2 className="text-sm font-medium">
-            <a
-              href={`/products/${ep_slug}`}
-              className="text-blue-500 hover:underline"
-            >
-              {ep_name}
-            </a>
-          </h2>
-        </div>
-        <div className="col-span-4">
-          <p className="text-gray-500 font-semibold tracking-wide text-xs uppercase">
-            {ep_sku}
-          </p>
-          {reviewsEnv.enable && (
-            <div className="text-gray-500 font-semibold tracking-wide text-xs mt-1 overflow-hidden line-clamp-6">
-              <StarRatings
-                rating={Number(hit[reviewsEnv.avgRatingField || ""] || 0)}
-                starDimension="18px"
-                starSpacing="0px"
-                starRatedColor="orange"
-              />
-              {Number(hit[reviewsEnv.reviewCountField || ""] || 0)}
+            <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+              <NoImage />
             </div>
           )}
         </div>
-        <div className="col-span-2">
-          {display_price && (
-            <div className="flex items-center">
-              {product?.meta?.component_products && (
-                <div className="mr-1 text-md">FROM </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                <a href={`/products/${ep_slug}`} className="block">
+                  {ep_name}
+                </a>
+              </h3>
+              <p className="text-xs text-gray-500 mt-1 font-mono">{ep_sku}</p>
+              {reviewsEnv.enable && (
+                <div className="flex items-center mt-2 space-x-2">
+                  <StarRatings
+                    rating={Number(hit[reviewsEnv.avgRatingField || ""] || 0)}
+                    starDimension="14px"
+                    starSpacing="1px"
+                    starRatedColor="orange"
+                  />
+                  <span className="text-xs text-gray-500">
+                    ({Number(hit[reviewsEnv.reviewCountField || ""] || 0)})
+                  </span>
+                </div>
               )}
-              {original_display_price && (
-                <StrikePrice
-                  price={
-                    original_display_price?.without_tax?.formatted
-                      ? original_display_price?.without_tax?.formatted
-                      : original_display_price.with_tax.formatted
-                  }
-                  currency={
-                    original_display_price.without_tax?.currency
-                      ? original_display_price?.without_tax?.currency
-                      : original_display_price.with_tax.currency
-                  }
-                />
-              )}
-              <Price
-                price={
-                  display_price?.without_tax?.formatted
-                    ? display_price?.without_tax?.formatted
-                    : display_price.with_tax.formatted
-                }
-                currency={
-                  display_price?.without_tax?.currency
-                    ? display_price?.without_tax?.currency
-                    : display_price.with_tax.currency
-                }
-                original_display_price={original_display_price}
-                size="text-2xl"
-              />
             </div>
-          )}
+            <div className="flex-shrink-0 text-right">
+              {display_price && (
+                <div className="flex flex-col items-end">
+                  {product?.meta?.component_products && (
+                    <span className="text-xs text-gray-500 mb-1">FROM</span>
+                  )}
+                  {original_display_price && (
+                    <StrikePrice
+                      price={
+                        original_display_price?.without_tax?.formatted
+                          ? original_display_price?.without_tax?.formatted
+                          : original_display_price.with_tax.formatted
+                      }
+                      currency={
+                        original_display_price.without_tax?.currency
+                          ? original_display_price?.without_tax?.currency
+                          : original_display_price.with_tax.currency
+                      }
+                      size="text-sm"
+                    />
+                  )}
+                  <Price
+                    price={
+                      display_price?.without_tax?.formatted
+                        ? display_price?.without_tax?.formatted
+                        : display_price.with_tax.formatted
+                    }
+                    currency={
+                      display_price?.without_tax?.currency
+                        ? display_price?.without_tax?.currency
+                        : display_price.with_tax.currency
+                    }
+                    original_display_price={original_display_price}
+                    size="text-lg"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -219,26 +202,30 @@ const Hits = () => {
 
   if (hits.length) {
     return (
-      <ul className="list-none divide-y divide-dashed">
-        {products &&
-          hits.map((hit) => {
-            const product: ProductResponse | undefined = products.data.find(
-              (prd) => prd.id === hit.objectID,
-            );
-            if (product) {
-              return (
-                <li className="mb-4 pt-4" key={hit.objectID}>
+      <div className="space-y-1">
+        <div className="text-sm text-gray-500 mb-3">
+          {hits.length} result{hits.length !== 1 ? "s" : ""} found
+        </div>
+        <div className="space-y-1">
+          {products &&
+            hits.map((hit) => {
+              const product: ProductResponse | undefined = products.data.find(
+                (prd) => prd.id === hit.objectID,
+              );
+              if (product) {
+                return (
                   <HitComponent
+                    key={hit.objectID}
                     hit={hit}
                     product={product}
                     sendEvent={sendEvent}
                   />
-                </li>
-              );
-            }
-            return <></>;
-          })}
-      </ul>
+                );
+              }
+              return null;
+            })}
+        </div>
+      </div>
     );
   }
   return <NoResults />;
@@ -260,45 +247,100 @@ export const SearchModalAlgolia = (): JSX.Element => {
     >
       <Configure filters="is_child:0" />
       <button
-        className="bg-transparent hover:bg-gray-100 text-gray-800 font-normal py-2 px-4 rounded inline-flex items-center justify-left"
+        className="bg-transparent hover:bg-gray-100 text-gray-800 font-normal py-2 px-4 rounded-lg inline-flex items-center justify-center transition-colors duration-200"
         onClick={() => setIsOpen(true)}
         aria-label="Search"
       >
-        <MagnifyingGlassIcon width={24} />
+        <MagnifyingGlassIcon className="w-5 h-5" />
       </button>
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        className="fixed z-20 inset-0 overflow-y-auto"
-      >
-        <div className="flex items-start justify-center min-h-screen mt-20">
-          <Dialog.Overlay className="fixed inset-0 bg-black opacity-30" />
 
-          <div className="relative bg-white rounded-lg w-full max-w-lg p-6">
-            <div>
-              <SearchBox
-                onChange={(value: string) => {
-                  setSearchValue(value);
-                }}
-                onSearchEnd={(query) => {
-                  setIsOpen(false);
-                  setSearchValue("");
-                  router.push(`/search?q=${query}`);
-                }}
-              />
-            </div>
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-50 overflow-y-auto"
+          onClose={() => setIsOpen(false)}
+        >
+          <div className="min-h-screen px-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+            >
+              <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm" />
+            </Transition.Child>
 
-            {searchValue && (
-              <div className="px-4 pb-4 overflow-x-scroll">
-                <hr className="my-4" />
-                <div className="mt-4">
-                  <Hits />
+            {/* This element is to trick the browser into centering the modal contents. */}
+            <span
+              className="inline-block h-screen align-middle"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <div className="inline-block w-full max-w-2xl p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+                <div className="flex items-center justify-between mb-6">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Search Products
+                  </Dialog.Title>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="rounded-full p-2 hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <XMarkIcon className="w-5 h-5 text-gray-400" />
+                  </button>
                 </div>
+
+                <div className="mb-6">
+                  <SearchBox
+                    onChange={(value: string) => {
+                      setSearchValue(value);
+                    }}
+                    onSearchEnd={(query) => {
+                      setIsOpen(false);
+                      setSearchValue("");
+                      router.push(`/search?q=${query}`);
+                    }}
+                  />
+                </div>
+
+                {searchValue && (
+                  <div className="max-h-96 overflow-y-auto">
+                    <Hits />
+                  </div>
+                )}
+
+                {!searchValue && (
+                  <div className="text-center py-12">
+                    <MagnifyingGlassIcon className="mx-auto h-12 w-12 text-gray-300" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                      Start typing to search
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Search for products, categories, or brands
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+            </Transition.Child>
           </div>
-        </div>
-      </Dialog>
+        </Dialog>
+      </Transition>
     </InstantSearchNext>
   );
 };
