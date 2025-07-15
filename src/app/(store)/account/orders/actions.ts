@@ -22,13 +22,18 @@ export async function approveOrder(orderId: string, accountMemberId: string) {
   }
 }
 
-export async function rejectOrder(orderId: string, accountMemberId: string) {
+export async function rejectOrder(
+  orderId: string,
+  accountMemberId: string,
+  rejectionNote?: string,
+) {
   const client = getServerSideCredentialsClientWihoutAccountToken();
   try {
     const request: any = {
       status: "cancelled",
       approval_status: "Rejected",
       approval_member_id: accountMemberId,
+      ...(rejectionNote ? { rejection_notes: rejectionNote } : {}),
     };
     return await client.Orders.Update(orderId, request);
   } catch (error) {
@@ -48,5 +53,16 @@ export async function escalateOrder(orderId: string, accountMemberId: string) {
   } catch (error) {
     console.error("Failed to escalate order", error);
     throw error;
+  }
+}
+
+export async function getAccountMemberDetails(accountMemberId: string) {
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  try {
+    const memberResp = await client.AccountMembers.Get(accountMemberId);
+    const { name, email } = memberResp.data;
+    return { name, email };
+  } catch (e) {
+    return null;
   }
 }
