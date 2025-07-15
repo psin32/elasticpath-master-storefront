@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [useShippingGroups, setUseShippingGroups] = useState<
     boolean | undefined
   >(undefined);
+  const [paymentMode, setPaymentMode] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -20,6 +21,10 @@ export default function SettingsPage() {
 
     const shippingGroupsValue = getCookie("use_shipping_groups");
     setUseShippingGroups(shippingGroupsValue === "true");
+
+    const paymentModeValue =
+      (getCookie("initial_payment_mode") as string) || "purchase";
+    setPaymentMode(paymentModeValue);
   }, []);
 
   useEffect(() => {
@@ -46,7 +51,23 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [useShippingGroups]);
 
-  if (productSource === undefined || useShippingGroups === undefined) {
+  useEffect(() => {
+    if (paymentMode === undefined) return;
+    setCookie("initial_payment_mode", paymentMode, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      sameSite: "lax",
+    });
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [paymentMode]);
+
+  if (
+    productSource === undefined ||
+    useShippingGroups === undefined ||
+    paymentMode === undefined
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-gray-400">Loading...</div>
@@ -80,6 +101,7 @@ export default function SettingsPage() {
           </svg>
           <h1 className="text-2xl font-bold text-gray-800">Settings</h1>
         </div>
+        {/* Product Source Toggle */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-gray-700">Product Source</span>
@@ -135,6 +157,7 @@ export default function SettingsPage() {
             </span>
           </div>
         </div>
+        {/* Shipping Groups Toggle */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-gray-700">
@@ -188,6 +211,65 @@ export default function SettingsPage() {
               }
             >
               Enabled
+            </span>
+          </div>
+        </div>
+        {/* Initial Payment Mode Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">
+              Initial Payment Mode
+            </span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Choose how payments are processed by default: Capture (immediate
+            payment) or Authorize (hold funds, capture later).
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                paymentMode === "purchase"
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Capture
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle payment mode"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${paymentMode === "purchase" ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setPaymentMode(
+                  paymentMode === "purchase" ? "authorize" : "purchase",
+                );
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${
+                    paymentMode === "purchase"
+                      ? "translate-x-1 bg-white border border-brand-primary"
+                      : "translate-x-7 bg-white border border-gray-400"
+                  }
+                `}
+              />
+            </button>
+            <span
+              className={
+                paymentMode === "authorize"
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Authorize
             </span>
           </div>
         </div>

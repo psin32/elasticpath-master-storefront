@@ -25,11 +25,13 @@ export default async function Orders({
     limit?: string;
     offset?: string;
     page?: string;
+    tab?: string;
   };
 }) {
   const currentPage = Number(searchParams?.page) || 1;
   const limit = Number(searchParams?.limit) || DEFAULT_PAGINATION_LIMIT;
   const offset = Number(searchParams?.offset) || 0;
+  const activeTab = searchParams?.tab || "history";
 
   const cookieStore = cookies();
 
@@ -46,6 +48,7 @@ export default async function Orders({
 
   const client = getServerSideImplicitClient();
 
+  // Fetch all orders for the account
   const result: Awaited<ReturnType<typeof client.Orders.All>> =
     await client.Orders.With("items").Limit(limit).Offset(offset).All();
 
@@ -53,21 +56,86 @@ export default async function Orders({
     ? resolveShopperOrder(result.data, result.included)
     : [];
 
+  // Fetch current account member to get their role
+  const accountMember = await client.AccountMembers.Get(
+    accountMemberCookie.accountMemberId,
+  );
+  // member_role is a custom field, likely in extensions
+  const memberRole = (accountMember.data as any)?.member_role;
+
+  // Approval Queue filter
+  const approvalOrders = mappedOrders.filter(({ raw: order }) => {
+    const approvalTriggered = (order as any)?.approval_triggered;
+    const approvalRole = (order as any)?.approval_role;
+    const orderMemberId = order.relationships?.account_member?.data?.id;
+    if (
+      order.payment !== "authorized" ||
+      approvalTriggered !== true ||
+      !approvalRole ||
+      !memberRole ||
+      orderMemberId === accountMemberCookie.accountMemberId // Exclude orders placed by logged-in user
+    ) {
+      return false;
+    }
+    // approval_role can be a comma-separated list
+    const roles = approvalRole
+      .split(",")
+      .map((r: string) => r.trim().toLowerCase());
+    return roles.includes(memberRole.trim().toLowerCase());
+  });
+
   const totalPages = Math.ceil(result.meta.results.total / limit);
+
+  // Tab UI
+  function getTabClass(tab: string) {
+    return (
+      "px-4 py-2 border-b-2 " +
+      (activeTab === tab
+        ? "border-brand-primary text-brand-primary font-semibold"
+        : "border-transparent text-gray-500 hover:text-brand-primary hover:border-brand-primary")
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5 items-start w-full">
-      <div className="flex self-stretch">
-        <h1 className="text-2xl">Order history</h1>
+      <div className="flex self-stretch border-b border-gray-200 mb-2">
+        <a
+          href="/account/orders?tab=history"
+          className={getTabClass("history")}
+        >
+          Order History
+        </a>
+        <a
+          href="/account/orders?tab=approval"
+          className={getTabClass("approval")}
+        >
+          Approval Queue
+        </a>
       </div>
       <div className="w-full">
-        <ul role="list">
-          {mappedOrders.map(({ raw: order, items }) => (
-            <li key={order.id}>
-              <OrderItemWithDetails order={order} orderItems={items} />
-            </li>
-          ))}
-        </ul>
+        {activeTab === "approval" ? (
+          approvalOrders.length === 0 ? (
+            <div className="text-gray-500 py-8 text-center">
+              No orders in approval queue.
+            </div>
+          ) : (
+            <ul role="list">
+              {approvalOrders.map(({ raw: order, items }) => (
+                <li key={order.id}>
+                  <OrderItemWithDetails order={order} orderItems={items} />
+                </li>
+              ))}
+            </ul>
+          )
+        ) : (
+          <ul role="list">
+            {mappedOrders.map(({ raw: order, items }) => (
+              <li key={order.id}>
+                <OrderItemWithDetails order={order} orderItems={items} />
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div className="flex self-stretch">
         <ResourcePagination totalPages={totalPages} />

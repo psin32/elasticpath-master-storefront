@@ -17,8 +17,11 @@ import { formatIsoDateString } from "../../../../../lib/format-iso-date-string";
 import { OrderLineItem } from "./OrderLineItem";
 import { Reorder } from "../Reorder";
 import React from "react";
-
-export const dynamic = "force-dynamic";
+import { approveOrder, rejectOrder, escalateOrder } from "../actions";
+import dynamic from "next/dynamic";
+const ApprovalActions = dynamic(() => import("./ApprovalActions"), {
+  ssr: false,
+});
 
 export default async function Orders({
   params,
@@ -98,6 +101,25 @@ export default async function Orders({
   const getShippingGroupById = (id: string) =>
     shippingGroups.find((g) => g.id === id);
 
+  // Fetch current account member to get their role
+  const accountMember = await client.AccountMembers.Get(
+    accountMemberCookie.accountMemberId,
+  );
+  // member_role is a custom field
+  const memberRole = (accountMember.data as any)?.member_role;
+
+  // approval_role is a custom field on the order
+  const approvalRole = (shopperOrder.raw as any)?.approval_role;
+
+  // approval_role can be a comma-separated list
+  let showApprovalActions = false;
+  if (approvalRole && memberRole) {
+    const roles = approvalRole
+      .split(",")
+      .map((r: string) => r.trim().toLowerCase());
+    showApprovalActions = roles.includes(memberRole.trim().toLowerCase());
+  }
+
   return (
     <div className="flex flex-col gap-5 items-start w-full">
       <div className="flex self-stretch">
@@ -117,7 +139,16 @@ export default async function Orders({
           </time>
         </div>
       </div>
-
+      {(shopperOrder.raw.relationships?.account_member?.data?.id ?? null) !==
+        accountMemberCookie.accountMemberId && (
+        <ApprovalActions
+          orderId={params.orderId}
+          approvalRole={approvalRole}
+          memberRole={memberRole}
+          accountMemberId={accountMemberCookie.accountMemberId}
+          orderStatus={shopperOrder.raw.payment}
+        />
+      )}
       {/* Shipping address, only if no shipping groups */}
       {shippingGroups.length === 0 && (
         <div className="flex py-4 self-stretch justify-between">

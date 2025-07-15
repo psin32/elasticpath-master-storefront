@@ -168,12 +168,16 @@ export function usePaymentComplete(
           }));
 
       let paymentRequest: any = {};
+      // Read initial_payment_mode cookie
+      let paymentMode =
+        (typeof window !== "undefined" && getCookie("initial_payment_mode")) ||
+        "purchase";
       if (paymentMethod === "manual") {
         paymentRequest = {
           orderId: createdOrder.data.id,
           payment: {
             gateway: "manual",
-            method: "purchase",
+            method: paymentMode,
           },
         };
       }
@@ -183,7 +187,7 @@ export function usePaymentComplete(
           orderId: createdOrder.data.id,
           payment: {
             gateway: "elastic_path_payments_stripe",
-            method: "purchase",
+            method: paymentMode,
           },
         };
       }

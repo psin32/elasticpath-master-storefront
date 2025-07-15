@@ -1,6 +1,7 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import { useElasticPath } from "../../elasticpath";
 import { ConfirmPaymentResponse } from "@elasticpath/js-sdk";
+import { getCookie } from "cookies-next";
 
 export type UsePaymentsReq = {
   orderId: string;
@@ -25,10 +26,14 @@ export const usePayments = (
  * See: https://elasticpath.dev/guides/How-To/paymentgateways/implement-paypal-express-checkout
  */
 export async function createPayPalPayment(client: any, orderId: string) {
+  // Read initial_payment_mode cookie
+  let paymentMode =
+    (typeof window !== "undefined" && getCookie("initial_payment_mode")) ||
+    "purchase";
   // The payment object for PayPal Express Checkout
   const payment = {
     gateway: "paypal_express_checkout",
-    method: "purchase",
+    method: paymentMode,
     options: {
       description: "PayPal Checkout",
       soft_descriptor: "EP Storefront",
