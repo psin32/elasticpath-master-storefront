@@ -51,7 +51,14 @@ export async function getSubscriptionOfferingByProductId(
         "products.external_ref": productId,
       },
     })
-    .All();
+    .All()
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      console.log("Error while fetching subscriptions", err);
+      return err;
+    });
 }
 
 export async function getSubscriptionOfferingById(

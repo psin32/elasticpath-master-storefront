@@ -65,10 +65,14 @@ export default async function ProductPage({ params }: Props) {
   };
   const content = await contentData();
 
-  const offerings = await getSubscriptionOfferingByProductId(
+  let offerings: any = await getSubscriptionOfferingByProductId(
     product?.data?.[0]?.id,
     client,
   );
+
+  if (offerings.errors) {
+    offerings = { data: [] };
+  }
 
   const accountMemberCookie = retrieveAccountMemberCredentials(
     cookies(),
@@ -83,13 +87,8 @@ export default async function ProductPage({ params }: Props) {
     accountId = selectedAccount.account_id;
   }
 
-  const enablePurchaseHistory: boolean =
-    process.env.NEXT_PUBLIC_ENABLE_PURCHASE_HISTORY === "true" || false;
-
-  const purchaseHistory = enablePurchaseHistory
-    ? accountMemberCookie
-      ? await getPurchaseHistoryByProductIdAndAccountId(product.data?.[0]?.id)
-      : { data: [] }
+  const purchaseHistory = accountMemberCookie
+    ? await getPurchaseHistoryByProductIdAndAccountId(product.data?.[0]?.id)
     : { data: [] };
 
   const breadCrumNode = product?.data?.[0].meta?.bread_crumb_nodes?.[0] || "";
