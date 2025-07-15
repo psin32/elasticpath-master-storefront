@@ -131,7 +131,6 @@ export default async function Orders({
   if (approvalMemberId) {
     approvalMember = await getAccountMemberDetails(approvalMemberId);
   }
-  console.log("approvalMember", approvalMember);
 
   // approval_status may be on the order (top-level or in extensions)
   const approvalStatus =

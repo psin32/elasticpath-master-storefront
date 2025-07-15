@@ -73,7 +73,8 @@ export default async function Orders({
       approvalTriggered !== true ||
       !approvalRole ||
       !memberRole ||
-      orderMemberId === accountMemberCookie.accountMemberId // Exclude orders placed by logged-in user
+      orderMemberId === accountMemberCookie.accountMemberId || // Exclude orders placed by logged-in user
+      order.status === "cancelled" // Exclude cancelled orders
     ) {
       return false;
     }
