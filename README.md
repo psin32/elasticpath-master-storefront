@@ -44,16 +44,70 @@ Deployment is typical for a Next.js site. We recommend using a provider
 like [Netlify](https://www.netlify.com/blog/2020/11/30/how-to-deploy-next.js-sites-to-netlify/)
 or [Vercel](https://vercel.com/docs/frameworks/nextjs) to get full Next.js feature support.
 
-## Current feature set reference
+## Storefront Features
 
-| **Feature**                              | **Notes**                                                                                     |
-|------------------------------------------|-----------------------------------------------------------------------------------------------|
-| PDP                                      | Product Display Pages                                                                         |
-| PLP                                      | Product Listing Pages.                                                                        |
-| EPCC PXM product variations              | [Learn more](https://elasticpath.dev/docs/pxm/products/pxm-product-variations/pxm-variations) |
-| EPCC PXM bundles                         | [Learn more](https://elasticpath.dev/docs/pxm/products/pxm-bundles/pxm-bundles)               |
-| EPCC PXM hierarchy-based navigation menu | Main site nav driven directly from your store's hierarchy and node structure                  |
-| Prebuilt helper components               | Some basic building blocks for typical ecommerce store features                               |
-| Checkout                                 | [Learn more](https://elasticpath.dev/docs/commerce-cloud/checkout/checkout-workflow)          |
-| Cart                                     | [Learn more](https://elasticpath.dev/docs/commerce-cloud/carts/carts)                         |
+### For Customers
 
+- **Product Discovery & Browsing**
+
+  - Product Listing Pages (PLP) with filters, search, and category navigation
+  - Product Display Pages (PDP) with detailed product info, images, variations, and bundles
+  - Hierarchy-based navigation menu (driven by Elastic Path PXM hierarchy)
+  - Collections, featured products, and all-products listing
+
+- **Cart & Checkout**
+
+  - Add to cart, edit cart, remove items, and view cart sidebar
+  - Bulk order and quick order support
+  - Manage multiple carts
+  - Checkout flow with address, shipping, and payment selection
+  - Support for payment capture/authorization modes
+
+- **Account Management**
+
+  - Registration, login, and account summary
+  - Manage addresses, cards, and subscriptions
+  - View and manage orders, including order details, reorder, and order status tracking
+  - View and manage quotes and shared lists
+  - Settings page for preferences (e.g., payment mode)
+
+- **Order Approval Workflow**
+
+  - Approval Queue tab for orders requiring approval (role-based, with multi-role support)
+  - Approve, Reject (with rejection notes), and Escalate actions for approvers
+  - Approval status, approval member, and rejection notes displayed on order details
+  - Orders placed by the logged-in user or cancelled are excluded from approval queue/actions
+
+- **Other Features**
+  - Search with Algolia/Elastic Path, including instant search and modal UI
+  - Responsive, modern UI with Tailwind CSS and Headless UI
+  - Localization and multi-language support
+
+---
+
+### For Admin Users
+
+- **Admin Dashboard**
+
+  - Overview dashboard for store management
+
+- **Order Management**
+
+  - View all orders, filter/search, and manage order status
+  - Access to order details, including approval and rejection notes
+
+- **Account Management**
+
+  - View and manage all customer accounts
+  - Impersonate users for support or troubleshooting
+
+- **Quote Management**
+
+  - View, create, and manage quotes for customers
+  - Assign sales agents, track quote status, and manage quote details
+
+- **Advanced Features**
+  - Access to all customer and order data for reporting and support
+  - Role-based access and approval workflows
+
+---

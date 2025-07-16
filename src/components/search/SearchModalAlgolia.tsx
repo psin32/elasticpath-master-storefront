@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Configure, useHits, useSearchBox } from "react-instantsearch";
 import { InstantSearchNext } from "react-instantsearch-nextjs";
 import NoResults from "./NoResults";
@@ -25,12 +25,15 @@ import { Fragment } from "react";
 const SearchBox = ({
   onChange,
   onSearchEnd,
+  shouldFocus = false,
 }: {
   onChange: (value: string) => void;
   onSearchEnd: (query: string) => void;
+  shouldFocus?: boolean;
 }) => {
   const { query, refine, clear } = useSearchBox();
   const [search, setSearch] = useState<string>(query);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useDebouncedEffect(
     () => {
@@ -42,12 +45,22 @@ const SearchBox = ({
     [search],
   );
 
+  useEffect(() => {
+    if (shouldFocus && inputRef.current) {
+      // Small delay to ensure the modal is fully rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [shouldFocus]);
+
   return (
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
       </div>
       <input
+        ref={inputRef}
         className="block w-full pl-12 pr-12 py-4 border-0 border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500 text-lg placeholder-gray-400 bg-transparent"
         value={search}
         onChange={(event) => {
@@ -60,7 +73,6 @@ const SearchBox = ({
           }
         }}
         placeholder="Search products..."
-        autoFocus
       />
       {query && (
         <button
@@ -234,6 +246,7 @@ const Hits = () => {
 export const SearchModalAlgolia = (): JSX.Element => {
   const [searchValue, setSearchValue] = useState("");
   let [isOpen, setIsOpen] = useState(false);
+  const [shouldFocus, setShouldFocus] = useState(false);
   const router = useRouter();
 
   return (
@@ -248,7 +261,10 @@ export const SearchModalAlgolia = (): JSX.Element => {
       <Configure filters="is_child:0" />
       <button
         className="bg-transparent hover:bg-gray-100 text-gray-800 font-normal py-2 px-4 rounded-lg inline-flex items-center justify-center transition-colors duration-200"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          setShouldFocus(true);
+        }}
         aria-label="Search"
       >
         <MagnifyingGlassIcon className="w-5 h-5" />
@@ -258,7 +274,10 @@ export const SearchModalAlgolia = (): JSX.Element => {
         <Dialog
           as="div"
           className="fixed inset-0 z-50 overflow-y-auto"
-          onClose={() => setIsOpen(false)}
+          onClose={() => {
+            setIsOpen(false);
+            setShouldFocus(false);
+          }}
         >
           <div className="min-h-screen px-4 text-center">
             <Transition.Child
@@ -299,7 +318,10 @@ export const SearchModalAlgolia = (): JSX.Element => {
                     Search Products
                   </Dialog.Title>
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      setIsOpen(false);
+                      setShouldFocus(false);
+                    }}
                     className="rounded-full p-2 hover:bg-gray-100 transition-colors duration-200"
                   >
                     <XMarkIcon className="w-5 h-5 text-gray-400" />
@@ -314,8 +336,10 @@ export const SearchModalAlgolia = (): JSX.Element => {
                     onSearchEnd={(query) => {
                       setIsOpen(false);
                       setSearchValue("");
+                      setShouldFocus(false);
                       router.push(`/search?q=${query}`);
                     }}
+                    shouldFocus={shouldFocus}
                   />
                 </div>
 

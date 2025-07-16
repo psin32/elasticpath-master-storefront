@@ -23,7 +23,7 @@ import {
 } from "react-instantsearch";
 import { sortByItems } from "../../../lib/sort-by-items";
 import { hierarchicalAttributes } from "../../../lib/hierarchical-attributes";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { ShopperCatalogResourcePage } from "@elasticpath/js-sdk";
 import SearchResultsAlgolia from "../../../components/search/SearchResultsAlgolia";
 import SearchResultsElasticPath from "../../../components/search/SearchResultsElasticPath";
@@ -39,11 +39,17 @@ export function Search({
   const { nav } = useStore();
   const lookup = buildBreadcrumbLookup(nav ?? []);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q") || "";
   const nodes = pathname.split("/search/")?.[1]?.split("/");
   const enabledKlevu: boolean =
     process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
+
+  // Remove the router.refresh() effect
+
   return algoliaEnvData.enabled ? (
     <InstantSearchNext
+      key={q}
       indexName={algoliaEnvData.indexName}
       searchClient={searchClient}
       routing={resolveAlgoliaRouting()}
@@ -59,7 +65,7 @@ export function Search({
       <VirtualRangeInput attribute="ep_price" />
       <VirtualRefinementList attribute="price" />
       <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
-      <SearchResultsAlgolia lookup={lookup} content={content} />
+      <SearchResultsAlgolia key={q} lookup={lookup} content={content} />
       <Configure filters="is_child:0" />
     </InstantSearchNext>
   ) : enabledKlevu ? (
