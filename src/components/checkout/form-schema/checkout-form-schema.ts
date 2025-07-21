@@ -6,12 +6,12 @@ import { z } from "zod";
 const emptyStringToUndefined = z.literal("").transform(() => undefined);
 
 const guestInformationSchema = z.object({
-  email: z.string({ required_error: "Required" }).email("Invalid email"),
+  email: z.string().min(1, { message: "Required" }).email("Invalid email"),
 });
 
 const accountMemberInformationSchema = z.object({
-  email: z.string({ required_error: "Required" }).email("Invalid email"),
-  name: z.string({ required_error: "Required" }),
+  email: z.string().min(1, { message: "Required" }).email("Invalid email"),
+  name: z.string().min(1, { message: "Required" }),
 });
 
 const billingAddressSchema = z.object({
@@ -28,16 +28,16 @@ const billingAddressSchema = z.object({
 });
 
 export const shippingAddressSchema = z.object({
-  first_name: z.string({ required_error: "First name is required" }),
-  last_name: z.string({ required_error: "Last name is required" }),
+  first_name: z.string().min(1, { message: "First name is required" }),
+  last_name: z.string().min(1, { message: "Last name is required" }),
   company_name: z.string().optional().or(emptyStringToUndefined),
-  line_1: z.string({ required_error: "Address is required" }),
+  line_1: z.string().min(1, { message: "Address is required" }),
   line_2: z.string().optional().or(emptyStringToUndefined),
-  city: z.string({ required_error: "City is required" }),
+  city: z.string().min(1, { message: "City is required" }),
   county: z.string().optional().or(emptyStringToUndefined),
-  region: z.string({ required_error: "Region is required" }),
-  postcode: z.string({ required_error: "Postcode is required" }),
-  country: z.string({ required_error: "Country is required" }),
+  region: z.string().min(1, { message: "Region is required" }),
+  postcode: z.string().min(1, { message: "Postcode is required" }),
+  country: z.string().min(1, { message: "Country is required" }),
   phone_number: z.string().optional().or(emptyStringToUndefined),
   instructions: z.string().optional().or(emptyStringToUndefined),
 });

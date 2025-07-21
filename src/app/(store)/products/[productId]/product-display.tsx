@@ -5,8 +5,14 @@ import { VariationProductDetail } from "../../../../components/product/variation
 import BundleProductDetail from "../../../../components/product/bundles/BundleProduct";
 import { ProductContext } from "../../../../lib/product-context";
 import SimpleProductDetail from "../../../../components/product/SimpleProduct";
-import { Node, ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
+import {
+  Extensions,
+  Node,
+  ResourcePage,
+  SubscriptionOffering,
+} from "@elasticpath/js-sdk";
 import Breadcrumb from "../../../../components/product/Breadcrumb";
+import { SmartQuestionsBot } from "../../../../components/product/smart-bot/SmartQuestionsBot";
 
 export function ProductProvider({
   children,
@@ -84,6 +90,7 @@ export function ProductDetailsComponent({
   content,
   relationship,
   purchaseHistory,
+  chatbotApiKey,
 }: {
   product: ShopperProduct;
   breadcrumb: Node[];
@@ -91,6 +98,7 @@ export function ProductDetailsComponent({
   content: any;
   relationship: any[];
   purchaseHistory: any;
+  chatbotApiKey?: string;
 }) {
   return (
     <div className="px-4 xl:px-0 py-8 mx-auto max-w-[48rem] lg:max-w-[80rem] w-full">
@@ -105,6 +113,12 @@ export function ProductDetailsComponent({
           content,
           relationship,
           purchaseHistory,
+        )}
+        {chatbotApiKey && (
+          <SmartQuestionsBot
+            extensions={product.response.attributes.extensions as Extensions}
+            productDescription={product.response.attributes.description}
+          />
         )}
       </div>
     </div>

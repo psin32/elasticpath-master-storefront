@@ -51,6 +51,7 @@ export default async function ProductPage({ params }: Props) {
   if (!product.data?.[0]?.id) {
     notFound();
   }
+  const chatbotApiKey = process.env.OPENAI_API_KEY;
 
   const contentData = async () => {
     if (enableBuilderIO) {
@@ -134,6 +135,7 @@ export default async function ProductPage({ params }: Props) {
           content={content}
           relationship={relationship}
           purchaseHistory={purchaseHistory}
+          chatbotApiKey={chatbotApiKey}
         />
       </ProductProvider>
     </div>
