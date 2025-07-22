@@ -259,7 +259,7 @@ function CheckboxComponentOption({
             <p className="text-sm">{optionProduct.attributes.name}</p>
             <p className="text-sm">
               {display_price && (
-                <div className="flex items-center mb-6">
+                <div className="flex items-center mb-2 mt-2">
                   {original_display_price && (
                     <StrikePrice
                       price={
@@ -295,7 +295,7 @@ function CheckboxComponentOption({
 
             {/* Sale message under the price */}
             {sale_id && (
-              <div className="mb-2">
+              <div className="mb-4">
                 <span className="uppercase inline-flex items-center rounded-sm bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700">
                   {sale_id}
                 </span>
