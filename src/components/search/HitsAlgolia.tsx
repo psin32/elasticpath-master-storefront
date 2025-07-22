@@ -415,7 +415,7 @@ export default function HitsAlgolia(): JSX.Element {
         </div>
 
         {view === "grid" && (
-          <div className="grid max-w-[80rem] grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid max-w-[80rem] grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {products &&
               hits.map((hit) => {
                 const product: ProductResponse | undefined = products.data.find(
