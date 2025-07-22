@@ -145,10 +145,18 @@ function CheckboxComponentOption({
     ? false // radios are only disabled if the whole field is disabled
     : reachedMax &&
       !selectedOptionKey.some((optionKey) => optionKey === option.id);
+
   const { display_price, original_display_price, sale_id } =
     (product?.meta?.component_products?.[optionProduct.id] as any) || {};
+
   const name = `selectedOptions.${componentKey}`;
   const inputId = `${name}.${option.id}`;
+  const quantityName = `quantities.${componentKey}.${option.id}`;
+
+  // Get min/max quantities from the option (assuming they come from API)
+  const minQuantity = (option as any).min || 1;
+  const maxQuantity = (option as any).max || 99;
+  const defaultQuantity = option.quantity || 1;
 
   // For radio, value is just the option id, for checkbox it's the JSON string
   const [field, , helpers] = useField({
@@ -156,10 +164,23 @@ function CheckboxComponentOption({
     type: isRadio ? "radio" : "checkbox",
     value: isRadio
       ? option.id
-      : JSON.stringify({ [option.id]: option.quantity }),
+      : JSON.stringify({ [option.id]: defaultQuantity }),
     disabled: isDisabled,
     id: inputId,
   });
+
+  // Quantity field
+  const [quantityField, , quantityHelpers] = useField({
+    name: quantityName,
+    type: "number",
+  });
+
+  // Ensure quantity field has a value
+  React.useEffect(() => {
+    if (quantityField.value === undefined || quantityField.value === null) {
+      quantityHelpers.setValue(defaultQuantity);
+    }
+  }, [quantityField.value, defaultQuantity, quantityHelpers]);
 
   // For radio, checked if selected has this option id
   const checked = isRadio
@@ -170,10 +191,17 @@ function CheckboxComponentOption({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isRadio) {
       // Store as array with a single JSON string, matching checkbox structure
-      helpers.setValue([JSON.stringify({ [option.id]: option.quantity })]);
+      helpers.setValue([JSON.stringify({ [option.id]: defaultQuantity })]);
     } else {
       field.onChange(e);
     }
+  };
+
+  const handleQuantityChange = (newQuantity: number) => {
+    quantityHelpers.setValue(newQuantity);
+
+    // Don't update the form field value here as it interferes with checkbox selection
+    // The quantities will be handled separately in the form submission
   };
 
   return (
@@ -264,27 +292,163 @@ function CheckboxComponentOption({
                 </div>
               )}
             </p>
-          </div>
-          {/* Sale ID and Bestseller tags on the right, stacked vertically */}
-          {sale_id ||
-          optionProduct?.attributes?.extensions?.["products(cards)"]
-            ?.bestsellers ? (
-            <div className="flex flex-col items-end h-full pr-4 space-y-1">
-              {sale_id ? (
-                <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700">
+
+            {/* Sale message under the price */}
+            {sale_id && (
+              <div className="mb-2">
+                <span className="uppercase inline-flex items-center rounded-sm bg-pink-50 px-2 py-1 text-xs font-medium text-pink-700 ring-1 ring-inset ring-pink-700">
                   {sale_id}
                 </span>
-              ) : null}
-              {optionProduct?.attributes?.extensions?.["products(cards)"]
-                ?.bestsellers ? (
-                <span className="uppercase inline-flex items-center rounded-sm bg-white px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700">
+              </div>
+            )}
+
+            {/* Bestseller tag under the price */}
+            {optionProduct?.attributes?.extensions?.["products(cards)"]
+              ?.bestsellers && (
+              <div className="mb-2">
+                <span className="uppercase inline-flex items-center rounded-sm bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700">
                   Bestseller
                 </span>
-              ) : null}
-            </div>
-          ) : null}
+              </div>
+            )}
+          </div>
+
+          {/* Right side container for quantities */}
+          <div className="flex flex-col items-end pr-4 space-y-2">
+            {/* Quantity controls - only show when option is selected */}
+            {checked && (
+              <>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600 font-medium">
+                    Qty:
+                  </span>
+                  <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentValue =
+                          quantityField.value || defaultQuantity;
+                        const newValue = Math.max(
+                          currentValue - 1,
+                          minQuantity,
+                        );
+                        handleQuantityChange(newValue);
+                      }}
+                      disabled={
+                        (quantityField.value || defaultQuantity) <=
+                          minQuantity ||
+                        (minQuantity === 1 && maxQuantity === 99)
+                      }
+                      className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-r border-gray-200"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20 12H4"
+                        />
+                      </svg>
+                    </button>
+                    <input
+                      type="number"
+                      min={minQuantity}
+                      max={maxQuantity}
+                      value={Math.min(
+                        Math.max(
+                          quantityField.value || defaultQuantity,
+                          minQuantity,
+                        ),
+                        maxQuantity,
+                      )}
+                      onChange={(e) => {
+                        const newQuantity = parseInt(e.target.value, 10);
+                        if (!isNaN(newQuantity)) {
+                          // Clamp the value to min/max bounds
+                          const clampedQuantity = Math.min(
+                            Math.max(newQuantity, minQuantity),
+                            maxQuantity,
+                          );
+                          handleQuantityChange(clampedQuantity);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Ensure the value is within bounds when user leaves the field
+                        const newQuantity = parseInt(e.target.value, 10);
+                        if (isNaN(newQuantity) || newQuantity < minQuantity) {
+                          handleQuantityChange(minQuantity);
+                        } else if (newQuantity > maxQuantity) {
+                          handleQuantityChange(maxQuantity);
+                        }
+                      }}
+                      disabled={minQuantity === 1 && maxQuantity === 99}
+                      className="w-12 h-8 text-center border-none focus:outline-none focus:ring-0 text-sm font-medium disabled:bg-gray-50 disabled:text-gray-500"
+                      style={{
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentValue =
+                          quantityField.value || defaultQuantity;
+                        const newValue = Math.min(
+                          currentValue + 1,
+                          maxQuantity,
+                        );
+                        handleQuantityChange(newValue);
+                      }}
+                      disabled={
+                        (quantityField.value || defaultQuantity) >=
+                          maxQuantity ||
+                        (minQuantity === 1 && maxQuantity === 99)
+                      }
+                      className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-gray-200"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                {minQuantity > 1 || maxQuantity < 99 ? (
+                  <div className="text-xs text-gray-500 text-center">
+                    {minQuantity > 1 && `Min: ${minQuantity}`}
+                    {minQuantity > 1 && maxQuantity < 99 && " | "}
+                    {maxQuantity < 99 && `Max: ${maxQuantity}`}
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
         </div>
       </label>
+      <style jsx>{`
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type="number"] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
     </div>
   );
 }

@@ -25,7 +25,7 @@ import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
-import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import { builderComponent } from "../../builder-io/BuilderComponents";
 import ProductRelationship from "../related-products/ProductRelationship";
 import { updateCustomAttributesForBundlesInCart } from "./actions";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
@@ -99,7 +99,10 @@ function BundleProductContainer({
             data.custom_inputs.additional_information.push(info);
           }
         });
-      const selectedOptions = formSelectedOptionsToData(values.selectedOptions);
+      const selectedOptions = formSelectedOptionsToData(
+        values.selectedOptions,
+        values.quantities,
+      );
       state?.id &&
         (await updateCustomAttributesForBundlesInCart(
           state?.id,
@@ -120,10 +123,23 @@ function BundleProductContainer({
     [components],
   );
 
+  // Initialize quantities for each component option
+  const initialQuantities = useMemo(() => {
+    const quantities: any = {};
+    Object.keys(components).forEach((componentKey) => {
+      quantities[componentKey] = {};
+      components[componentKey].options.forEach((option) => {
+        quantities[componentKey][option.id] = option.quantity || 1;
+      });
+    });
+    return quantities;
+  }, [components]);
+
   return (
     <Formik
       initialValues={{
         selectedOptions: selectedOptionsToFormValues(selectedOptions),
+        quantities: initialQuantities,
       }}
       validate={toFormikValidate(validationSchema)}
       onSubmit={async (values) => submit(values)}

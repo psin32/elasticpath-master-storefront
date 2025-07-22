@@ -19,6 +19,22 @@ export const createBundleComponentSchema = (component: BundleComponent) => {
   return schema;
 };
 
+export const createBundleQuantitiesSchema = (component: BundleComponent) => {
+  const quantitiesSchema: Record<string, z.ZodNumber> = {};
+
+  component.options.forEach((option) => {
+    const minQuantity = (option as any).min || 1;
+    const maxQuantity = (option as any).max || 99;
+
+    quantitiesSchema[option.id] = z
+      .number()
+      .min(minQuantity, `Quantity must be at least ${minQuantity}`)
+      .max(maxQuantity, `Quantity cannot exceed ${maxQuantity}`);
+  });
+
+  return z.object(quantitiesSchema);
+};
+
 export const createBundleFormSchema = (bundleComponents: BundleComponents) => {
   const selectedOptionsSchema = Object.keys(bundleComponents).reduce(
     (acc, componentKey) => {
@@ -32,7 +48,20 @@ export const createBundleFormSchema = (bundleComponents: BundleComponents) => {
     {} as Record<string, ReturnType<typeof createBundleComponentSchema>>,
   );
 
+  const quantitiesSchema = Object.keys(bundleComponents).reduce(
+    (acc, componentKey) => {
+      return {
+        ...acc,
+        [componentKey]: createBundleQuantitiesSchema(
+          bundleComponents[componentKey],
+        ),
+      };
+    },
+    {} as Record<string, ReturnType<typeof createBundleQuantitiesSchema>>,
+  );
+
   return z.object({
     selectedOptions: z.object(selectedOptionsSchema),
+    quantities: z.object(quantitiesSchema).optional(),
   });
 };

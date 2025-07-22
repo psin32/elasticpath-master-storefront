@@ -4,6 +4,12 @@ export interface FormSelectedOptions {
   [key: string]: string[];
 }
 
+export interface FormQuantities {
+  [componentKey: string]: {
+    [optionId: string]: number;
+  };
+}
+
 export function selectedOptionsToFormValues(
   selectedOptions: BundleConfigurationSelectedOptions,
 ): FormSelectedOptions {
@@ -27,6 +33,7 @@ export function selectedOptionsToFormValues(
 
 export function formSelectedOptionsToData(
   selectedOptions: FormSelectedOptions,
+  quantities?: FormQuantities,
 ): BundleConfigurationSelectedOptions {
   return Object.keys(selectedOptions).reduce((acc, componentKey) => {
     const componentOptions = selectedOptions[componentKey];
@@ -38,6 +45,16 @@ export function formSelectedOptionsToData(
           const parsed = JSON.parse(
             optionStr,
           ) as BundleConfigurationSelectedOptions[0];
+
+          // If quantities are provided, use them instead of the default quantity
+          if (quantities && quantities[componentKey]) {
+            Object.keys(parsed).forEach((optionId) => {
+              const quantity = quantities[componentKey][optionId];
+              if (quantity !== undefined) {
+                parsed[optionId] = quantity;
+              }
+            });
+          }
 
           return {
             ...innerAcc,
