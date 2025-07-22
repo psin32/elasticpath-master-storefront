@@ -12,18 +12,27 @@ import {
 import EpLogo from "../../../components/icons/ep-logo";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
+import { cmsConfig } from "../../../lib/resolve-cms-env";
+import { Content as BuilderContent } from "@builder.io/sdk-react";
+import { builder } from "@builder.io/sdk";
+import { getLogo } from "../../../services/storyblok";
+import Content from "../../../components/storyblok/Content";
+import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface AdminSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (state: boolean) => void;
+  content?: any;
 }
 
 export function AdminSidebar({
   sidebarOpen,
   setSidebarOpen,
+  content,
 }: AdminSidebarProps) {
   const pathname = usePathname();
-
+  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
   const navigation = [
     {
       name: "Home",
@@ -77,9 +86,19 @@ export function AdminSidebar({
                 </div>
               </Transition.Child>
             </Transition>
-            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
+            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-200 px-6 pb-4 ring-1 ring-white/10">
               <div className="flex h-16 shrink-0 items-center">
-                <EpLogo className="w-40" />
+                <div className="flex justify-center">
+                  {enabledStoryblok && <Content content={content}></Content>}
+                  {enableBuilderIO && (
+                    <BuilderContent
+                      model="logo"
+                      content={content}
+                      apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+                      customComponents={builderComponent}
+                    />
+                  )}
+                </div>
               </div>
               <nav className="flex flex-1 flex-col">
                 <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -127,9 +146,19 @@ export function AdminSidebar({
       </Dialog>
 
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-100 px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <EpLogo className="w-40 text-white" />{" "}
+            <div className="flex justify-center">
+              {enabledStoryblok && <Content content={content}></Content>}
+              {enableBuilderIO && (
+                <BuilderContent
+                  model="logo"
+                  content={content}
+                  apiKey={process.env.NEXT_PUBLIC_BUILDER_IO_KEY || ""}
+                  customComponents={builderComponent}
+                />
+              )}
+            </div>{" "}
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -142,7 +171,7 @@ export function AdminSidebar({
                         className={clsx(
                           item.current
                             ? "bg-gray-800 text-white"
-                            : "text-gray-400 hover:bg-gray-800 hover:text-white",
+                            : "text-black hover:bg-gray-800 hover:text-white",
                           "group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6",
                         )}
                       >
