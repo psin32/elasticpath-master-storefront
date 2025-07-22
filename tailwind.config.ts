@@ -13,7 +13,7 @@ export default {
       },
       colors: {
         brand: {
-          primary: "#2BCC7E",
+          primary: "#000000",
           secondary: "#144E31",
           highlight: "#56DC9B",
           primaryAlt: "#EA7317",
