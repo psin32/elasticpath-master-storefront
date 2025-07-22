@@ -1,5 +1,9 @@
 import plugin from "tailwindcss/plugin";
 import type { Config } from "tailwindcss";
+import dotenv from "dotenv";
+dotenv.config();
+
+const primaryColor = process.env.PRIMARY_COLOR || "000000";
 
 export default {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
@@ -13,7 +17,7 @@ export default {
       },
       colors: {
         brand: {
-          primary: "#000000",
+          primary: "#" + primaryColor,
           secondary: "#144E31",
           highlight: "#56DC9B",
           primaryAlt: "#EA7317",
