@@ -35,7 +35,7 @@ export function SmartQuestionsBot({
     },
   });
 
-  const questionTemplate = extensions["products(product-questions-template)"];
+  const questionTemplate = extensions?.["products(product-questions-template)"];
   const questions = [
     questionTemplate?.["question-1"],
     questionTemplate?.["question-2"],
