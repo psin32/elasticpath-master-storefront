@@ -96,7 +96,7 @@ export function SmartQuestionsBot({
           <div className="text-right">
             <button
               onClick={() => setIsPopupOpen(true)}
-              className="bg-brand-primary text-white px-6 py-3 rounded-full hover:bg-brand-highlight transition-colors"
+              className="bg-brand-primary text-white px-6 py-3 rounded-full hover:bg-brand-primary/80 transition-colors"
             >
               ✧ Need help? Ask sMartie
             </button>
