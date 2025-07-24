@@ -12,12 +12,12 @@ export function CartItemPromotions({ item }: CartItemPromotionsProps) {
   const { state } = useCart();
   const [hoveredPromotion, setHoveredPromotion] = useState<string | null>(null);
 
-  if (!state?.__extended?.groupedItems?.promotions) {
+  if (!state?.__extended?.groupedItems?.systemAppliedPromotions) {
     return null;
   }
 
   // Get all promotions from the cart state
-  const allPromotions = state.__extended.groupedItems.promotions;
+  const allPromotions = state.__extended.groupedItems.systemAppliedPromotions;
 
   if (!allPromotions || allPromotions.length === 0) {
     return null;

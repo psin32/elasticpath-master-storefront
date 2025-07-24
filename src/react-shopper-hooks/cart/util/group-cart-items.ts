@@ -6,7 +6,7 @@ export function groupCartItems(included: any): GroupedCartItems {
   const items: CartItem[] = included?.items ?? [];
   const customDiscounts: any = included?.custom_discounts ?? [];
   const itemCustomDiscounts: any = included?.itemCustomDiscount ?? [];
-  const promotions: any = included?.promotions ?? [];
+  const systemAppliedPromotions: any = included?.promotions ?? [];
 
   return items.reduce(
     (acc, item) => {
@@ -27,7 +27,7 @@ export function groupCartItems(included: any): GroupedCartItems {
         customDiscounts,
         itemCustomDiscounts,
         // Include promotions from the included data
-        promotions,
+        systemAppliedPromotions,
       };
     },
     {
@@ -37,7 +37,7 @@ export function groupCartItems(included: any): GroupedCartItems {
       subscription: [],
       customDiscounts: [],
       itemCustomDiscounts: [],
-      promotions: [],
+      systemAppliedPromotions: [],
     } as GroupedCartItems,
   );
 }

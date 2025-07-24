@@ -55,7 +55,7 @@ export interface GroupedCartItems {
    */
   readonly itemCustomDiscounts: CustomDiscountCartItem[];
 
-  readonly promotions: PromotionCartItem[];
+  readonly systemAppliedPromotions: PromotionCartItem[];
 }
 
 export type RefinedCartItem =

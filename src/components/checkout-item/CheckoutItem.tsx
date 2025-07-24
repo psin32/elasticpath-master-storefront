@@ -5,6 +5,7 @@ import { CartItem } from "@elasticpath/js-sdk";
 import { CartAdditionalData } from "../cart/CartAdditionalData";
 import { CartComponentData } from "../cart/CartComponentData";
 import Image from "next/image";
+import { CartItemPromotions } from "../cart/CartItemPromotions";
 
 export function CheckoutItem({ item }: { item: CartItem }) {
   return (
@@ -56,6 +57,7 @@ export function CheckoutItem({ item }: { item: CartItem }) {
           </span>
         )}
         <span className="text-sm text-black/60">Quantity: {item.quantity}</span>
+        <CartItemPromotions item={item} />
         <div className="w-full">
           <CartComponentData item={item} />
           <CartAdditionalData item={item} />

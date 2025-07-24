@@ -5,7 +5,8 @@ export async function getCart(
   cartId: string,
   client: EPCCClient,
 ): Promise<ResourceIncluded<Cart, CartIncluded>> {
-  return client.Cart(cartId).With("items").Get();
+  const included: any = ["items", "custom_discounts", "promotions"];
+  return client.Cart(cartId).With(included).Get();
 }
 
 export async function addSubscriptionItem(
