@@ -73,13 +73,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   }, [product]);
 
   return (
-    <div className="max-w-full sm:max-w-lg p-3 flex flex-col">
+    <div className="max-w-full sm:max-w-lg p-3 flex flex-col h-full">
       <LinkWrapper href={`/products/${slug}`} passHref disabled={gatedSetting}>
         <div
-          className="group flex h-full cursor-pointer flex-col items-stretch"
+          className="group flex h-full cursor-pointer flex-col items-stretch bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
           data-testid={id}
         >
-          <div className="relative  overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
+          <div className="relative overflow-hidden rounded-t-lg border-l border-r border-t pb-[100%]">
             {ep_main_image_url ? (
               <div>
                 <Image
@@ -118,17 +118,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </div>
             )}
           </div>
-          <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4">
-            <div className="h-full">
+          <div className="flex h-full flex-col gap-2 rounded-b-lg border-b border-l border-r p-4 flex-grow">
+            <div className="h-16 flex-shrink-0">
               <Link href={`/products/${slug}`} passHref legacyBehavior>
-                <p className="pointer-events-none mt-2 block truncate text-md font-medium text-gray-900">
+                <p className="pointer-events-none mt-2 block text-sm font-medium text-gray-900 line-clamp-2 h-12 leading-6">
                   {name}
                 </p>
               </Link>
             </div>
             {/* <Ratings product={product.response} displayFromProduct={true} /> */}
             {gatedSetting != "fully_gated" && (
-              <div>
+              <div className="flex flex-col justify-end flex-grow">
                 {currencyPrice && (
                   <div className="mt-1 flex items-center">
                     {original_display_price && (

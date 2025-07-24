@@ -7,6 +7,7 @@ import Header from "../../components/header/Header";
 import { Toaster } from "../../components/toast/toaster";
 import Footer from "../../components/footer/Footer";
 import NextAuthSessionProvider from "../../components/header/admin/SessionProviders";
+import GlobalPromotionOverlay from "../../components/promotion/GlobalPromotionOverlay";
 
 const { SITE_NAME } = process.env;
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -57,6 +58,7 @@ export default async function StoreLayout({
               <Suspense>
                 <main>{children}</main>
               </Suspense>
+              <GlobalPromotionOverlay />
               <Footer />
             </Providers>
           </div>

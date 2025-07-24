@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode } from "react";
+import React, { createContext, ReactNode, useState } from "react";
 import {
   Cart,
   CartIncluded,
@@ -50,6 +50,10 @@ export const CartItemsContext = createContext<
         typeof useAddBundleProductToCart
       >;
       useClearCart: () => ReturnType<typeof useDeleteCartItems>;
+      promotionSuggestions: any[];
+      showPromotionOverlay: (suggestions: any[]) => void;
+      hidePromotionOverlay: () => void;
+      isPromotionOverlayOpen: boolean;
     } & Omit<ReturnType<typeof useGetCart>, "data">)
   | undefined
 >(undefined);
@@ -70,6 +74,8 @@ export function CartProvider({
   cartId = "",
 }: CartProviderProps) {
   const queryClient = useQueryClient();
+  const [promotionSuggestions, setPromotionSuggestions] = useState<any[]>([]);
+  const [isPromotionOverlayOpen, setIsPromotionOverlayOpen] = useState(false);
 
   const { data: rawCartData, ...rest } = useGetCart(cartId, {
     initialData: initialState?.cart,
@@ -111,6 +117,18 @@ export function CartProvider({
       onSuccess: (updatedData) => {
         setCartQueryData(updatedData);
         invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
         toast("Item added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
@@ -125,6 +143,18 @@ export function CartProvider({
       onSuccess: async (updatedData) => {
         setCartQueryData(updatedData);
         await invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
       },
     });
 
@@ -134,6 +164,18 @@ export function CartProvider({
       onSuccess: (updatedData) => {
         setCartQueryData(updatedData);
         invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
         toast("Item added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
@@ -148,6 +190,18 @@ export function CartProvider({
       onSuccess: (updatedData) => {
         setCartQueryData(updatedData);
         invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
         toast("Item added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
@@ -162,6 +216,18 @@ export function CartProvider({
       onSuccess: (updatedData) => {
         setCartQueryData(updatedData);
         invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
         toast("Order items added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
@@ -203,6 +269,18 @@ export function CartProvider({
       onSuccess: (updatedData) => {
         setCartQueryData(updatedData);
         invalidateCartQuery();
+        // Check for promotion suggestions in response
+        if (
+          updatedData &&
+          updatedData.meta &&
+          Array.isArray((updatedData.meta as any).promotion_suggestions) &&
+          (updatedData.meta as any).promotion_suggestions.length > 0
+        ) {
+          setPromotionSuggestions(
+            (updatedData.meta as any).promotion_suggestions,
+          );
+          setIsPromotionOverlayOpen(true);
+        }
         toast("Item added successfully in your cart", {
           position: "top-center",
           autoClose: 3000,
@@ -219,6 +297,16 @@ export function CartProvider({
         await invalidateCartQuery();
       },
     });
+
+  const showPromotionOverlay = (suggestions: any[]) => {
+    setPromotionSuggestions(suggestions);
+    setIsPromotionOverlayOpen(true);
+  };
+
+  const hidePromotionOverlay = () => {
+    setIsPromotionOverlayOpen(false);
+    setPromotionSuggestions([]);
+  };
 
   return (
     <CartItemsContext.Provider
@@ -237,6 +325,10 @@ export function CartProvider({
         useScopedAddSubscriptionItemToCart: addSubscriptionItemToCart,
         useScopedReorderToCart: addReorderToCart,
         useClearCart: clearCart,
+        promotionSuggestions,
+        showPromotionOverlay,
+        hidePromotionOverlay,
+        isPromotionOverlayOpen,
         ...rest,
       }}
     >

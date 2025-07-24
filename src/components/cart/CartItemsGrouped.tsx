@@ -14,7 +14,7 @@ export function CartItemsGrouped({
   // Group items by delivery_mode
   const homeDeliveryItems = items.filter(
     (item: any) =>
-      item.custom_inputs?.location?.delivery_mode === "Home Delivery",
+      item.custom_inputs?.location?.delivery_mode != "Click & Collect",
   );
 
   const clickAndCollectItems = items.filter(
