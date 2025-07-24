@@ -19,13 +19,14 @@ export function useGetCart(
 ): Partial<ResourceIncluded<any, CartIncluded>> &
   Omit<UseQueryResult<ResourceIncluded<any, CartIncluded>, Error>, "data"> {
   const { client } = useElasticPath();
-  const included: any = ["items", "custom_discounts"];
+  const included: any = ["items", "custom_discounts", "promotions"];
 
   const { data, ...rest } = useQuery({
     queryKey: cartQueryKeys.detail(id),
     queryFn: async () => {
       const cartData: any = await client.Cart(id).With(included).Get();
       const cartItems: any = await client.Cart(id).With(included).Items();
+      cartData.included.promotions = cartItems.included.promotions;
       cartData.included.itemCustomDiscount =
         cartItems.included.custom_discounts;
       return { ...cartData };

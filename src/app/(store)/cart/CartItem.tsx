@@ -7,6 +7,7 @@ import { CartItem as CartItemType } from "@elasticpath/js-sdk";
 import { LoadingDots } from "../../../components/LoadingDots";
 import { CartAdditionalData } from "../../../components/cart/CartAdditionalData";
 import { CartComponentData } from "../../../components/cart/CartComponentData";
+import { CartItemPromotions } from "../../../components/cart/CartItemPromotions";
 import Image from "next/image";
 import AddItemCustomDiscount from "../../(admin)/admin/quotes/new/AddItemCustomDiscount";
 import { useState } from "react";
@@ -101,6 +102,7 @@ export function CartItem({
             <span className="text-sm text-black/60">
               Quantity: {item.quantity}
             </span>
+            <CartItemPromotions item={item} />
           </div>
           <div className="flex h-7 gap-2 flex-col">
             <span className="font-medium">

@@ -7,6 +7,7 @@ import { CartItemProps } from "./CartItem";
 import { LoadingDots } from "../../../components/LoadingDots";
 import { CartAdditionalData } from "../../../components/cart/CartAdditionalData";
 import { CartComponentData } from "../../../components/cart/CartComponentData";
+import { CartItemPromotions } from "../../../components/cart/CartItemPromotions";
 import Image from "next/image";
 
 export function CartItemWide({ item }: CartItemProps) {
@@ -71,6 +72,7 @@ export function CartItemWide({ item }: CartItemProps) {
             <span className="text-sm text-black/60">
               Quantity: {item.quantity}
             </span>
+            <CartItemPromotions item={item} />
             <CartComponentData item={item} />
             <CartAdditionalData item={item} />
           </div>
