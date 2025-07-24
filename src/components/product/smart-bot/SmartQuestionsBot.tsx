@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Extensions } from "@elasticpath/js-sdk";
 import { useCompletion } from "ai/react";
 
@@ -19,6 +19,10 @@ export function SmartQuestionsBot({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
 
+  // Refs for auto-focus and auto-scroll
+  const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
   const { complete } = useCompletion({
     api: "/api/smartie",
     onFinish: (_, completion) => {
@@ -34,6 +38,24 @@ export function SmartQuestionsBot({
       });
     },
   });
+
+  // Auto-scroll to bottom when chat history changes
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
+  // Auto-focus input when popup opens
+  useEffect(() => {
+    if (isPopupOpen && inputRef.current) {
+      // Small delay to ensure the popup is fully rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isPopupOpen]);
 
   const questionTemplate = extensions?.["products(product-questions-template)"];
   const questions = [
@@ -122,7 +144,10 @@ export function SmartQuestionsBot({
           </div>
 
           {/* Chat Messages */}
-          <div className="p-4 h-96 overflow-y-auto flex flex-col gap-3">
+          <div
+            ref={chatContainerRef}
+            className="p-4 h-96 overflow-y-auto flex flex-col gap-3"
+          >
             {chatHistory.map((msg, index) => (
               <div key={index} className="flex flex-col gap-2">
                 <div className="bg-sky-50 text-brand-primary p-3 rounded-3xl self-end max-w-[80%]">
@@ -147,6 +172,7 @@ export function SmartQuestionsBot({
           <form onSubmit={handleSubmit} className="border-t p-4">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
