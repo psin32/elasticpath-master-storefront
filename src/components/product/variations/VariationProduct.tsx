@@ -209,6 +209,7 @@ export function VariationProductContainer({
       );
     } else {
       const planId = formData.get("plan")?.toString() || "";
+      const pricingOptionId = formData.get("pricing_option")?.toString() || "";
       if (main_image?.link?.href) {
         data.custom_inputs.image_url = main_image?.link?.href;
       }
@@ -219,6 +220,7 @@ export function VariationProductContainer({
           quantity,
           subscription_configuration: {
             plan: planId,
+            pricing_option: pricingOptionId,
           },
           custom_inputs: data.custom_inputs,
         },

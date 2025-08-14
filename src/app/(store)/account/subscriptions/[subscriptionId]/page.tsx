@@ -25,7 +25,7 @@ export default async function SubscriptionItems({
 
   const client = getServerSideCredentialsClientWihoutAccountToken();
 
-  const include: any = ["plans", "products"];
+  const include: any = ["plans", "pricing_options"];
   const subscription: any = await client.Subscriptions.With(include).Get(
     params.subscriptionId,
   );

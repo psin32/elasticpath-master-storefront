@@ -13,6 +13,9 @@ export default function SubscriptionOfferPlans({
 }) {
   const [selected, setSelected] = useState<string>();
   const [selectedPlan, setSelectedPlan] = useState<any>();
+  const [selectedPricingOption, setSelectedPricingOption] = useState<
+    Record<string, string>
+  >({});
 
   useEffect(() => {
     setSelected("one_time");
@@ -21,6 +24,21 @@ export default function SubscriptionOfferPlans({
       plan[offering.id] = offering.relationships.plans.data[0].id;
     });
     setSelectedPlan(plan);
+    // Initialize default selected pricing option per offering (first plan's first option)
+    const defaults: Record<string, string> = {};
+    offerings.data.forEach((offering: any) => {
+      const firstPlanId = offering.relationships?.plans?.data?.[0]?.id;
+      if (!firstPlanId) return;
+      const includedPlan = (offerings.included?.plans || []).find(
+        (p: any) => p.id === firstPlanId,
+      );
+      const firstOptionId =
+        includedPlan?.relationships?.pricing_options?.data?.[0]?.id;
+      if (firstOptionId) {
+        defaults[offering.id] = firstOptionId;
+      }
+    });
+    setSelectedPricingOption(defaults);
   }, [product]);
 
   const changeSelectedPlan = (offeringId: string, planId: string) => {
@@ -117,70 +135,103 @@ export default function SubscriptionOfferPlans({
                   hidden={selected != offering.id}
                   className="mr-10 w-[80%] text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  {offering.relationships.plans.data.map((plan_data: any) => {
-                    const plan = offerings.included.plans.find(
-                      (plan: any) => plan.id === plan_data.id,
+                  {(() => {
+                    const items: Array<{ plan: any; option: any }> = [];
+                    (offering.relationships?.plans?.data || []).forEach(
+                      (plan_data: any) => {
+                        const plan = (offerings.included.plans || []).find(
+                          (p: any) => p.id === plan_data.id,
+                        );
+                        if (!plan) return;
+                        const optionIds: string[] = Array.from(
+                          new Set(
+                            (
+                              plan.relationships?.pricing_options?.data || []
+                            ).map((po: any) => po.id),
+                          ),
+                        );
+                        optionIds.forEach((id) => {
+                          const option = (
+                            offerings.included.pricing_options || []
+                          ).find((po: any) => po.id === id);
+                          if (option) items.push({ plan, option });
+                        });
+                      },
                     );
-                    return (
-                      <li
-                        className="border-b border-gray-200 rounded-t-lg dark:border-gray-600"
-                        key={plan.id}
-                      >
-                        <div className="flex items-center ps-3">
-                          <input
-                            id={plan.id}
-                            type="radio"
-                            value={plan.id}
-                            name="plan"
-                            checked={selectedPlan?.[offering.id] === plan.id}
-                            onChange={() =>
-                              changeSelectedPlan(offering.id, plan.id)
-                            }
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
-                          />
-                          <label
-                            htmlFor={plan.id}
-                            className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
-                          >
-                            <div className="flex flex-col items-start gap-2 ml-2">
-                              <span className="mt-2 text-xl font-semibold">
-                                {plan.attributes.description}
-                              </span>
-                              <span>
-                                Frequency: {plan.attributes.billing_frequency}{" "}
-                                {plan.attributes.billing_interval_type}
-                              </span>
-                              <span>
-                                Length: {plan.attributes.plan_length}{" "}
-                                {plan.attributes.billing_interval_type}
-                              </span>
-                              <span>
-                                <Price
-                                  price={
-                                    plan.meta.display_price?.without_tax
-                                      ?.formatted
-                                      ? plan.meta.display_price?.without_tax
-                                          ?.formatted
-                                      : plan.meta.display_price.with_tax
-                                          .formatted
-                                  }
-                                  currency={
-                                    plan.meta.display_price?.without_tax
-                                      ?.currency
-                                      ? plan.meta.display_price?.without_tax
-                                          ?.currency
-                                      : plan.meta.display_price.with_tax
-                                          .currency
-                                  }
-                                  size="text-md"
-                                />
-                              </span>
-                            </div>
-                          </label>
-                        </div>
-                      </li>
-                    );
-                  })}
+                    return items.map(({ plan, option }) => {
+                      const displayPrice =
+                        option.meta?.prices?.[plan.id]?.display_price;
+                      const priceFormatted =
+                        displayPrice?.without_tax?.formatted ||
+                        displayPrice?.with_tax?.formatted;
+                      const priceCurrency =
+                        displayPrice?.without_tax?.currency ||
+                        displayPrice?.with_tax?.currency;
+                      const inputId = `${offering.id}-${plan.id}-${option.id}`;
+                      return (
+                        <li
+                          key={inputId}
+                          className="border-b border-gray-200 rounded-t-lg dark:border-gray-600"
+                        >
+                          <div className="flex items-center ps-3">
+                            <input
+                              id={inputId}
+                              type="radio"
+                              name="pricing_option"
+                              value={option.id}
+                              checked={
+                                selectedPricingOption?.[offering.id] ===
+                                option.id
+                              }
+                              onChange={() => {
+                                setSelectedPricingOption((prev) => ({
+                                  ...(prev || {}),
+                                  [offering.id]: option.id,
+                                }));
+                                changeSelectedPlan(offering.id, plan.id);
+                                setSelected(offering.id);
+                              }}
+                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                            />
+                            <input
+                              type="hidden"
+                              name="plan"
+                              value={plan.id}
+                              disabled={
+                                selectedPricingOption?.[offering.id] !==
+                                option.id
+                              }
+                            />
+                            <label
+                              htmlFor={inputId}
+                              className="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                            >
+                              <div className="flex flex-col items-start gap-2 ml-2">
+                                <span className="mt-2 text-xl font-semibold">
+                                  {option.attributes.name ||
+                                    option.attributes.description}
+                                </span>
+                                <span>
+                                  Frequency:{" "}
+                                  {option.attributes.billing_frequency}{" "}
+                                  {option.attributes.billing_interval_type}
+                                </span>
+                                {priceFormatted && (
+                                  <span>
+                                    <Price
+                                      price={priceFormatted}
+                                      currency={priceCurrency}
+                                      size="text-md"
+                                    />
+                                  </span>
+                                )}
+                              </div>
+                            </label>
+                          </div>
+                        </li>
+                      );
+                    });
+                  })()}
                 </ul>
               </label>
             </div>

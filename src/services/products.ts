@@ -44,13 +44,15 @@ export async function getSubscriptionOfferingByProductId(
   productId: string,
   client: EPCCClient,
 ): Promise<ResourcePage<SubscriptionOffering, never>> {
-  const filter: any = ["plans"];
-  return client.SubscriptionOfferings.With(filter)
-    .Filter({
-      eq: {
-        "products.external_ref": productId,
-      },
-    })
+  const included: any = ["plans", "features", "pricing_options"];
+  const filter: any = {
+    eq: {
+      "plans.external_ref": productId,
+    },
+  };
+
+  return client.SubscriptionOfferings.With(included)
+    .Filter(filter)
     .All()
     .then((response) => {
       return response;

@@ -8,6 +8,7 @@ export type CartAddSubscriptionItemReq = {
     id: string;
     subscription_configuration: {
       plan: string;
+      pricing_option: string;
     };
     quantity: number;
     custom_inputs?: Record<string, any>;

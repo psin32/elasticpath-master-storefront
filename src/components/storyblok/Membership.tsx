@@ -14,7 +14,11 @@ const Membership = ({ blok }: any) => {
     isPending: isPendingSubscriptionItem,
   } = useScopedAddSubscriptionItemToCart();
 
-  const addSubscriptionItem = (offeringId: string, planId: string) => {
+  const addSubscriptionItem = (
+    offeringId: string,
+    planId: string,
+    pricingOptionId: string,
+  ) => {
     mutateAddSubscriptionItem({
       data: {
         type: "subscription_item",
@@ -22,6 +26,7 @@ const Membership = ({ blok }: any) => {
         quantity: 1,
         subscription_configuration: {
           plan: planId,
+          pricing_option: pricingOptionId,
         },
       },
     });
@@ -53,7 +58,13 @@ const Membership = ({ blok }: any) => {
                 description={plan.attributes.description}
                 frequency={plan.attributes.billing_frequency}
                 intervalType={plan.attributes.billing_interval_type}
-                onSelect={() => addSubscriptionItem(offerings.data.id, plan.id)}
+                onSelect={() =>
+                  addSubscriptionItem(
+                    offerings.data.id,
+                    plan.id,
+                    plan.relationships.pricing_options.data[0].id,
+                  )
+                }
               />
             ))}
         </div>

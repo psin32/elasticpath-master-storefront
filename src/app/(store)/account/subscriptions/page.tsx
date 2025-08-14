@@ -37,7 +37,7 @@ export default async function Subscription({}) {
       account_id: selectedAccount.account_id,
     },
   };
-  const include: any = ["plans", "products"];
+  const include: any = ["plans", "pricing_options"];
   const result: any = await client.Subscriptions.With(include)
     .Filter(param)
     .All();
@@ -63,7 +63,7 @@ export default async function Subscription({}) {
                             scope="col"
                             className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                           >
-                            Subscription Product
+                            Subscription Item
                           </th>
                           <th
                             scope="col"
@@ -93,12 +93,6 @@ export default async function Subscription({}) {
                             scope="col"
                             className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                           >
-                            End Date
-                          </th>
-                          <th
-                            scope="col"
-                            className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                          >
                             Next Invoice
                           </th>
                           <th
@@ -117,25 +111,31 @@ export default async function Subscription({}) {
                         {result?.data.map((subscription: any) => {
                           const {
                             id,
-                            attributes: { currency, offering, plan_id },
+                            attributes: {
+                              offering,
+                              plan_id,
+                              pricing_option_id,
+                            },
                             meta: {
                               invoice_after,
                               canceled,
                               paused,
                               suspended,
                               status,
-                              timestamps: { created_at, end_date },
+                              timestamps: { created_at },
                             },
                           } = subscription;
-
                           const planDetails = result.included.plans.find(
                             (plan: any) => plan.id === plan_id,
                           );
-                          const productDetails = result.included.products.find(
-                            (product: any) =>
-                              product.id ===
-                              subscription.relationships.products.data[0].id,
-                          );
+                          const pricingOptionDetails =
+                            result.included.pricing_options.find(
+                              (pricingOption: any) =>
+                                pricingOption.id === pricing_option_id,
+                            );
+                          const price =
+                            pricingOptionDetails?.meta?.prices?.[plan_id]
+                              ?.display_price?.without_tax?.formatted;
                           return (
                             <tr key={id}>
                               <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-800 sm:pl-6">
@@ -143,19 +143,24 @@ export default async function Subscription({}) {
                                   <div className="w-16 sm:w-20 min-h-[6.25rem]">
                                     <Image
                                       src={
-                                        productDetails.attributes.main_image ??
-                                        gray1pxBase64
+                                        pricingOptionDetails?.attributes
+                                          ?.main_image ?? gray1pxBase64
                                       }
                                       width="100"
                                       height="100"
-                                      alt={productDetails.attributes.name}
+                                      alt={
+                                        pricingOptionDetails?.attributes?.name
+                                      }
                                       className="overflow-hidden"
                                     />
                                   </div>
                                   <div className="">
-                                    {productDetails?.attributes?.name}
+                                    {offering?.attributes?.name}
                                     <div className="mt-1 text-xs leading-5 text-gray-500">
-                                      {offering?.attributes?.description}
+                                      {planDetails?.attributes?.name}
+                                    </div>
+                                    <div className="mt-1 text-xs leading-5 text-gray-500">
+                                      {pricingOptionDetails?.attributes?.name}
                                     </div>
                                     <div className="mt-1 text-xs leading-5 text-gray-500">
                                       {id}
@@ -165,36 +170,30 @@ export default async function Subscription({}) {
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
                                 <span className="text-base font-medium">
-                                  {new Intl.NumberFormat("en", {
-                                    style: "currency",
-                                    currency,
-                                  }).format(
-                                    (planDetails.attributes.fixed_price[
-                                      currency
-                                    ].amount || 0) / 100,
-                                  )}
+                                  {price}
                                 </span>
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                                {planDetails.attributes.billing_frequency}{" "}
-                                {planDetails.attributes.billing_interval_type}
+                                {
+                                  pricingOptionDetails.attributes
+                                    .billing_frequency
+                                }{" "}
+                                {
+                                  pricingOptionDetails.attributes
+                                    .billing_interval_type
+                                }
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                                {planDetails.attributes.plan_length}{" "}
-                                {planDetails.attributes.billing_interval_type}
+                                {pricingOptionDetails.attributes.plan_length}{" "}
+                                {
+                                  pricingOptionDetails.attributes
+                                    .billing_interval_type
+                                }
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
                                 <div>{formatIsoDateString(created_at)}</div>
                                 <div className="mt-1 text-xs leading-5 text-gray-500">
                                   {formatIsoTimeString(created_at)}
-                                </div>
-                              </td>
-                              <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
-                                <div>
-                                  <div>{formatIsoDateString(end_date)}</div>
-                                  <div className="mt-1 text-xs leading-5 text-gray-500">
-                                    {formatIsoTimeString(end_date)}
-                                  </div>
                                 </div>
                               </td>
                               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">

@@ -13,6 +13,7 @@ export async function addSubscriptionItem(
   cartId: string,
   offeringId: string | undefined,
   planId: string | undefined,
+  pricingOptionId: string | undefined,
   client: EPCCClient,
 ): Promise<any> {
   const body = {
@@ -22,6 +23,7 @@ export async function addSubscriptionItem(
       quantity: 1,
       subscription_configuration: {
         plan: planId,
+        pricing_option: pricingOptionId,
       },
     },
   };

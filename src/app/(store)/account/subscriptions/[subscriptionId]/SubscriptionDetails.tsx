@@ -39,14 +39,19 @@ export function SubscriptionDetails({
       meta: { paused, canceled },
       attributes: {
         payment_authority: { customer_id },
+        pricing_option_id,
       },
     },
     included: { plans },
   } = subscription;
 
-  const canCancel = plans?.[0]?.attributes.can_cancel || false;
-  const canPause = plans?.[0]?.attributes.can_pause || false;
-  const canResume = plans?.[0]?.attributes.can_resume || false;
+  const pricingOptionDetails = subscription.included.pricing_options.find(
+    (pricingOption: any) => pricingOption.id === pricing_option_id,
+  );
+
+  const canCancel = pricingOptionDetails?.attributes.can_cancel || false;
+  const canPause = pricingOptionDetails?.attributes.can_pause || false;
+  const canResume = pricingOptionDetails?.attributes.can_resume || false;
 
   const handleStateChange = async (state: SubscriptionsStateAction) => {
     if (state === "pause") {
