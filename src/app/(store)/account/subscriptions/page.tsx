@@ -143,8 +143,8 @@ export default async function Subscription({}) {
                                   <div className="w-16 sm:w-20 min-h-[6.25rem]">
                                     <Image
                                       src={
-                                        pricingOptionDetails?.attributes
-                                          ?.main_image ?? gray1pxBase64
+                                        planDetails?.attributes?.main_image ??
+                                        gray1pxBase64
                                       }
                                       width="100"
                                       height="100"
