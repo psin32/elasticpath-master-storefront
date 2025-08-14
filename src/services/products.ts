@@ -67,7 +67,7 @@ export async function getSubscriptionOfferingById(
   offeringId: string,
   client: EPCCClient,
 ): Promise<Resource<SubscriptionOffering>> {
-  const filter: any = ["plans"];
+  const filter: any = ["plans", "pricing_options", "features"];
   return client.SubscriptionOfferings.With(filter).Get(offeringId);
 }
 

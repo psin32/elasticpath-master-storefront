@@ -25,7 +25,6 @@ export function CartItemPromotions({ item }: CartItemPromotionsProps) {
 
   // Get discounts from the specific cart item
   const itemDiscounts = (item as any)?.discounts || [];
-  console.log("itemDiscounts", itemDiscounts);
 
   // Match discount IDs with promotion data to get promotion names
   const appliedPromotions = itemDiscounts
