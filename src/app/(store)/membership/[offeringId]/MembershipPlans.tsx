@@ -59,6 +59,16 @@ export default function MembershipPlans({ offering }: { offering: any }) {
 
   const handleAdd = () => {
     if (!selectedPlanId || !selectedPricingOptionId) return;
+    const data: any = {
+      custom_inputs: {
+        additional_information: [],
+      },
+    };
+
+    if (currentPlan?.attributes?.main_image) {
+      data.custom_inputs.image_url = currentPlan?.attributes?.main_image;
+    }
+
     addSubscriptionItem({
       data: {
         type: "subscription_item",
@@ -68,6 +78,7 @@ export default function MembershipPlans({ offering }: { offering: any }) {
           plan: selectedPlanId,
           pricing_option: selectedPricingOptionId,
         },
+        custom_inputs: data.custom_inputs,
       },
     });
   };
