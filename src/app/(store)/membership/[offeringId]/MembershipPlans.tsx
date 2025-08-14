@@ -57,14 +57,6 @@ export default function MembershipPlans({ offering }: { offering: any }) {
     [pricingOptions, currentPlanOptionIds],
   );
 
-  const currentPlanFeatures = useMemo(() => {
-    if (!currentPlan) return [] as any[];
-    const featureIds: string[] =
-      currentPlan?.relationships?.features?.data?.map((d: any) => d.id) || [];
-    if (featureIds.length === 0) return allFeatures;
-    return allFeatures.filter((f) => featureIds.includes(f.id));
-  }, [currentPlan, allFeatures]);
-
   const handleAdd = () => {
     if (!selectedPlanId || !selectedPricingOptionId) return;
     addSubscriptionItem({
@@ -81,7 +73,7 @@ export default function MembershipPlans({ offering }: { offering: any }) {
   };
 
   return (
-    <div className="flex flex-col gap-10 w-full max-w-6xl">
+    <div className="flex flex-col gap-10 w-full max-w-6xl mt-10">
       <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
         {plans.map((plan) => {
           const name = plan?.attributes?.name;
