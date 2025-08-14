@@ -13,11 +13,19 @@ export default function MembershipPlans({ offering }: { offering: any }) {
     string | null
   >(null);
 
-  if (!offering) return null;
-
-  const plans: any[] = offering?.included?.plans || [];
-  const pricingOptions: any[] = offering?.included?.pricing_options || [];
-  const allFeatures: any[] = offering?.included?.features || [];
+  // Always initialize derived values to keep hooks order consistent
+  const plans: any[] = useMemo(
+    () => offering?.included?.plans || [],
+    [offering],
+  );
+  const pricingOptions: any[] = useMemo(
+    () => offering?.included?.pricing_options || [],
+    [offering],
+  );
+  const allFeatures: any[] = useMemo(
+    () => offering?.included?.features || [],
+    [offering],
+  );
 
   // Auto-select first plan and its first pricing option for a smoother UX
   useEffect(() => {
@@ -138,7 +146,7 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                 return (
                   <div className="mt-4">
                     <div className="text-xs font-semibold text-gray-700 mb-2">
-                      What's included
+                      What&apos;s included
                     </div>
                     {features?.length > 0 ? (
                       <ul className="space-y-1">
