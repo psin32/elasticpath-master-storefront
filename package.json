@@ -116,21 +116,25 @@
     "@vitest/coverage-istanbul": "^0.34.5",
     "autoprefixer": "^10.4.14",
     "babel-loader": "^8.2.5",
+    "classnames": "^2.5.1",
     "encoding": "^0.1.13",
     "eslint": "^8.49.0",
     "eslint-config-next": "^14.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-react": "^7.33.2",
+    "jquery": "^3.7.1",
     "lint-staged": "^13.0.3",
     "postcss": "^8.4.30",
     "prettier": "^3.0.3",
     "prettier-eslint": "^15.0.1",
     "prettier-eslint-cli": "^7.1.0",
     "prettier-plugin-tailwindcss": "^0.5.4",
+    "react-instantsearch-dom": "^6.40.4",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.2.2",
     "vite": "^4.2.1",
-    "vitest": "^0.34.5"
+    "vitest": "^0.34.5",
+    "webpack": "^5.101.3"
   }
 }
