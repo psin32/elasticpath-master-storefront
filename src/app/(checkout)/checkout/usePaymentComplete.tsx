@@ -282,7 +282,11 @@ export function usePaymentComplete(
         });
 
         if (stripeConfirmResponse?.error) {
-          throw new Error(stripeConfirmResponse.error.message);
+          console.error(
+            "Stripe confirm payment error: ",
+            stripeConfirmResponse,
+          );
+          // throw new Error(stripeConfirmResponse.error.message);
         }
 
         /**
