@@ -292,11 +292,13 @@ export function usePaymentComplete(
         /**
          * 4. Confirm the payment with Elastic Path
          */
-        await mutateConfirmOrder({
-          orderId: createdOrder.data.id,
-          transactionId: confirmedPayment.data.id,
-          options: {},
-        });
+        if (!stripeConfirmResponse?.error) {
+          await mutateConfirmOrder({
+            orderId: createdOrder.data.id,
+            transactionId: confirmedPayment.data.id,
+            options: {},
+          });
+        }
       }
 
       return {
