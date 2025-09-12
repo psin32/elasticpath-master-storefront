@@ -303,15 +303,17 @@ export default function HitsElasticPath({
                         {gatedSetting != "fully_gated" && (
                           <>
                             <div className="text-gray-600 text-sm">{sku}</div>
-                            <span
-                              className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
-                              dangerouslySetInnerHTML={{
-                                __html:
-                                  description.length > 200
-                                    ? `${description.substring(0, 200)}...`
-                                    : description,
-                              }}
-                            ></span>
+                            {description && (
+                              <span
+                                className="mt-2 line-clamp-6 text-xs font-medium leading-5 text-gray-500"
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    description.length > 200
+                                      ? `${description.substring(0, 200)}...`
+                                      : description,
+                                }}
+                              ></span>
+                            )}
                           </>
                         )}
                       </div>
