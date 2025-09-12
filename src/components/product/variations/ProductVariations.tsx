@@ -92,26 +92,39 @@ function resolveVariationComponentByName(
   >["updateSelectedOptions"],
   selectedOptionId?: string,
 ): JSX.Element {
-  switch (v.name.toLowerCase()) {
-    case "color":
-      return (
-        <ProductVariationColor
-          key={v.id}
-          variation={v}
-          updateOptionHandler={updateOptionHandler}
-          selectedOptionId={selectedOptionId}
-        />
-      );
-    default:
-      return (
-        <ProductVariationStandard
-          key={v.id}
-          variation={v}
-          updateOptionHandler={updateOptionHandler}
-          selectedOptionId={selectedOptionId}
-        />
-      );
+  const enableColorSwatch =
+    process.env.NEXT_PUBLIC_ENABLE_COLOR_SWATCHES === "true" || false;
+
+  if (enableColorSwatch) {
+    switch (v.name.toLowerCase()) {
+      case "color":
+        return (
+          <ProductVariationColor
+            key={v.id}
+            variation={v}
+            updateOptionHandler={updateOptionHandler}
+            selectedOptionId={selectedOptionId}
+          />
+        );
+      default:
+        return (
+          <ProductVariationStandard
+            key={v.id}
+            variation={v}
+            updateOptionHandler={updateOptionHandler}
+            selectedOptionId={selectedOptionId}
+          />
+        );
+    }
   }
+  return (
+    <ProductVariationStandard
+      key={v.id}
+      variation={v}
+      updateOptionHandler={updateOptionHandler}
+      selectedOptionId={selectedOptionId}
+    />
+  );
 }
 
 export default ProductVariations;
