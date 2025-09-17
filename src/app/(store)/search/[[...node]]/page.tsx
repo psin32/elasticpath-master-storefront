@@ -73,6 +73,7 @@ export default async function SearchPage({
   } else {
     const client = getServerSideImplicitClient();
     const cookieStore = cookies();
+    const catalogTag = process.env.NEXT_PUBLIC_CATALOG_TAG || "";
     const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
     const accountMemberCookie = retrieveAccountMemberCredentials(
       cookies(),
@@ -87,11 +88,13 @@ export default async function SearchPage({
     if (customHeaders) {
       customHeaders["EP-Account-Management-Authentication-Token"] =
         accountToken;
-      customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+      customHeaders["EP-Context-Tag"] = catalogTag
+        ? catalogTag
+        : tagInCookie?.value || "";
     } else {
       customHeaders = {
         "EP-Account-Management-Authentication-Token": accountToken,
-        "EP-Context-Tag": tagInCookie?.value || "",
+        "EP-Context-Tag": catalogTag ? catalogTag : tagInCookie?.value || "",
       };
     }
     const { limit, offset } = searchParams;

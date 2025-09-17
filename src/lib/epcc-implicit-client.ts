@@ -15,7 +15,9 @@ let headers = resolveEpccCustomRuleHeaders();
 const { client_id, host } = epccEnv;
 
 export function getEpccImplicitClient() {
-  const catalogTag = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
+  const catalogTag =
+    process.env.NEXT_PUBLIC_CATALOG_TAG ||
+    getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
   const cookieValue =
     getCookie(ACCOUNT_MEMBER_TOKEN_COOKIE_NAME)?.toString() || "";
   if (cookieValue) {

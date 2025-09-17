@@ -21,6 +21,7 @@ export function getServerSideCredentialsClient() {
   const cookieStore = cookies();
   const credentialsCookie = cookieStore.get(CREDENTIALS_COOKIE_NAME);
   const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const catalogTag = process.env.NEXT_PUBLIC_CATALOG_TAG || "";
   const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   const accountMemberCookie = retrieveAccountMemberCredentials(
@@ -35,11 +36,13 @@ export function getServerSideCredentialsClient() {
 
   if (customHeaders) {
     customHeaders["EP-Account-Management-Authentication-Token"] = accountToken;
-    customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+    customHeaders["EP-Context-Tag"] = catalogTag
+      ? catalogTag
+      : tagInCookie?.value || "";
   } else {
     customHeaders = {
       "EP-Account-Management-Authentication-Token": accountToken,
-      "EP-Context-Tag": tagInCookie?.value || "",
+      "EP-Context-Tag": catalogTag ? catalogTag : tagInCookie?.value || "",
     };
   }
 
@@ -61,13 +64,16 @@ export function getServerSideCredentialsClientWihoutAccountToken() {
   const cookieStore = cookies();
   const credentialsCookie = cookieStore.get(CREDENTIALS_COOKIE_NAME);
   const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const catalogTag = process.env.NEXT_PUBLIC_CATALOG_TAG || "";
   const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   if (customHeaders) {
-    customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+    customHeaders["EP-Context-Tag"] = catalogTag
+      ? catalogTag
+      : tagInCookie?.value || "";
   } else {
     customHeaders = {
-      "EP-Context-Tag": tagInCookie?.value || "",
+      "EP-Context-Tag": catalogTag ? catalogTag : tagInCookie?.value || "",
     };
   }
 

@@ -20,6 +20,7 @@ const { client_id, host } = epccEnv;
 export function getServerSideImplicitClient() {
   const cookieStore = cookies();
   const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const catalogTag = process.env.NEXT_PUBLIC_CATALOG_TAG || "";
   const tagInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
   const credentialsCookie = cookies().get(CREDENTIALS_COOKIE_NAME);
   const accountMemberCookie = retrieveAccountMemberCredentials(
@@ -34,11 +35,13 @@ export function getServerSideImplicitClient() {
 
   if (customHeaders) {
     customHeaders["EP-Account-Management-Authentication-Token"] = accountToken;
-    customHeaders["EP-Context-Tag"] = tagInCookie?.value || "";
+    customHeaders["EP-Context-Tag"] = catalogTag
+      ? catalogTag
+      : tagInCookie?.value || "";
   } else {
     customHeaders = {
       "EP-Account-Management-Authentication-Token": accountToken,
-      "EP-Context-Tag": tagInCookie?.value || "",
+      "EP-Context-Tag": catalogTag ? catalogTag : tagInCookie?.value || "",
     };
   }
 

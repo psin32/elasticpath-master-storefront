@@ -9,7 +9,9 @@ export function resolveEpccCustomRuleHeaders():
       "EP-Account-Management-Authentication-Token"?: string;
     }
   | undefined {
-  const catalogTag = getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
+  const catalogTag =
+    process.env.NEXT_PUBLIC_CATALOG_TAG ||
+    getCookie(`${COOKIE_PREFIX_KEY}_ep_catalog_tag`);
 
   const { epContextTag, epChannel } = {
     epContextTag: process.env.NEXT_PUBLIC_CONTEXT_TAG,

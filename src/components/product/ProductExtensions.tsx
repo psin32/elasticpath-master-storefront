@@ -20,7 +20,7 @@ const ProductExtensions = ({ extensions }: IProductExtensions): JSX.Element => {
             <div className="flex flex-col w-full" key={extension}>
               <div className="flex bg-gray-100 text-gray-800 font-bold">
                 <div className="w-1/4 p-3 basis-1/2 uppercase">
-                  {extensionName}
+                  {extensionName.replaceAll("-", " ")}
                 </div>
               </div>
               {extensionKeys.map((key) => {
