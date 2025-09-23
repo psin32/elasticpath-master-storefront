@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Price from "./Price";
 import StrikePrice from "./StrikePrice";
+import LoginToSeePriceButton from "./LoginToSeePriceButton";
 
 export default function SubscriptionOfferPlans({
   offerings,
@@ -72,7 +73,7 @@ export default function SubscriptionOfferPlans({
             <span className="text-xs font-semibold uppercase">
               One-time purchase
             </span>
-            {display_price && (
+            {display_price ? (
               <div className="flex items-center mt-2">
                 {original_display_price && (
                   <StrikePrice
@@ -104,6 +105,8 @@ export default function SubscriptionOfferPlans({
                   size="text-xl"
                 />
               </div>
+            ) : (
+              <LoginToSeePriceButton className="text-xl mt-2" />
             )}
           </label>
         </div>

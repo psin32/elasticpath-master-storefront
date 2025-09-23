@@ -19,6 +19,7 @@ import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
+import LoginToSeePriceButton from "../LoginToSeePriceButton";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
@@ -72,7 +73,7 @@ function BundleProductContainer({
   const { extensions } = response.attributes;
   const {
     id,
-    meta: { original_display_price },
+    meta: { original_display_price, display_price },
   } = response;
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
@@ -165,12 +166,16 @@ function BundleProductContainer({
                   custom_inputs={response.attributes?.custom_inputs}
                   formikForm={true}
                 />
-                <StatusButton
-                  type="submit"
-                  status={isPending ? "loading" : "idle"}
-                >
-                  ADD TO CART
-                </StatusButton>
+                {display_price ? (
+                  <StatusButton
+                    type="submit"
+                    status={isPending ? "loading" : "idle"}
+                  >
+                    ADD TO CART
+                  </StatusButton>
+                ) : (
+                  <LoginToSeePriceButton type="button" disabled={isPending} />
+                )}
                 <ProductDetails product={response} />
                 {extensions && <ProductHighlights extensions={extensions} />}
               </div>

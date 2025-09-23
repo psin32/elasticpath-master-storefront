@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/20/solid";
 import { StatusButton } from "../button/StatusButton";
+import LoginToSeePriceButton from "../product/LoginToSeePriceButton";
 
 export default function HitComponentAlgoliaList({
   hit,
@@ -173,7 +174,7 @@ export default function HitComponentAlgoliaList({
         )}
       </div>
       <div className="col-span-2">
-        {!variation_matrix && !components && (
+        {!variation_matrix && !components && display_price && (
           <StatusButton
             className="py-2 w-32 text-sm px-2"
             onClick={() => onAddToCart(objectID)}
@@ -184,7 +185,7 @@ export default function HitComponentAlgoliaList({
           </StatusButton>
         )}
 
-        {variation_matrix && onGetVariants && (
+        {variation_matrix && onGetVariants && display_price && (
           <StatusButton
             className="py-2 text-xs w-32"
             onClick={() => onGetVariants(objectID, variation_matrix)}
@@ -193,13 +194,15 @@ export default function HitComponentAlgoliaList({
           </StatusButton>
         )}
 
-        {components && (
+        {components && display_price && (
           <Link href={`/products/${ep_slug}`} legacyBehavior>
             <StatusButton className="py-2 text-xs w-32">
               View Bundle
             </StatusButton>
           </Link>
         )}
+
+        {!display_price && <LoginToSeePriceButton className="text-xs mt-2" />}
       </div>
     </div>
   );

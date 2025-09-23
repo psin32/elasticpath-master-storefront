@@ -9,6 +9,7 @@ import StrikePrice from "../product/StrikePrice";
 import Price from "../product/Price";
 import MultibuyOfferModal from "./MultibuyOfferModal";
 import Ratings from "../reviews/yotpo/Ratings";
+import LoginToSeePriceButton from "../product/LoginToSeePriceButton";
 
 interface IFeaturedProductsProps {
   title: string;
@@ -90,7 +91,7 @@ export default async function FeaturedProducts({
               </p>
               <div className="pointer-events-none text-sm font-medium text-gray-500 flex items-center gap-2">
                 {product?.meta?.component_products && <div>FROM </div>}
-                {product.meta.display_price && (
+                {product.meta.display_price ? (
                   <div className="flex items-center">
                     {product.meta.original_display_price && (
                       <StrikePrice
@@ -130,6 +131,8 @@ export default async function FeaturedProducts({
                       size="text-md"
                     />
                   </div>
+                ) : (
+                  <LoginToSeePriceButton className="text-md pointer-events-auto" />
                 )}
               </div>
             </Link>

@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import { CartItemObject } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
+import LoginToSeePriceButton from "../product/LoginToSeePriceButton";
 
 export default function HitsElasticPath({
   adminDisplay,
@@ -376,7 +377,7 @@ export default function HitsElasticPath({
                       </div>
 
                       <div className="col-span-2">
-                        {!variation_matrix && !components && (
+                        {!variation_matrix && !components && display_price && (
                           <div className="flex w-32 items-start rounded-lg border border-black/10">
                             <button
                               type="submit"
@@ -440,7 +441,7 @@ export default function HitsElasticPath({
                         )}
                       </div>
                       <div className="col-span-2">
-                        {!variation_matrix && !components && (
+                        {!variation_matrix && !components && display_price && (
                           <StatusButton
                             className="py-2 w-32 text-sm px-2"
                             onClick={() => handleAddToCart(id)}
@@ -451,7 +452,7 @@ export default function HitsElasticPath({
                           </StatusButton>
                         )}
 
-                        {variation_matrix && (
+                        {variation_matrix && display_price && (
                           <StatusButton
                             className="py-2 text-xs w-32"
                             onClick={() => getVariants(id, variation_matrix)}
@@ -460,12 +461,15 @@ export default function HitsElasticPath({
                           </StatusButton>
                         )}
 
-                        {components && (
+                        {components && display_price && (
                           <Link href={`/products/${slug}`} legacyBehavior>
                             <StatusButton className="py-2 text-xs w-32">
                               View Bundle
                             </StatusButton>
                           </Link>
+                        )}
+                        {!display_price && (
+                          <LoginToSeePriceButton className="text-xs mt-2" />
                         )}
                       </div>
                     </div>

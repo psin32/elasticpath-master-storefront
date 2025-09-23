@@ -13,6 +13,7 @@ import { StatusButton } from "../button/StatusButton";
 import PersonalisedInfo from "./PersonalisedInfo";
 import ProductHighlights from "./ProductHighlights";
 import Reviews from "../reviews/yotpo/Reviews";
+import LoginToSeePriceButton from "./LoginToSeePriceButton";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "./SubscriptionOfferPlans";
 import { toast } from "react-toastify";
@@ -90,7 +91,7 @@ function SimpleProductContainer({
   const { extensions } = response.attributes;
   const {
     id,
-    meta: { original_display_price },
+    meta: { original_display_price, display_price },
   } = response;
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
@@ -263,17 +264,22 @@ function SimpleProductContainer({
                 </div>
               )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
-              <StatusButton
-                type="submit"
-                status={
-                  isPendingAddItem || isPendingSubscriptionItem
-                    ? "loading"
-                    : "idle"
-                }
-                disabled={!unlimitedStock && inventory === 0}
-              >
-                ADD TO CART
-              </StatusButton>
+              {display_price ? (
+                <StatusButton
+                  type="submit"
+                  status={
+                    isPendingAddItem || isPendingSubscriptionItem
+                      ? "loading"
+                      : "idle"
+                  }
+                  disabled={!unlimitedStock && inventory === 0}
+                >
+                  ADD TO CART
+                </StatusButton>
+              ) : (
+                <LoginToSeePriceButton type="button" />
+              )}
+
               {offerings?.data?.length == 0 && enableClickAndCollect && (
                 <StatusButton
                   type="submit"

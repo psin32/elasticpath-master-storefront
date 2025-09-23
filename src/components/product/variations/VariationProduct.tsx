@@ -14,6 +14,7 @@ import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
+import LoginToSeePriceButton from "../LoginToSeePriceButton";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 import { toast } from "react-toastify";
@@ -84,7 +85,7 @@ export function VariationProductContainer({
   const { extensions } = response.attributes;
   const {
     id,
-    meta: { original_display_price },
+    meta: { original_display_price, display_price },
   } = response;
 
   const [quantity, setQuantity] = useState<number>(1);
@@ -297,20 +298,24 @@ export function VariationProductContainer({
                   </div>
                 )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
-              <StatusButton
-                disabled={
-                  product.kind === "base-product" ||
-                  (!unlimitedStock && inventory === 0)
-                }
-                type="submit"
-                status={
-                  isPendingAddItem || isPendingSubscriptionItem
-                    ? "loading"
-                    : "idle"
-                }
-              >
-                ADD TO CART
-              </StatusButton>
+              {display_price ? (
+                <StatusButton
+                  disabled={
+                    product.kind === "base-product" ||
+                    (!unlimitedStock && inventory === 0)
+                  }
+                  type="submit"
+                  status={
+                    isPendingAddItem || isPendingSubscriptionItem
+                      ? "loading"
+                      : "idle"
+                  }
+                >
+                  ADD TO CART
+                </StatusButton>
+              ) : (
+                <LoginToSeePriceButton type="button" />
+              )}
               {offerings?.data?.length == 0 && enableClickAndCollect && (
                 <StatusButton
                   disabled={product.kind === "base-product"}

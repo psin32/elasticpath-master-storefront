@@ -20,6 +20,8 @@ import {
   ProductProvider,
 } from "../../../../app/(store)/products/[productId]/product-display";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
+import LoginToSeePriceButton from "../../../product/LoginToSeePriceButton";
+import { usePathname } from "next/navigation";
 
 export interface ProductCardProps {
   product: any;
@@ -52,6 +54,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isVariationProduct = !!variation_matrix;
 
   const [shopperProduct, setShopperProduct] = useState<any>(null);
+  const pathname = usePathname();
+  const loginUrl = `/login?returnUrl=${encodeURIComponent(pathname)}`;
 
   useEffect(() => {
     const init = async () => {
@@ -74,7 +78,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="max-w-full sm:max-w-lg p-3 flex flex-col h-full">
-      <LinkWrapper href={`/products/${slug}`} passHref disabled={gatedSetting}>
+      <LinkWrapper
+        href={display_price ? `/products/${slug}` : loginUrl}
+        passHref
+        disabled={gatedSetting}
+      >
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
           data-testid={id}
@@ -162,30 +170,32 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     />
                   </div>
                 )}
-                {isStandardProduct && gatedSetting !== "fully_gated" && (
-                  <div className="flex justify-center mt-4">
-                    <StatusButton
-                      status={isPending ? "loading" : "idle"}
-                      className="w-full p-2 text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        mutate({
-                          productId: id,
-                          quantity: quantity || 1,
-                          data: {
-                            custom_inputs: {
-                              additional_information: [],
+                {isStandardProduct &&
+                  gatedSetting !== "fully_gated" &&
+                  display_price && (
+                    <div className="flex justify-center mt-4">
+                      <StatusButton
+                        status={isPending ? "loading" : "idle"}
+                        className="w-full p-2 text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          mutate({
+                            productId: id,
+                            quantity: quantity || 1,
+                            data: {
+                              custom_inputs: {
+                                additional_information: [],
+                              },
                             },
-                          },
-                        });
-                      }}
-                    >
-                      Add to Cart
-                    </StatusButton>
-                  </div>
-                )}
-                {!isStandardProduct && (
+                          });
+                        }}
+                      >
+                        Add to Cart
+                      </StatusButton>
+                    </div>
+                  )}
+                {!isStandardProduct && display_price && (
                   <div className="flex justify-center mt-4">
                     <StatusButton
                       className="w-full p-2 text-sm"
@@ -198,6 +208,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                       {isVariationProduct ? "View Product" : "View Bundle"}
                     </StatusButton>
                   </div>
+                )}
+                {!display_price && (
+                  <LoginToSeePriceButton className="text-xs mt-2" />
                 )}
               </div>
             )}
