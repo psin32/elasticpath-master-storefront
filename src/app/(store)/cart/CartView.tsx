@@ -14,7 +14,7 @@ import CollectionItemsOnCart from "../../../components/cart/CollectionItemsOnCar
 
 export function CartView() {
   const { state } = useCart() as any;
-  const [useShippingGroups, setUseShippingGroups] = useState<boolean>(false);
+  const [useShippingGroups, setUseShippingGroups] = useState<boolean>(true);
 
   // State for public shared lists
   const [collections, setCollections] = useState<any[]>([]);

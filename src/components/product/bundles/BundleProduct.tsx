@@ -20,6 +20,7 @@ import ProductDetails from "../ProductDetails";
 import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 import LoginToSeePriceButton from "../LoginToSeePriceButton";
+import { AddToCartButton } from "../AddToCartButton";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
@@ -166,16 +167,12 @@ function BundleProductContainer({
                   custom_inputs={response.attributes?.custom_inputs}
                   formikForm={true}
                 />
-                {display_price ? (
-                  <StatusButton
-                    type="submit"
-                    status={isPending ? "loading" : "idle"}
-                  >
-                    ADD TO CART
-                  </StatusButton>
-                ) : (
-                  <LoginToSeePriceButton type="button" disabled={isPending} />
-                )}
+                <AddToCartButton
+                  type="submit"
+                  status={isPending ? "loading" : "idle"}
+                  disabled={isPending}
+                  showPrice={!!display_price}
+                />
                 <ProductDetails product={response} />
                 {extensions && <ProductHighlights extensions={extensions} />}
               </div>

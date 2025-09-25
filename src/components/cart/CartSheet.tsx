@@ -49,7 +49,7 @@ export function Cart() {
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
 
   // Add state for useShippingGroups
-  const [useShippingGroups, setUseShippingGroups] = useState(false);
+  const [useShippingGroups, setUseShippingGroups] = useState(true);
   useEffect(() => {
     const shippingGroupsValue = Cookies.get("use_shipping_groups");
     setUseShippingGroups(shippingGroupsValue === "true");

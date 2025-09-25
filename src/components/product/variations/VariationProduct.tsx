@@ -15,6 +15,7 @@ import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
 import LoginToSeePriceButton from "../LoginToSeePriceButton";
+import { AddToCartButton } from "../AddToCartButton";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
 import { toast } from "react-toastify";
@@ -298,24 +299,19 @@ export function VariationProductContainer({
                   </div>
                 )}
               <QuantitySelector quantity={quantity} setQuantity={setQuantity} />
-              {display_price ? (
-                <StatusButton
-                  disabled={
-                    product.kind === "base-product" ||
-                    (!unlimitedStock && inventory === 0)
-                  }
-                  type="submit"
-                  status={
-                    isPendingAddItem || isPendingSubscriptionItem
-                      ? "loading"
-                      : "idle"
-                  }
-                >
-                  ADD TO CART
-                </StatusButton>
-              ) : (
-                <LoginToSeePriceButton type="button" />
-              )}
+              <AddToCartButton
+                disabled={
+                  product.kind === "base-product" ||
+                  (!unlimitedStock && inventory === 0)
+                }
+                type="submit"
+                status={
+                  isPendingAddItem || isPendingSubscriptionItem
+                    ? "loading"
+                    : "idle"
+                }
+                showPrice={!!display_price}
+              />
               {offerings?.data?.length == 0 && enableClickAndCollect && (
                 <StatusButton
                   disabled={product.kind === "base-product"}

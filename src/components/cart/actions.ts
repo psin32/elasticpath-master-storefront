@@ -12,9 +12,9 @@ export async function upsertCart(
 ) {
   const client = getServerSideCredentialsClient();
   if (newCart) {
-    await client.Cart().CreateCart(updatedCartRequest);
+    return await client.Cart().CreateCart(updatedCartRequest);
   } else {
-    await client.Cart(cartId).UpdateCart(updatedCartRequest);
+    return await client.Cart(cartId).UpdateCart(updatedCartRequest);
   }
 }
 
