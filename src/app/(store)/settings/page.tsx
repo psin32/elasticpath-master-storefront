@@ -9,7 +9,7 @@ export default function SettingsPage() {
   );
   const [useShippingGroups, setUseShippingGroups] = useState<
     boolean | undefined
-  >(undefined);
+  >(true);
   const [paymentMode, setPaymentMode] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
 
