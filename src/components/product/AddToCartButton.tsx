@@ -165,7 +165,7 @@ export function AddToCartButton({
       </StatusButton>
 
       {/* Right side - Dropdown button (only if multiple carts) */}
-      {carts.length > 1 && (
+      {carts.length > 0 && (
         <button
           type="button"
           disabled={disabled}
@@ -181,7 +181,7 @@ export function AddToCartButton({
         </button>
       )}
 
-      {isDropdownOpen && carts.length > 1 && (
+      {isDropdownOpen && carts.length > 0 && (
         <>
           {/* Backdrop */}
           <div
