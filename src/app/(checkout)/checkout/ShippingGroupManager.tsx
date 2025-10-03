@@ -28,6 +28,7 @@ import { Dialog } from "@headlessui/react";
 import { AddressForm } from "./AddressForm";
 import { ProductThumbnail } from "../../(store)/account/orders/[orderId]/ProductThumbnail";
 import { EP_CURRENCY_CODE } from "../../../lib/resolve-ep-currency-code";
+import { DisableShippingGroupsLink } from "./DisableShippingGroupsLink";
 
 interface ShippingDetails {
   shipping_method: string;
@@ -755,9 +756,12 @@ export function ShippingGroupManager() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Shipping Groups</h2>
-          <p className="text-gray-600">
-            Organize your cart items into shipping groups
-          </p>
+          <div className="flex flex-col gap-1 mt-1 items-start">
+            <p className="text-gray-600">
+              Organize your cart items into shipping groups
+            </p>
+            <DisableShippingGroupsLink />
+          </div>
         </div>
         <div className="flex space-x-2">
           {shippingGroups.length > 0 && (

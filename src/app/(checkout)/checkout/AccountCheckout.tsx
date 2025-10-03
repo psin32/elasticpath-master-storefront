@@ -9,6 +9,7 @@ import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
 import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
+import { ShippingGroupLink } from "./ShippingGroupLink";
 import { cookies } from "next/headers";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
@@ -89,7 +90,10 @@ export async function AccountCheckout({
           {!enableExpressCheckout && (
             <>
               <div className="flex flex-col flex-1 gap-5">
-                <span className="text-2xl font-medium">Shipping address</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-medium">Shipping address</span>
+                  <ShippingGroupLink />
+                </div>
                 <ShippingSelector />
               </div>
               <DeliveryForm />

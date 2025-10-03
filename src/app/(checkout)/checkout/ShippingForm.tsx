@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/select/Select";
+import { ShippingGroupLink } from "./ShippingGroupLink";
 
 export function ShippingForm() {
   const { control, getValues } = useFormContext<CheckoutFormSchemaType>();
@@ -26,8 +27,9 @@ export function ShippingForm() {
 
   return (
     <fieldset className="flex flex-1 flex-col gap-5">
-      <div>
+      <div className="flex items-center justify-between">
         <legend className="text-2xl font-medium">Shipping address</legend>
+        <ShippingGroupLink />
       </div>
       <div className="grid gap-4">
         <FormField
