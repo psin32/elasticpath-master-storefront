@@ -12,6 +12,7 @@ export default function MembershipPlans({ offering }: { offering: any }) {
   const [selectedPricingOptionId, setSelectedPricingOptionId] = useState<
     string | null
   >(null);
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   // Always initialize derived values to keep hooks order consistent
   const plans: any[] = useMemo(
@@ -84,8 +85,8 @@ export default function MembershipPlans({ offering }: { offering: any }) {
   };
 
   return (
-    <div className="flex flex-col gap-10 w-full max-w-6xl mt-10">
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
+    <div className="flex flex-col gap-8 w-full max-w-7xl mt-8 px-4">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
         {plans.map((plan) => {
           const name = plan?.attributes?.name;
           const desc = plan?.attributes?.description;
@@ -95,10 +96,10 @@ export default function MembershipPlans({ offering }: { offering: any }) {
               type="button"
               key={plan.id}
               className={
-                "relative text-left rounded-2xl border p-6 flex flex-col gap-2 bg-white hover:shadow-sm transition " +
+                "relative text-left rounded-2xl border-2 p-6 flex flex-col gap-3 bg-white hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 " +
                 (isSelected
-                  ? " border-gray-900 ring-2 ring-gray-900"
-                  : " border-gray-200")
+                  ? " border-brand-primary ring-4 ring-brand-primary/10 shadow-lg bg-gradient-to-br from-brand-primary/5 to-white"
+                  : " border-gray-200 hover:border-gray-300")
               }
               onClick={() => {
                 setSelectedPlanId(plan.id);
@@ -108,14 +109,21 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                 setSelectedPricingOptionId(defaultOptId);
               }}
             >
-              <div className="flex items-start justify-between">
-                <div className="text-xl font-semibold">{name}</div>
+              {isSelected && (
+                <div className="absolute top-0 right-0 bg-brand-primary text-white text-xs font-semibold px-3 py-1 rounded-bl-lg rounded-tr-xl">
+                  Selected
+                </div>
+              )}
+              <div className="flex items-start justify-between mt-2">
+                <div className="text-2xl font-bold text-gray-900 pr-4">
+                  {name}
+                </div>
                 <span
                   className={
-                    "h-5 w-5 rounded-full border flex items-center justify-center " +
+                    "h-6 w-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all " +
                     (isSelected
-                      ? " border-gray-900 bg-gray-900"
-                      : " border-gray-300")
+                      ? " border-brand-primary bg-brand-primary shadow-md"
+                      : " border-gray-300 bg-white")
                   }
                 >
                   {isSelected && (
@@ -123,7 +131,7 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 20 20"
                       fill="white"
-                      className="h-3.5 w-3.5"
+                      className="h-4 w-4"
                     >
                       <path
                         fillRule="evenodd"
@@ -134,7 +142,9 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                   )}
                 </span>
               </div>
-              <p className="text-gray-600 line-clamp-3">{desc}</p>
+              <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                {desc}
+              </p>
               {(() => {
                 const configuredIds: string[] = Object.keys(
                   plan?.attributes?.feature_configurations || {},
@@ -145,62 +155,96 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                 const includedIds: string[] =
                   configuredIds.length > 0 ? configuredIds : relatedIds;
                 const features = allFeatures;
-                const max = 4;
+                const isExpanded = expandedPlanId === plan.id;
+                const previewLimit = 4;
+                const hasMoreFeatures = features.length > previewLimit;
+                const displayedFeatures = isExpanded
+                  ? features
+                  : features.slice(0, previewLimit);
+
                 return (
-                  <div className="mt-4">
-                    <div className="text-xs font-semibold text-gray-700 mb-2">
-                      What&apos;s included
+                  <div className="mt-4 flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm font-semibold text-gray-900">
+                        What&apos;s included
+                      </div>
+                      {hasMoreFeatures && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedPlanId(isExpanded ? null : plan.id);
+                          }}
+                          className="text-xs font-medium text-brand-primary hover:text-brand-primary/80 transition-colors flex items-center gap-1"
+                        >
+                          {isExpanded
+                            ? "Show less"
+                            : `View all ${features.length}`}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                     {features?.length > 0 ? (
-                      <ul className="space-y-1">
-                        {features.slice(0, max).map((feature: any) => {
+                      <ul className="space-y-2">
+                        {displayedFeatures.map((feature: any) => {
                           const isIncluded = includedIds.includes(feature.id);
                           return (
                             <li
                               key={feature.id}
-                              className="flex items-start gap-2 text-xs"
+                              className="flex items-start gap-2.5 text-sm group"
                             >
-                              {isIncluded ? (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                  className="h-4 w-4 text-green-600 mt-0.5"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.415l2.293 2.293 6.493-6.493a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 20 20"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  className="h-4 w-4 text-red-600 mt-0.5"
-                                >
-                                  <path d="M6 6l8 8M14 6l-8 8" />
-                                </svg>
-                              )}
-                              <span className="text-gray-700">
+                              <span
+                                className={`flex-shrink-0 h-5 w-5 rounded-full flex items-center justify-center mt-0.5 ${
+                                  isIncluded ? "bg-green-100" : "bg-red-50"
+                                }`}
+                              >
+                                {isIncluded ? (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    className="h-3.5 w-3.5 text-green-600"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.415l2.293 2.293 6.493-6.493a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    className="h-3.5 w-3.5 text-red-500"
+                                  >
+                                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                                  </svg>
+                                )}
+                              </span>
+                              <span
+                                className={`flex-1 ${isIncluded ? "text-gray-700" : "text-gray-500"}`}
+                              >
                                 {feature.attributes?.name ||
                                   feature.attributes?.description}
                               </span>
                             </li>
                           );
                         })}
-                        {features.length > max && (
-                          <li className="text-xs text-gray-500">
-                            + {features.length - max} more
-                          </li>
-                        )}
                       </ul>
                     ) : (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-sm text-gray-500 italic">
                         No features listed
                       </div>
                     )}
@@ -213,28 +257,80 @@ export default function MembershipPlans({ offering }: { offering: any }) {
       </div>
 
       {currentPlan && (
-        <div className="rounded-2xl border border-gray-200 p-6 bg-white">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="rounded-2xl border-2 border-gray-200 p-8 bg-gradient-to-br from-gray-50 to-white shadow-lg">
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
             <div>
-              <div className="text-lg font-semibold">
+              <div className="text-2xl font-bold text-gray-900 mb-1">
                 Select a pricing option
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-base text-gray-600 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="h-5 w-5 text-brand-primary"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.415l2.293 2.293 6.493-6.493a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 {currentPlan?.attributes?.name}
               </div>
             </div>
             <div className="mt-4 md:mt-0">
               <button
-                className="inline-flex items-center justify-center rounded-md bg-black text-white px-4 py-2 text-sm disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-xl bg-brand-primary hover:bg-brand-primary/80 text-white px-8 py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-xl transform hover:scale-105"
                 onClick={handleAdd}
                 disabled={!selectedPricingOptionId || isPending}
               >
-                {isPending ? "Adding..." : "Add membership"}
+                {isPending ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    Add membership
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      className="ml-2 h-5 w-5"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
           </div>
 
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3 mt-6">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {currentPlanOptions.map((option) => {
               const displayPrice =
                 option?.meta?.prices?.[currentPlan.id]?.display_price;
@@ -250,51 +346,56 @@ export default function MembershipPlans({ offering }: { offering: any }) {
                   type="button"
                   key={option.id}
                   className={
-                    "text-left rounded-xl border p-4 hover:shadow-sm transition bg-white " +
+                    "relative text-left rounded-xl border-2 p-5 hover:shadow-md transition-all duration-200 bg-white transform hover:-translate-y-0.5 " +
                     (isActive
-                      ? " border-gray-900 ring-1 ring-gray-900"
-                      : " border-gray-200")
+                      ? " border-brand-primary ring-2 ring-brand-primary/20 shadow-md"
+                      : " border-gray-200 hover:border-gray-300")
                   }
                   onClick={() => setSelectedPricingOptionId(option.id)}
                 >
+                  {isActive && (
+                    <div className="absolute -top-2 -right-2 bg-brand-primary text-white rounded-full p-1.5 shadow-lg">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="h-4 w-4"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.415l2.293 2.293 6.493-6.493a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="font-medium mb-1">
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 mb-2">
                         {option.attributes?.name ||
                           option.attributes?.description}
                       </div>
                       {priceFormatted && (
-                        <div className="text-sm text-gray-600">
+                        <div className="text-2xl font-bold text-brand-primary mb-1">
                           {priceFormatted}
                         </div>
                       )}
-                    </div>
-                    <span
-                      className={
-                        "mt-1 h-4 w-4 rounded-full border flex items-center justify-center " +
-                        (isActive
-                          ? " border-gray-900 bg-gray-900"
-                          : " border-gray-300")
-                      }
-                    >
-                      {isActive && (
+                      <div className="text-xs text-gray-500 flex items-center gap-1.5">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
-                          fill="white"
-                          className="h-3 w-3"
+                          fill="currentColor"
+                          className="h-3.5 w-3.5"
                         >
                           <path
                             fillRule="evenodd"
-                            d="M16.704 5.29a1 1 0 010 1.415l-7.2 7.2a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.415l2.293 2.293 6.493-6.493a1 1 0 011.414 0z"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-13a.75.75 0 00-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 000-1.5h-3.25V5z"
                             clipRule="evenodd"
                           />
                         </svg>
-                      )}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-3">
-                    Billed every {freq} {interval}
+                        Billed every {freq} {interval}
+                      </div>
+                    </div>
                   </div>
                 </button>
               );
