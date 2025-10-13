@@ -10,7 +10,7 @@ import { CartComponentData } from "../../../components/cart/CartComponentData";
 import { CartItemPromotions } from "../../../components/cart/CartItemPromotions";
 import Image from "next/image";
 
-export function CartItemWide({ item }: CartItemProps) {
+export function CartItemWide({ item, hideLocation = false }: CartItemProps) {
   const { useScopedRemoveCartItem } = useCart();
   const { mutate, isPending } = useScopedRemoveCartItem();
 
@@ -74,7 +74,7 @@ export function CartItemWide({ item }: CartItemProps) {
             </span>
             <CartItemPromotions item={item} />
             <CartComponentData item={item} />
-            <CartAdditionalData item={item} />
+            <CartAdditionalData item={item} hideLocation={hideLocation} />
           </div>
           <div className="flex flex-row gap-5 lg:flex-col items-center lg:gap-2">
             <NumberInput item={item} />

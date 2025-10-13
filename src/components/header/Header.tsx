@@ -9,6 +9,7 @@ import { getBanner, getCatalogMenu } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
+import LocationSelector from "./LocationSelector";
 import { SearchModalAlgolia } from "../search/SearchModalAlgolia";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { SelectedAccount } from "./account/SelectedAccount";
@@ -82,6 +83,7 @@ const Header = async () => {
             </Suspense>
           </div>
           <div className="flex items-center self-center gap-x-2">
+            <LocationSelector />
             <CatalogSelector />
             <CurrencySelector />
             {process.env.NEXT_PUBLIC_DISABLE_BULK_ORDER_LINK != "true" && (

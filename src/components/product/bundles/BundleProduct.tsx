@@ -7,7 +7,7 @@ import {
   useBundle,
   useCart,
 } from "../../../react-shopper-hooks";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   formSelectedOptionsToData,
   selectedOptionsToFormValues,
@@ -17,9 +17,7 @@ import { toFormikValidate } from "zod-formik-adapter";
 import ProductCarousel from "../carousel/ProductCarousel";
 import ProductSummary from "../ProductSummary";
 import ProductDetails from "../ProductDetails";
-import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
-import LoginToSeePriceButton from "../LoginToSeePriceButton";
 import { AddToCartButton } from "../AddToCartButton";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
@@ -30,6 +28,8 @@ import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../builder-io/BuilderComponents";
 import ProductRelationship from "../related-products/ProductRelationship";
 import { updateCustomAttributesForBundlesInCart } from "./actions";
+import BundleLocationInventorySelector from "./BundleLocationInventorySelector";
+import { getCookie } from "cookies-next";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface IBundleProductDetail {
@@ -79,6 +79,46 @@ function BundleProductContainer({
   const enableClickAndCollect =
     process.env.NEXT_PUBLIC_ENABLE_CLICK_AND_COLLECT === "true";
 
+  // Multi-location inventory state
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState<string>("");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
+  const [selectedLocationName, setSelectedLocationName] = useState<string>("");
+  const [allComponentsAvailable, setAllComponentsAvailable] =
+    useState<boolean>(false);
+  const [componentInventories, setComponentInventories] = useState<any[]>([]);
+  const [useMultiLocation, setUseMultiLocation] = useState<boolean | null>(
+    null,
+  );
+  const [multiLocationReady, setMultiLocationReady] = useState<boolean>(false);
+
+  // Check cookie for multi-location inventory setting on mount
+  useEffect(() => {
+    const multiLocationValue = getCookie("use_multi_location_inventory");
+    // Default to true (enabled) if cookie doesn't exist
+    const isEnabled = multiLocationValue !== "false";
+    setUseMultiLocation(isEnabled);
+
+    // If multi-location is disabled, mark as ready immediately
+    if (!isEnabled) {
+      setMultiLocationReady(true);
+    }
+  }, []);
+
+  const handleLocationChange = (
+    locationSlug: string,
+    allAvailable: boolean,
+    locationId: string,
+    locationName: string,
+    componentInventories: any[],
+  ) => {
+    setSelectedLocationSlug(locationSlug);
+    setSelectedLocationId(locationId);
+    setSelectedLocationName(locationName);
+    setAllComponentsAvailable(allAvailable);
+    setComponentInventories(componentInventories);
+    setMultiLocationReady(true);
+  };
+
   const submit = useCallback(
     async (values: any) => {
       const data: any = {
@@ -86,8 +126,22 @@ function BundleProductContainer({
           additional_information: [],
         },
       };
+
+      // Add multi-location inventory information
+      if (useMultiLocation && selectedLocationSlug && selectedLocationId) {
+        if (!data.custom_inputs.location) {
+          data.custom_inputs.location = {};
+        }
+        data.custom_inputs.location.location_name = selectedLocationName;
+
+        // Also add as a top-level field for easier access
+        data.location = selectedLocationSlug;
+      }
+
       if (enableClickAndCollect) {
-        data.custom_inputs.location = {};
+        if (!data.custom_inputs.location) {
+          data.custom_inputs.location = {};
+        }
         data.custom_inputs.location.delivery_mode = "Home Delivery";
       }
       response?.attributes?.custom_inputs &&
@@ -105,11 +159,11 @@ function BundleProductContainer({
         values.selectedOptions,
         values.quantities,
       );
-      state?.id &&
-        (await updateCustomAttributesForBundlesInCart(
-          state?.id,
-          selectedOptions,
-        ));
+      // state?.id &&
+      //   (await updateCustomAttributesForBundlesInCart(
+      //     state?.id,
+      //     selectedOptions,
+      //   ));
       mutate({
         productId: configuredProduct.response.id,
         selectedOptions,
@@ -117,7 +171,15 @@ function BundleProductContainer({
         data,
       });
     },
-    [configuredProduct.response.id, mutate],
+    [
+      configuredProduct.response.id,
+      mutate,
+      useMultiLocation,
+      selectedLocationSlug,
+      selectedLocationId,
+      selectedLocationName,
+      componentInventories,
+    ],
   );
 
   const validationSchema = useMemo(
@@ -167,10 +229,30 @@ function BundleProductContainer({
                   custom_inputs={response.attributes?.custom_inputs}
                   formikForm={true}
                 />
+
+                {/* Multi-Location Inventory Selector for Bundle Components */}
+                {useMultiLocation && (
+                  <BundleLocationInventorySelector
+                    selectedComponents={selectedOptions}
+                    componentProducts={
+                      configuredProduct.componentProductResponses
+                    }
+                    onLocationChange={handleLocationChange}
+                    onReady={() => setMultiLocationReady(true)}
+                  />
+                )}
+
                 <AddToCartButton
                   type="submit"
                   status={isPending ? "loading" : "idle"}
-                  disabled={isPending}
+                  disabled={
+                    isPending ||
+                    (useMultiLocation &&
+                    multiLocationReady &&
+                    selectedLocationSlug
+                      ? !allComponentsAvailable
+                      : false)
+                  }
                   showPrice={!!display_price}
                 />
                 <ProductDetails product={response} />

@@ -14,7 +14,6 @@ import { StatusButton } from "../../button/StatusButton";
 import PersonalisedInfo from "../PersonalisedInfo";
 import ProductHighlights from "../ProductHighlights";
 import Reviews from "../../reviews/yotpo/Reviews";
-import LoginToSeePriceButton from "../LoginToSeePriceButton";
 import { AddToCartButton } from "../AddToCartButton";
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import SubscriptionOfferPlans from "../SubscriptionOfferPlans";
@@ -23,6 +22,8 @@ import ProductExtensions from "../ProductExtensions";
 import { useEffect, useState } from "react";
 import QuantitySelector from "../QuantitySelector";
 import StoreLocator from "../StoreLocator";
+import LocationInventorySelector from "../LocationInventorySelector";
+import { getCookie } from "cookies-next";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
@@ -96,9 +97,34 @@ export function VariationProductContainer({
   const [inventory, setInventory] = useState<number>(0);
   const [unlimitedStock, setUnlimitedStock] = useState<boolean>(false);
   const [loaded, setLoaded] = useState<boolean>(false);
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState<string>("");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
+  const [selectedLocationName, setSelectedLocationName] = useState<string>("");
+  const [locationInventory, setLocationInventory] = useState<number | null>(
+    null,
+  );
+  const [useMultiLocation, setUseMultiLocation] = useState<boolean | null>(
+    null,
+  );
+  const [multiLocationReady, setMultiLocationReady] = useState<boolean>(false);
+
+  // Check cookie for multi-location inventory setting on mount
+  useEffect(() => {
+    const multiLocationValue = getCookie("use_multi_location_inventory");
+    // Default to true (enabled) if cookie doesn't exist
+    const isEnabled = multiLocationValue !== "false";
+    setUseMultiLocation(isEnabled);
+
+    // If multi-location is disabled, mark as ready immediately
+    if (!isEnabled) {
+      setMultiLocationReady(true);
+    }
+  }, []);
 
   useEffect(() => {
     const init = async () => {
+      // Always load traditional inventory as a fallback
+      // Even if multi-location is enabled, we need it for products without MLI configured
       setLoaded(false);
       const response = await getInventoryDetails(id);
       if (response) {
@@ -110,6 +136,29 @@ export function VariationProductContainer({
     };
     init();
   }, [id]);
+
+  const handleLocationChange = (
+    locationSlug: string,
+    available: number,
+    locationId: string,
+    locationName: string,
+  ) => {
+    setSelectedLocationSlug(locationSlug);
+    setSelectedLocationId(locationId);
+    setSelectedLocationName(locationName);
+    setLocationInventory(available);
+    setLoaded(true);
+    setMultiLocationReady(true);
+  };
+
+  // Determine if we should show traditional inventory
+  // Show traditional inventory if:
+  // 1. Multi-location is disabled, OR
+  // 2. Multi-location is enabled but no location was selected (product doesn't have MLI configured)
+  // AND multiLocationReady must be true (so we don't show before location selector has loaded)
+  const shouldShowTraditionalInventory =
+    useMultiLocation === false ||
+    (useMultiLocation === true && multiLocationReady && !selectedLocationSlug);
 
   const handleOverlay = (
     event: React.FormEvent<HTMLFormElement>,
@@ -128,15 +177,32 @@ export function VariationProductContainer({
         options: [],
       },
     };
+
+    // Add multi-location inventory information
+    if (useMultiLocation && selectedLocationSlug && selectedLocationId) {
+      if (!data.custom_inputs.location) {
+        data.custom_inputs.location = {};
+      }
+      data.custom_inputs.location.location_name = selectedLocationName;
+
+      // Also add as a top-level field for easier access
+      data.location = selectedLocationSlug;
+    }
+
     if (enableClickAndCollect) {
       const deliveryMode = formData.get("delivery_mode");
       if (deliveryMode) {
-        data.custom_inputs.location = {};
+        if (!data.custom_inputs.location) {
+          data.custom_inputs.location = {};
+        }
         data.custom_inputs.location.delivery_mode = deliveryMode;
       }
       const locationCode = formData.get("location_code");
       const locationName = formData.get("location_name");
       if (locationCode && locationName) {
+        if (!data.custom_inputs.location) {
+          data.custom_inputs.location = {};
+        }
         data.custom_inputs.location.location_name = locationName;
         data.custom_inputs.location.location_code = locationCode;
       }
@@ -265,16 +331,31 @@ export function VariationProductContainer({
               <PersonalisedInfo
                 custom_inputs={response.attributes.custom_inputs}
               />
-              {loaded && unlimitedStock && product.kind != "base-product" && (
-                <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
-                  <CheckIcon
-                    className="h-5 w-5 flex-shrink-0 text-green-500"
-                    aria-hidden="true"
-                  />
-                  <span>In stock</span>
-                </div>
+
+              {/* Multi-Location Inventory Selector */}
+              {useMultiLocation && product.kind != "base-product" && (
+                <LocationInventorySelector
+                  productId={id}
+                  onLocationChange={handleLocationChange}
+                  onReady={() => setMultiLocationReady(true)}
+                />
               )}
-              {loaded &&
+
+              {/* Traditional Inventory Display (when multi-location is disabled or not configured for product) */}
+              {shouldShowTraditionalInventory &&
+                loaded &&
+                unlimitedStock &&
+                product.kind != "base-product" && (
+                  <div className="flex items-center space-x-2 text-sm text-gray-700 mt-2">
+                    <CheckIcon
+                      className="h-5 w-5 flex-shrink-0 text-green-500"
+                      aria-hidden="true"
+                    />
+                    <span>In stock</span>
+                  </div>
+                )}
+              {shouldShowTraditionalInventory &&
+                loaded &&
                 !unlimitedStock &&
                 product.kind != "base-product" &&
                 inventory > 0 && (
@@ -286,7 +367,8 @@ export function VariationProductContainer({
                     <span>In stock ({inventory} available)</span>
                   </div>
                 )}
-              {loaded &&
+              {shouldShowTraditionalInventory &&
+                loaded &&
                 !unlimitedStock &&
                 product.kind != "base-product" &&
                 inventory === 0 && (
@@ -302,7 +384,9 @@ export function VariationProductContainer({
               <AddToCartButton
                 disabled={
                   product.kind === "base-product" ||
-                  (!unlimitedStock && inventory === 0)
+                  (shouldShowTraditionalInventory
+                    ? !unlimitedStock && inventory === 0
+                    : locationInventory !== null && locationInventory === 0)
                 }
                 type="submit"
                 status={

@@ -33,7 +33,21 @@ export const NumberInput = ({ item }: NumberInputProps): JSX.Element => {
       newQuantity > 0 &&
       newQuantity !== item.quantity
     ) {
-      mutate({ itemId: item.id, quantity: newQuantity });
+      // Preserve location data when updating quantity
+      const updateData: any = {
+        itemId: item.id,
+        quantity: newQuantity,
+      };
+
+      if (item.location) {
+        updateData.location = item.location;
+      }
+
+      if (item.custom_inputs) {
+        updateData.customInputs = item.custom_inputs;
+      }
+
+      mutate(updateData);
     } else {
       setInputValue(item.quantity.toString()); // Reset if invalid
     }

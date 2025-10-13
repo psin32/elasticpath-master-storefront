@@ -23,23 +23,32 @@ export function EditItemQuantityButton({
         type="submit"
         onClick={(e: FormEvent<HTMLButtonElement>) => {
           if (isPending) e.preventDefault();
-          mutate(
-            {
-              itemId: item.id,
-              quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
+
+          // Prepare update data with location preservation
+          const updateData: any = {
+            itemId: item.id,
+            quantity: type === "plus" ? item.quantity + 1 : item.quantity - 1,
+          };
+
+          if (item.location) {
+            updateData.location = item.location;
+          }
+
+          if (item.custom_inputs) {
+            updateData.customInputs = item.custom_inputs;
+          }
+
+          mutate(updateData, {
+            onError: (response: any) => {
+              if (response?.errors) {
+                toast.error(response?.errors?.[0].detail, {
+                  position: "top-center",
+                  autoClose: 2000,
+                  hideProgressBar: false,
+                });
+              }
             },
-            {
-              onError: (response: any) => {
-                if (response?.errors) {
-                  toast.error(response?.errors?.[0].detail, {
-                    position: "top-center",
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                  });
-                }
-              },
-            },
-          );
+          });
         }}
         aria-label={
           type === "plus" ? "Increase item quantity" : "Reduce item quantity"

@@ -23,6 +23,7 @@ export type CartItemProps = {
   selectedAccount?: string;
   itemCustomDiscount?: any;
   cartId?: any;
+  hideLocation?: boolean;
 };
 
 export function CartItem({
@@ -32,6 +33,7 @@ export function CartItem({
   selectedAccount,
   itemCustomDiscount,
   cartId,
+  hideLocation = false,
 }: CartItemProps) {
   const { useScopedRemoveCartItem, useScopedUpdateCartItem } = useCart();
   const { mutate, isPending } = useScopedRemoveCartItem();
@@ -47,34 +49,34 @@ export function CartItem({
   };
 
   return (
-    <div className="flex gap-5">
-      <div className="flex w-16 sm:w-24 h-20 sm:h-[7.5rem] justify-center shrink-0 items-start">
+    <div className="flex gap-3">
+      <div className="flex w-14 sm:w-20 h-14 sm:h-20 justify-center shrink-0 items-start">
         {item.product_id && <ProductThumbnail productId={item.product_id} />}
 
         {item.custom_inputs?.image_url && (
           <Image
             src={item.custom_inputs?.image_url}
-            width="100"
-            height="100"
+            width="80"
+            height="80"
             alt={item.name}
             className="overflow-hidden"
           />
         )}
       </div>
-      <div className="flex flex-col gap-5 flex-1">
-        <div className="flex gap-5 self-stretch">
+      <div className="flex flex-col gap-2 flex-1">
+        <div className="flex gap-3 self-stretch">
           <div className="flex flex-col flex-1 gap-1">
             {item.product_id && !adminDisplay && (
               <Link href={`/products/${item.slug}`}>
-                <span className="font-medium text-md">
+                <span className="font-medium text-sm">
                   {item.name}
                   {item?.custom_inputs?.options && (
-                    <div className="mt-1 text-black/60 text-xs">
+                    <div className="mt-0.5 text-black/60 text-xs">
                       {item?.custom_inputs?.options}
                     </div>
                   )}
                   {item.sku && (
-                    <div className="mt-1 text-black/60 text-sm font-normal">
+                    <div className="mt-0.5 text-black/60 text-xs font-normal">
                       SKU: {item.sku}
                     </div>
                   )}
@@ -82,25 +84,22 @@ export function CartItem({
               </Link>
             )}
             {(!item.product_id || adminDisplay) && (
-              <span className="font-medium text-md">
+              <span className="font-medium text-sm">
                 {item.name}
                 {item?.custom_inputs?.options && (
-                  <div className="mt-1 text-black/60 text-xs">
+                  <div className="mt-0.5 text-black/60 text-xs">
                     {item?.custom_inputs?.options}
                   </div>
                 )}
                 {item.sku && (
-                  <div className="mt-1 text-black/60 text-sm font-normal">
+                  <div className="mt-0.5 text-black/60 text-xs font-normal">
                     SKU: {item.sku}
                   </div>
                 )}
               </span>
             )}
-            <span className="text-sm text-black/60">
+            <span className="text-xs text-black/60">
               Item Price: {item.meta.display_price.with_tax.unit.formatted}
-            </span>
-            <span className="text-sm text-black/60">
-              Quantity: {item.quantity}
             </span>
             <CartItemPromotions item={item} />
           </div>
@@ -127,14 +126,14 @@ export function CartItem({
             </TextButton>
           </div>
         )}
-        <div className="flex w-[15rem] gap-5 items-center">
+        <div className="flex w-[15rem] gap-3 items-center">
           <NumberInput item={item} />
           {isPending ? (
             <LoadingDots className="bg-black" />
           ) : (
             <button
               type="button"
-              className="text-sm underline text-black/60"
+              className="text-xs underline text-black/60 hover:text-black"
               onClick={() => mutate({ itemId: item.id })}
             >
               Remove
@@ -197,7 +196,7 @@ export function CartItem({
           </Disclosure>
         )}
         <CartComponentData item={item} />
-        <CartAdditionalData item={item} />
+        <CartAdditionalData item={item} hideLocation={hideLocation} />
       </div>
       {enableCustomDiscount && selectedAccount && (
         <AddItemCustomDiscount

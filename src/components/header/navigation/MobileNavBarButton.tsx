@@ -15,6 +15,7 @@ import { AccountMobileMenu } from "../AccountMobileMenu";
 import { Separator } from "../../separator/Separator";
 import { MobileAccountSwitcher } from "./MobileAccountSwitcher";
 import CurrencySelector from "../CurrencySelector";
+import LocationSelector from "../LocationSelector";
 
 export function MobileNavBarButton({ nav }: { nav: NavigationNode[] }) {
   const [open, setOpen] = useState(false);
@@ -54,6 +55,8 @@ export function MobileNavBarButton({ nav }: { nav: NavigationNode[] }) {
           </SheetClose>
         </SheetHeader>
         <NavMenu nav={nav} setOpen={setOpen} />
+        <Separator />
+        <LocationSelector />
         <Separator />
         <CurrencySelector />
         <Separator />

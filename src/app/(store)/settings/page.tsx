@@ -11,6 +11,9 @@ export default function SettingsPage() {
     boolean | undefined
   >(true);
   const [paymentMode, setPaymentMode] = useState<string | undefined>(undefined);
+  const [useMultiLocationInventory, setUseMultiLocationInventory] = useState<
+    boolean | undefined
+  >(undefined);
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -25,6 +28,10 @@ export default function SettingsPage() {
     const paymentModeValue =
       (getCookie("initial_payment_mode") as string) || "purchase";
     setPaymentMode(paymentModeValue);
+
+    const multiLocationValue = getCookie("use_multi_location_inventory");
+    // Default to true (enabled) if cookie doesn't exist
+    setUseMultiLocationInventory(multiLocationValue !== "false");
   }, []);
 
   useEffect(() => {
@@ -63,10 +70,27 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [paymentMode]);
 
+  useEffect(() => {
+    if (useMultiLocationInventory === undefined) return;
+    setCookie(
+      "use_multi_location_inventory",
+      useMultiLocationInventory.toString(),
+      {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: "lax",
+      },
+    );
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [useMultiLocationInventory]);
+
   if (
     productSource === undefined ||
     useShippingGroups === undefined ||
-    paymentMode === undefined
+    paymentMode === undefined ||
+    useMultiLocationInventory === undefined
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -270,6 +294,63 @@ export default function SettingsPage() {
               }
             >
               Authorize
+            </span>
+          </div>
+        </div>
+        {/* Multi Location Inventory Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">
+              Multi Location Inventory
+            </span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Enable multi-location inventory to track stock across different
+            store locations and show inventory by location on product pages.
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                !useMultiLocationInventory
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Disabled
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle multi location inventory"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${useMultiLocationInventory ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setUseMultiLocationInventory(!useMultiLocationInventory);
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${
+                    useMultiLocationInventory
+                      ? "translate-x-7 bg-white border border-brand-primary"
+                      : "translate-x-1 bg-white border border-gray-400"
+                  }
+                `}
+              />
+            </button>
+            <span
+              className={
+                useMultiLocationInventory
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Enabled
             </span>
           </div>
         </div>
