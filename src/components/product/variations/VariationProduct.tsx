@@ -386,7 +386,9 @@ export function VariationProductContainer({
                   product.kind === "base-product" ||
                   (shouldShowTraditionalInventory
                     ? !unlimitedStock && inventory === 0
-                    : locationInventory !== null && locationInventory === 0)
+                    : locationInventory !== undefined &&
+                      locationInventory !== null &&
+                      locationInventory === 0)
                 }
                 type="submit"
                 status={

@@ -358,7 +358,9 @@ function SimpleProductContainer({
                 disabled={
                   shouldShowTraditionalInventory
                     ? !unlimitedStock && inventory === 0
-                    : locationInventory !== null && locationInventory === 0
+                    : locationInventory !== undefined &&
+                      locationInventory !== null &&
+                      locationInventory === 0
                 }
                 showPrice={!!display_price}
               />

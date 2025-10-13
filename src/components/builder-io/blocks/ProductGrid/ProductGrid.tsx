@@ -16,6 +16,8 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { getProductByIds } from "../../../../services/products";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 import { getCookie } from "cookies-next";
+import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
+import { getMultipleInventoriesByProductIds } from "../../../../services/multi-location-inventory";
 
 export interface CarouselProps {
   slidesToShow: number;
@@ -40,11 +42,25 @@ export const ProductGrid: FC<ProductGridProps> = ({
   const [products, setProducts] = useState<any>();
   const [loading, setLoading] = useState(false);
   const [productSource, setProductSource] = useState<string>("elasticpath");
+  const [inventoryByProduct, setInventoryByProduct] = useState<{
+    [productId: string]: number;
+  }>({});
+  const [useMultiLocation, setUseMultiLocation] = useState<boolean>(false);
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState<string>("");
 
   useEffect(() => {
     // Check product_source cookie
     const source = (getCookie("product_source") as string) || "elasticpath";
     setProductSource(source);
+
+    // Check multi-location inventory setting
+    const multiLocationValue = getCookie("use_multi_location_inventory");
+    const isEnabled = multiLocationValue !== "false";
+    setUseMultiLocation(isEnabled);
+
+    // Get selected location
+    const locationSlug = getCookie(`${COOKIE_PREFIX_KEY}_ep_location`);
+    setSelectedLocationSlug((locationSlug as string) || "");
   }, []);
 
   useEffect(() => {
@@ -60,6 +76,60 @@ export const ProductGrid: FC<ProductGridProps> = ({
     };
     init();
   }, [productsList]);
+
+  // Fetch inventory for all products when multi-location is enabled
+  useEffect(() => {
+    const fetchInventories = async () => {
+      if (!useMultiLocation || !selectedLocationSlug || !products?.data) {
+        return;
+      }
+
+      try {
+        const client = getEpccImplicitClient();
+        const productIds = products.data
+          .filter((product: any) => {
+            // Only fetch for simple products (not bundles/variations)
+            const isSimple =
+              product.kind === "simple-product" &&
+              !product.response.attributes.components &&
+              !product.response.meta.variation_matrix;
+            return isSimple;
+          })
+          .map((product: any) => product.response.id);
+
+        if (productIds.length === 0) {
+          return;
+        }
+
+        const inventoriesResponse = await getMultipleInventoriesByProductIds(
+          productIds,
+          client,
+        );
+        const inventories = inventoriesResponse?.data as any;
+
+        if (!inventories || inventories.length === 0) {
+          console.log("No multi-location inventory data for products");
+          return;
+        }
+
+        // Build inventory map
+        const inventoryMap: { [productId: string]: number } = {};
+        inventories.forEach((inventory: any) => {
+          const productId = inventory.id;
+          const available =
+            inventory?.attributes?.locations?.[selectedLocationSlug]
+              ?.available || 0;
+          inventoryMap[productId] = available;
+        });
+
+        setInventoryByProduct(inventoryMap);
+      } catch (error) {
+        console.error("Error fetching inventories for product grid:", error);
+      }
+    };
+
+    fetchInventories();
+  }, [products, useMultiLocation, selectedLocationSlug]);
 
   // Return null if product_source is external
   if (productSource === "external") {
@@ -123,8 +193,16 @@ export const ProductGrid: FC<ProductGridProps> = ({
       >
         {products &&
           products.data.map((hit: any, i: number) => {
+            const productId = hit.response.id;
+            const inventory = inventoryByProduct[productId];
             return (
-              <ProductCard key={`${hit.response.id}-${i}`} product={hit} />
+              <ProductCard
+                key={`${productId}-${i}`}
+                product={hit}
+                locationInventory={inventory}
+                useMultiLocation={useMultiLocation}
+                selectedLocationSlug={selectedLocationSlug}
+              />
             );
           })}
       </Slider>

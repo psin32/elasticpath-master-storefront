@@ -22,12 +22,23 @@ import {
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 import LoginToSeePriceButton from "../../../product/LoginToSeePriceButton";
 import { usePathname } from "next/navigation";
+import { getCookie } from "cookies-next";
+import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
+import { getAllInventoriesByProductId } from "../../../../services/multi-location-inventory";
 
 export interface ProductCardProps {
   product: any;
+  locationInventory?: number;
+  useMultiLocation?: boolean;
+  selectedLocationSlug?: string;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  locationInventory: propLocationInventory,
+  useMultiLocation: propUseMultiLocation,
+  selectedLocationSlug: propSelectedLocationSlug,
+}) => {
   const {
     main_image,
     response: {
@@ -57,6 +68,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const pathname = usePathname();
   const loginUrl = `/login?returnUrl=${encodeURIComponent(pathname)}`;
 
+  // Multi-location inventory state
+  // Use props if provided (from ProductGrid), otherwise fetch individually
+  const [useMultiLocation, setUseMultiLocation] = useState<boolean>(
+    propUseMultiLocation !== undefined ? propUseMultiLocation : false,
+  );
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState<string>(
+    propSelectedLocationSlug || "",
+  );
+  const [selectedLocationName, setSelectedLocationName] = useState<string>("");
+  const [locationInventory, setLocationInventory] = useState<number | null>(
+    propLocationInventory !== undefined ? propLocationInventory : null,
+  );
+  const [inventoryLoaded, setInventoryLoaded] = useState<boolean>(
+    propLocationInventory !== undefined,
+  );
+
   useEffect(() => {
     const init = async () => {
       const client = getEpccImplicitClient();
@@ -75,6 +102,82 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     };
     init();
   }, [product]);
+
+  // Update state when props change (from ProductGrid)
+  useEffect(() => {
+    if (propLocationInventory !== undefined) {
+      setLocationInventory(propLocationInventory);
+      setInventoryLoaded(true);
+    }
+    if (propUseMultiLocation !== undefined) {
+      setUseMultiLocation(propUseMultiLocation);
+    }
+    if (propSelectedLocationSlug) {
+      setSelectedLocationSlug(propSelectedLocationSlug);
+      setSelectedLocationName(propSelectedLocationSlug); // Use slug as name fallback
+    }
+  }, [propLocationInventory, propUseMultiLocation, propSelectedLocationSlug]);
+
+  // Check multi-location inventory setting and fetch inventory (only if props not provided)
+  useEffect(() => {
+    // Skip if inventory was already provided via props
+    if (
+      propLocationInventory !== undefined ||
+      propUseMultiLocation !== undefined
+    ) {
+      return;
+    }
+
+    const initInventory = async () => {
+      // Check if multi-location is enabled
+      const multiLocationValue = getCookie("use_multi_location_inventory");
+      const isEnabled = multiLocationValue !== "false";
+      setUseMultiLocation(isEnabled);
+
+      if (!isEnabled || !isStandardProduct) {
+        setInventoryLoaded(true);
+        return;
+      }
+
+      // Get selected location from cookie
+      const locationSlug = getCookie(`${COOKIE_PREFIX_KEY}_ep_location`);
+      if (!locationSlug) {
+        setInventoryLoaded(true);
+        return;
+      }
+
+      try {
+        const client = getEpccImplicitClient();
+        const inventoriesResponse = await getAllInventoriesByProductId(
+          id,
+          client,
+        );
+        const inventories = inventoriesResponse?.data as any;
+
+        if (!inventories || !inventories?.attributes?.locations) {
+          // Multi-location not configured for this product
+          setInventoryLoaded(true);
+          return;
+        }
+
+        const locationData =
+          inventories?.attributes?.locations?.[locationSlug as string];
+        if (locationData) {
+          setSelectedLocationSlug(locationSlug as string);
+          setSelectedLocationName(locationSlug as string); // Use slug as fallback
+          setLocationInventory(locationData.available || 0);
+        } else {
+          setLocationInventory(0);
+        }
+      } catch (error) {
+        console.error("Error fetching inventory for product card:", error);
+      } finally {
+        setInventoryLoaded(true);
+      }
+    };
+
+    initInventory();
+  }, [id, isStandardProduct, propLocationInventory, propUseMultiLocation]);
 
   return (
     <div className="max-w-full sm:max-w-lg p-3 flex flex-col h-full">
@@ -173,27 +276,74 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 {isStandardProduct &&
                   gatedSetting !== "fully_gated" &&
                   display_price && (
-                    <div className="flex justify-center mt-4">
-                      <StatusButton
-                        status={isPending ? "loading" : "idle"}
-                        className="w-full p-2 text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          mutate({
-                            productId: id,
-                            quantity: quantity || 1,
-                            data: {
+                    <>
+                      <div className="flex justify-center mt-4">
+                        <StatusButton
+                          status={isPending ? "loading" : "idle"}
+                          className="w-full p-2 text-sm"
+                          disabled={
+                            useMultiLocation &&
+                            inventoryLoaded &&
+                            selectedLocationSlug &&
+                            locationInventory !== undefined &&
+                            locationInventory !== null
+                              ? locationInventory === 0
+                              : false
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+
+                            // Don't add if explicitly out of stock (inventory = 0)
+                            // But allow if inventory is undefined/null (MLI not configured)
+                            if (
+                              useMultiLocation &&
+                              selectedLocationSlug &&
+                              locationInventory !== undefined &&
+                              locationInventory !== null &&
+                              locationInventory === 0
+                            ) {
+                              return;
+                            }
+
+                            const data: any = {
                               custom_inputs: {
                                 additional_information: [],
                               },
-                            },
-                          });
-                        }}
-                      >
-                        Add to Cart
-                      </StatusButton>
-                    </div>
+                            };
+
+                            // Add location data if multi-location is enabled and location is selected
+                            if (
+                              useMultiLocation &&
+                              selectedLocationSlug &&
+                              locationInventory !== undefined &&
+                              locationInventory !== null
+                            ) {
+                              data.custom_inputs.location = {
+                                location_name: selectedLocationName,
+                                available_quantity: locationInventory,
+                              };
+                              data.location = selectedLocationSlug;
+                            }
+
+                            mutate({
+                              productId: id,
+                              quantity: quantity || 1,
+                              data,
+                            });
+                          }}
+                        >
+                          {useMultiLocation &&
+                          inventoryLoaded &&
+                          selectedLocationSlug &&
+                          locationInventory !== undefined &&
+                          locationInventory !== null &&
+                          locationInventory === 0
+                            ? "Out of Stock"
+                            : "Add to Cart"}
+                        </StatusButton>
+                      </div>
+                    </>
                   )}
                 {!isStandardProduct && display_price && (
                   <div className="flex justify-center mt-4">

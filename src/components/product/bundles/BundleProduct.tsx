@@ -84,7 +84,7 @@ function BundleProductContainer({
   const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   const [selectedLocationName, setSelectedLocationName] = useState<string>("");
   const [allComponentsAvailable, setAllComponentsAvailable] =
-    useState<boolean>(false);
+    useState<boolean>(true); // Default to true (allow if no MLI configured)
   const [componentInventories, setComponentInventories] = useState<any[]>([]);
   const [useMultiLocation, setUseMultiLocation] = useState<boolean | null>(
     null,
