@@ -66,7 +66,7 @@ export function Search({
       <VirtualRefinementList attribute="price" />
       <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
       <SearchResultsAlgolia key={q} lookup={lookup} content={content} />
-      <Configure filters="is_child:0" />
+      <Configure filters="is_child:0" {...({} as any)} />
     </InstantSearchNext>
   ) : enabledKlevu ? (
     <SearchResultsKlevu content={content} />

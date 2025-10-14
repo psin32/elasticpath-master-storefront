@@ -124,7 +124,7 @@ export function OrderItem({ children, order, orderItems }: OrderItemProps) {
                 💳 {order.payment}
               </span>
               <span
-                className={`inline-block uppercase px-3 py-1.5 rounded-lg border text-xs font-semibold ${getShippingStatusColor(order.shipping)}`}
+                className={`inline-block uppercase px-3 py-1.5 rounded-lg border text-xs font-semibold ${getShippingStatusColor(order.shipping || "")}`}
               >
                 📦 {order.shipping}
               </span>

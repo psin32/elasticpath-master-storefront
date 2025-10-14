@@ -258,7 +258,7 @@ export const SearchModalAlgolia = (): JSX.Element => {
         preserveSharedStateOnUnmount: true,
       }}
     >
-      <Configure filters="is_child:0" />
+      <Configure filters="is_child:0" {...({} as any)} />
       <button
         className="bg-transparent hover:bg-gray-100 text-gray-800 font-normal py-2 px-4 rounded-lg inline-flex items-center justify-center transition-colors duration-200"
         onClick={() => {
