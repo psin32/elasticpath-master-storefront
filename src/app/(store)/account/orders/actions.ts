@@ -66,3 +66,29 @@ export async function getAccountMemberDetails(accountMemberId: string) {
     return null;
   }
 }
+
+export async function cancelOrder(orderId: string) {
+  const client = getServerSideCredentialsClientWihoutAccountToken();
+  try {
+    // First get the transactions for this order
+    const transactions = await client.Transactions.All({ order: orderId });
+
+    if (transactions.data && transactions.data.length > 0) {
+      // Cancel the authorized transaction
+      await client.Transactions.Cancel({
+        order: orderId,
+        transaction: transactions.data[0].id,
+      });
+    }
+
+    // Update order status to cancelled
+    const request: any = {
+      status: "cancelled",
+      payment: "cancelled",
+    };
+    return await client.Orders.Update(orderId, request);
+  } catch (error) {
+    console.error("Failed to cancel order", error);
+    throw error;
+  }
+}

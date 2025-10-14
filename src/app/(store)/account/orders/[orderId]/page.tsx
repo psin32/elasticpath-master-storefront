@@ -27,6 +27,9 @@ import dynamic from "next/dynamic";
 const ApprovalActions = dynamic(() => import("./ApprovalActions"), {
   ssr: false,
 });
+const CancelOrderButton = dynamic(() => import("./CancelOrderButton"), {
+  ssr: false,
+});
 
 export default async function Orders({
   params,
@@ -162,7 +165,7 @@ export default async function Orders({
   return (
     <div className="relative flex flex-col gap-10 items-center w-full min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Back to Orders Button (section top) */}
-      <div className="mt-4 mb-2 w-full max-w-6xl flex">
+      <div className="mt-4 mb-2 w-full max-w-6xl flex items-center gap-4">
         <Button
           variant="secondary"
           size="medium"
@@ -174,6 +177,10 @@ export default async function Orders({
             Back to Orders
           </Link>
         </Button>
+        {/* Cancel Order Button - Show when payment is authorized */}
+        {shopperOrder.raw.payment === "authorized" && (
+          <CancelOrderButton orderId={params.orderId} />
+        )}
       </div>
 
       {/* Order Summary Card */}
