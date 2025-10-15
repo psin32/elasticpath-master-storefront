@@ -20,6 +20,8 @@ export default function HitComponentAlgoliaList({
   onQuantityChange,
   onAddToCart,
   onGetVariants,
+  hasInventory = true,
+  availableQuantity,
 }: {
   hit: SearchHit;
   product: ProductResponse;
@@ -27,6 +29,8 @@ export default function HitComponentAlgoliaList({
   onQuantityChange: (productId: string, quantity: number) => void;
   onAddToCart: (productId: string) => void;
   onGetVariants?: (productId: string, variationMatrix: any) => Promise<void>;
+  hasInventory?: boolean;
+  availableQuantity?: number;
 }): JSX.Element {
   const { ep_name, objectID, ep_main_image_url, ep_description, ep_slug } = hit;
 
@@ -114,7 +118,7 @@ export default function HitComponentAlgoliaList({
         </div>
       </div>
       <div className="col-span-2">
-        {!variation_matrix && !components && (
+        {!variation_matrix && !components && hasInventory && (
           <div className="flex w-32 items-start rounded-lg border border-black/10">
             <button
               type="submit"
@@ -172,9 +176,16 @@ export default function HitComponentAlgoliaList({
             </button>
           </div>
         )}
+        {!variation_matrix && !components && !hasInventory && (
+          <div className="text-sm text-gray-500">
+            {availableQuantity !== undefined && (
+              <span className="block">Available: {availableQuantity}</span>
+            )}
+          </div>
+        )}
       </div>
       <div className="col-span-2">
-        {!variation_matrix && !components && display_price && (
+        {!variation_matrix && !components && display_price && hasInventory && (
           <StatusButton
             className="py-2 w-32 text-sm px-2"
             onClick={() => onAddToCart(objectID)}
@@ -183,6 +194,11 @@ export default function HitComponentAlgoliaList({
           >
             Add to Cart
           </StatusButton>
+        )}
+        {!variation_matrix && !components && display_price && !hasInventory && (
+          <div className="py-2 w-32 text-sm px-2 text-center font-medium text-red-600">
+            Out of Stock
+          </div>
         )}
 
         {variation_matrix && onGetVariants && display_price && (

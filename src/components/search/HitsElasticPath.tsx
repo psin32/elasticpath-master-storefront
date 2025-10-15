@@ -13,7 +13,7 @@ import {
   LockClosedIcon,
 } from "@heroicons/react/20/solid";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StatusButton } from "../button/StatusButton";
 import Link from "next/link";
 import { useAuthedAccountMember, useCart } from "../../react-shopper-hooks";
@@ -22,6 +22,12 @@ import { CartItemObject } from "@elasticpath/js-sdk";
 import { getEpccImplicitClient } from "../../lib/epcc-implicit-client";
 import MultibuyOfferModal from "../featured-products/MultibuyOfferModal";
 import LoginToSeePriceButton from "../product/LoginToSeePriceButton";
+import {
+  getAllLocations,
+  getMultipleInventoriesByProductIds,
+} from "../../services/multi-location-inventory";
+import { getCookie } from "cookies-next";
+import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
 
 export default function HitsElasticPath({
   adminDisplay,
@@ -40,6 +46,69 @@ export default function HitsElasticPath({
     process.env.NEXT_PUBLIC_DEFAULT_PLP_VIEW || "grid",
   );
   const [childItems, setChildItems] = useState<any>([]);
+  const [inventories, setInventories] = useState<
+    Record<string, Record<string, number>>
+  >({});
+  const [locations, setLocations] = useState<any[]>([]);
+  const [useMultiLocation, setUseMultiLocation] = useState<boolean>(false);
+  const [selectedLocationSlug, setSelectedLocationSlug] = useState<
+    string | undefined
+  >();
+
+  useEffect(() => {
+    const init = async () => {
+      if (!page?.data) return;
+
+      const client = getEpccImplicitClient();
+
+      // Check if multi-location inventory is enabled
+      const multiLocationValue = getCookie("use_multi_location_inventory");
+      const isMultiLocationEnabled = multiLocationValue !== "false";
+      setUseMultiLocation(isMultiLocationEnabled);
+
+      // Get selected location from cookie
+      const locationSlug = getCookie(
+        `${COOKIE_PREFIX_KEY}_ep_location`,
+      ) as string;
+      setSelectedLocationSlug(locationSlug);
+
+      // Fetch inventories if multi-location is enabled
+      if (isMultiLocationEnabled && page?.data) {
+        const productIds = page.data.map((hit: any) => hit.response.id);
+
+        const [locationsResponse, inventoriesResponse] = await Promise.all([
+          getAllLocations(client),
+          getMultipleInventoriesByProductIds(productIds, client),
+        ]);
+
+        // Store locations
+        if (locationsResponse?.data && Array.isArray(locationsResponse.data)) {
+          setLocations(locationsResponse.data);
+        }
+
+        // Build inventory map for ALL locations for each product
+        const inventoryMap: Record<string, Record<string, number>> = {};
+        const inventoriesData = inventoriesResponse?.data as any;
+
+        if (inventoriesData && Array.isArray(inventoriesData)) {
+          inventoriesData.forEach((inventory: any) => {
+            const productId = inventory.id;
+            const locations = inventory?.attributes?.locations || {};
+
+            // Store inventory for all locations for this product
+            inventoryMap[productId] = {};
+            Object.entries(locations).forEach(
+              ([locSlug, locData]: [string, any]) => {
+                inventoryMap[productId][locSlug] = locData?.available || 0;
+              },
+            );
+          });
+        }
+        setInventories(inventoryMap);
+      }
+    };
+    init();
+  }, [page]);
 
   if (!page?.data) {
     return <NoResults displayIcon={false} />;
@@ -75,8 +144,25 @@ export default function HitsElasticPath({
         additional_information: [],
       },
     };
-    if (enableClickAndCollect) {
-      data.custom_inputs.location = {};
+
+    // Add location information if multi-location inventory is enabled
+    if (useMultiLocation && selectedLocationSlug) {
+      // Find location name from locations array
+      const selectedLocation = locations.find(
+        (loc) => loc.attributes?.slug === selectedLocationSlug,
+      );
+      const locationName =
+        selectedLocation?.attributes?.name || selectedLocationSlug;
+
+      if (!data.custom_inputs.location) {
+        data.custom_inputs.location = {};
+      }
+      data.custom_inputs.location.location_name = locationName;
+      data.location = selectedLocationSlug;
+    } else if (enableClickAndCollect) {
+      if (!data.custom_inputs.location) {
+        data.custom_inputs.location = {};
+      }
       data.custom_inputs.location.delivery_mode = "Home Delivery";
     }
 
@@ -97,8 +183,27 @@ export default function HitsElasticPath({
   };
 
   const handleAllAddToCart = () => {
+    // Find location name from locations array
+    const selectedLocation = locations.find(
+      (loc) => loc.attributes?.slug === selectedLocationSlug,
+    );
+    const locationName =
+      selectedLocation?.attributes?.name || selectedLocationSlug;
+
     const cartItems: CartItemObject[] = items
-      .filter((item: any) => item.productId && item.quantity > 0)
+      .filter((item: any) => {
+        // Filter out items with no quantity
+        if (!item.productId || item.quantity <= 0) return false;
+
+        // If multi-location is enabled, filter out items with no inventory at selected location
+        if (useMultiLocation && selectedLocationSlug) {
+          const productInventory = inventories[item.productId] || {};
+          const locationInventory = productInventory[selectedLocationSlug];
+          return locationInventory !== undefined && locationInventory > 0;
+        }
+
+        return true;
+      })
       .map((item: any) => {
         const data: any = {
           type: "cart_item",
@@ -108,8 +213,22 @@ export default function HitsElasticPath({
             additional_information: [],
           },
         };
-        if (enableClickAndCollect) {
-          data.custom_inputs.location = {};
+
+        // Add location information if multi-location inventory is enabled
+        if (useMultiLocation && selectedLocationSlug) {
+          const productInventory = inventories[item.productId] || {};
+          const locationInventory = productInventory[selectedLocationSlug];
+
+          if (!data.custom_inputs.location) {
+            data.custom_inputs.location = {};
+          }
+          data.custom_inputs.location.location_name = locationName;
+          data.custom_inputs.location.available_quantity = locationInventory;
+          data.location = selectedLocationSlug;
+        } else if (enableClickAndCollect) {
+          if (!data.custom_inputs.location) {
+            data.custom_inputs.location = {};
+          }
           data.custom_inputs.location.delivery_mode = "Home Delivery";
         }
 
@@ -265,6 +384,17 @@ export default function HitsElasticPath({
                   (item: any) => item.productId === id,
                 )?.items?.included?.main_images;
 
+                // Check inventory for selected location
+                const productInventory = inventories[id] || {};
+                const locationInventory = selectedLocationSlug
+                  ? productInventory[selectedLocationSlug]
+                  : undefined;
+
+                const hasInventory =
+                  !useMultiLocation ||
+                  !selectedLocationSlug ||
+                  (locationInventory !== undefined && locationInventory > 0);
+
                 return (
                   <>
                     <div
@@ -377,80 +507,109 @@ export default function HitsElasticPath({
                       </div>
 
                       <div className="col-span-2">
-                        {!variation_matrix && !components && display_price && (
-                          <div className="flex w-32 items-start rounded-lg border border-black/10">
-                            <button
-                              type="submit"
-                              onClick={() =>
-                                handleInputChange(id, quantity - 1)
-                              }
-                              className="ease flex w-9 h-9 mt-1 justify-center items-center transition-all duration-200"
-                            >
-                              <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
-                            </button>
-                            <svg
-                              width="2"
-                              height="42"
-                              viewBox="0 0 2 36"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1 0V36"
-                                stroke="black"
-                                strokeOpacity="0.1"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                        {!variation_matrix &&
+                          !components &&
+                          display_price &&
+                          hasInventory && (
+                            <div className="flex w-32 items-start rounded-lg border border-black/10">
+                              <button
+                                type="submit"
+                                onClick={() =>
+                                  handleInputChange(id, quantity - 1)
+                                }
+                                className="ease flex w-9 h-9 mt-1 justify-center items-center transition-all duration-200"
+                              >
+                                <MinusIcon className="h-4 w-4 dark:text-neutral-500" />
+                              </button>
+                              <svg
+                                width="2"
+                                height="42"
+                                viewBox="0 0 2 36"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1 0V36"
+                                  stroke="black"
+                                  strokeOpacity="0.1"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
 
-                            <input
-                              type="number"
-                              placeholder="Quantity"
-                              className="border-none focus-visible:ring-0 focus-visible:border-black w-12 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                              value={quantity}
-                              onChange={(e) =>
-                                handleInputChange(id, parseInt(e.target.value))
-                              }
-                            />
-                            <svg
-                              width="2"
-                              height="42"
-                              viewBox="0 0 2 36"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M1 0V36"
-                                stroke="black"
-                                strokeOpacity="0.1"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
+                              <input
+                                type="number"
+                                placeholder="Quantity"
+                                className="border-none focus-visible:ring-0 focus-visible:border-black w-12 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                value={quantity}
+                                onChange={(e) =>
+                                  handleInputChange(
+                                    id,
+                                    parseInt(e.target.value),
+                                  )
+                                }
                               />
-                            </svg>
-                            <button
-                              type="submit"
-                              onClick={() =>
-                                handleInputChange(id, quantity + 1)
-                              }
-                              className="ease flex w-9 h-9 mt-1 justify-center items-center transition-all duration-200"
-                            >
-                              <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
-                            </button>
-                          </div>
-                        )}
+                              <svg
+                                width="2"
+                                height="42"
+                                viewBox="0 0 2 36"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  d="M1 0V36"
+                                  stroke="black"
+                                  strokeOpacity="0.1"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                              <button
+                                type="submit"
+                                onClick={() =>
+                                  handleInputChange(id, quantity + 1)
+                                }
+                                className="ease flex w-9 h-9 mt-1 justify-center items-center transition-all duration-200"
+                              >
+                                <PlusIcon className="h-4 w-4 dark:text-neutral-500" />
+                              </button>
+                            </div>
+                          )}
+                        {!variation_matrix &&
+                          !components &&
+                          display_price &&
+                          !hasInventory && (
+                            <div className="text-sm text-gray-500">
+                              {locationInventory !== undefined && (
+                                <span className="block">
+                                  Available: {locationInventory}
+                                </span>
+                              )}
+                            </div>
+                          )}
                       </div>
                       <div className="col-span-2">
-                        {!variation_matrix && !components && display_price && (
-                          <StatusButton
-                            className="py-2 w-32 text-sm px-2"
-                            onClick={() => handleAddToCart(id)}
-                            variant={quantity > 0 ? "primary" : "secondary"}
-                            disabled={quantity === 0}
-                          >
-                            Add to Cart
-                          </StatusButton>
-                        )}
+                        {!variation_matrix &&
+                          !components &&
+                          display_price &&
+                          hasInventory && (
+                            <StatusButton
+                              className="py-2 w-32 text-sm px-2"
+                              onClick={() => handleAddToCart(id)}
+                              variant={quantity > 0 ? "primary" : "secondary"}
+                              disabled={quantity === 0}
+                            >
+                              Add to Cart
+                            </StatusButton>
+                          )}
+                        {!variation_matrix &&
+                          !components &&
+                          display_price &&
+                          !hasInventory && (
+                            <div className="py-2 w-32 text-sm px-2 text-center font-medium text-red-600">
+                              Out of Stock
+                            </div>
+                          )}
 
                         {variation_matrix && display_price && (
                           <StatusButton
