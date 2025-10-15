@@ -4,15 +4,16 @@ import { EP_CURRENCY_CODE } from "./resolve-ep-currency-code";
 import type { UiState } from "instantsearch.js";
 import { InstantSearchNextRouting } from "react-instantsearch-nextjs";
 
-const EP_ROUTE_CATEGORY = "ep_slug_categories.lvl0";
 const EP_ROUTE_BRAND = "ep_extensions_products_specifications.brand";
 const EP_ROUTE_ON_SALE = "ep_extensions_products_specifications.on-sale";
-const EP_ROUTE_PRICE = `ep_price.${EP_CURRENCY_CODE}.float_price`;
 const EP_ROUTE_COLOR = "ep_extensions_products_specifications.color";
 
-export function resolveAlgoliaRouting<
-  TUiState extends UiState = UiState,
->(): InstantSearchNextRouting<TUiState, RouterParams> {
+export function resolveAlgoliaRouting<TUiState extends UiState = UiState>(
+  catalogId: string,
+): InstantSearchNextRouting<TUiState, RouterParams> {
+  const EP_ROUTE_CATEGORY = `${catalogId}.ep_slug_categories.lvl0`;
+  const EP_ROUTE_PRICE = `${catalogId}.ep_price.${EP_CURRENCY_CODE}.float_price`;
+
   return {
     router: {
       createURL: ({ qsModule, routeState, location }) => {

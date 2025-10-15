@@ -9,6 +9,7 @@ import { useElasticPath } from "../elasticpath";
 interface StoreState {
   client: EPCCClient;
   nav?: NavigationNode[];
+  catalogId?: string;
 }
 
 export const StoreProviderContext = createContext<StoreState | null>(null);
@@ -21,7 +22,13 @@ export const StoreProvider = ({
   const { client } = useElasticPath();
 
   return (
-    <StoreProviderContext.Provider value={{ client, nav: initialState?.nav }}>
+    <StoreProviderContext.Provider
+      value={{
+        client,
+        nav: initialState?.nav,
+        catalogId: initialState?.catalogId,
+      }}
+    >
       <CartProvider
         cartId={cartId}
         initialState={{

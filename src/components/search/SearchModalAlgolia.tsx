@@ -21,6 +21,7 @@ import { getProductByIds } from "../../services/products";
 import StrikePrice from "../product/StrikePrice";
 import Price from "../product/Price";
 import { Fragment } from "react";
+import { useCatalogId } from "../../react-shopper-hooks";
 
 const SearchBox = ({
   onChange,
@@ -99,8 +100,7 @@ const HitComponent = ({
   sendEvent: SendEventForHits;
   product: ProductResponse;
 }) => {
-  const { ep_price, ep_main_image_url, ep_name, ep_sku, objectID, ep_slug } =
-    hit;
+  const { ep_main_image_url, ep_name, ep_sku, objectID, ep_slug } = hit;
 
   const {
     meta: { display_price, original_display_price },
@@ -248,6 +248,7 @@ export const SearchModalAlgolia = (): JSX.Element => {
   let [isOpen, setIsOpen] = useState(false);
   const [shouldFocus, setShouldFocus] = useState(false);
   const router = useRouter();
+  const catalogId = useCatalogId();
 
   return (
     <InstantSearchNext
@@ -258,7 +259,12 @@ export const SearchModalAlgolia = (): JSX.Element => {
         preserveSharedStateOnUnmount: true,
       }}
     >
-      <Configure filters="is_child:0" {...({} as any)} />
+      <Configure
+        filters={
+          catalogId ? `is_child:0 AND catalog_${catalogId}:true` : "is_child:0"
+        }
+        {...({} as any)}
+      />
       <button
         className="bg-transparent hover:bg-gray-100 text-gray-800 font-normal py-2 px-4 rounded-lg inline-flex items-center justify-center transition-colors duration-200"
         onClick={() => {

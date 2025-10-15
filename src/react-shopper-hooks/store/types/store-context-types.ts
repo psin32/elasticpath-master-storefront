@@ -11,4 +11,5 @@ export interface StoreProviderProps {
 export interface InitialState {
   nav?: NavigationNode[];
   cart?: ResourceIncluded<Cart, CartIncluded>;
+  catalogId?: string;
 }

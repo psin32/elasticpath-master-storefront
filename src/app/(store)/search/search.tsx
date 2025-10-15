@@ -5,7 +5,11 @@ import { algoliaEnvData } from "../../../lib/resolve-algolia-env";
 import { resolveAlgoliaRouting } from "../../../lib/algolia-search-routing";
 import React from "react";
 import { buildBreadcrumbLookup } from "../../../lib/build-breadcrumb-lookup";
-import { ShopperProduct, useStore } from "../../../react-shopper-hooks";
+import {
+  ShopperProduct,
+  useStore,
+  useCatalogId,
+} from "../../../react-shopper-hooks";
 import {
   Configure,
   HierarchicalMenuProps,
@@ -22,7 +26,8 @@ import {
   useSortBy,
 } from "react-instantsearch";
 import { sortByItems } from "../../../lib/sort-by-items";
-import { hierarchicalAttributes } from "../../../lib/hierarchical-attributes";
+import { getHierarchicalAttributes } from "../../../lib/hierarchical-attributes";
+import { getEpRoutePrice } from "../../../lib/search-constants";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { ShopperCatalogResourcePage } from "@elasticpath/js-sdk";
 import SearchResultsAlgolia from "../../../components/search/SearchResultsAlgolia";
@@ -37,6 +42,7 @@ export function Search({
   content: any;
 }) {
   const { nav } = useStore();
+  const catalogId = useCatalogId();
   const lookup = buildBreadcrumbLookup(nav ?? []);
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -47,12 +53,22 @@ export function Search({
 
   // Remove the router.refresh() effect
 
-  return algoliaEnvData.enabled ? (
+  // If catalog ID is not available yet, show loading or fallback
+  if (algoliaEnvData.enabled && !catalogId) {
+    return <div>Loading...</div>;
+  }
+
+  const hierarchicalAttributes = catalogId
+    ? getHierarchicalAttributes(catalogId)
+    : [];
+  const EP_ROUTE_PRICE = catalogId ? getEpRoutePrice(catalogId) : "";
+
+  return algoliaEnvData.enabled && catalogId ? (
     <InstantSearchNext
       key={q}
       indexName={algoliaEnvData.indexName}
       searchClient={searchClient}
-      routing={resolveAlgoliaRouting()}
+      routing={resolveAlgoliaRouting(catalogId)}
       insights={true}
       future={{
         preserveSharedStateOnUnmount: true,
@@ -62,11 +78,14 @@ export function Search({
       <VirtualSearchBox autoCapitalize="off" />
       <VirtualPagination />
       <VirtualSortBy items={sortByItems} />
-      <VirtualRangeInput attribute="ep_price" />
+      <VirtualRangeInput attribute={EP_ROUTE_PRICE} />
       <VirtualRefinementList attribute="price" />
       <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
       <SearchResultsAlgolia key={q} lookup={lookup} content={content} />
-      <Configure filters="is_child:0" {...({} as any)} />
+      <Configure
+        filters={`is_child:0 AND catalog_${catalogId}:true`}
+        {...({} as any)}
+      />
     </InstantSearchNext>
   ) : enabledKlevu ? (
     <SearchResultsKlevu content={content} />

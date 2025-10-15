@@ -1,45 +1,38 @@
 import { Hit } from "instantsearch.js";
 
-type HitSalePrice = {
+export type CurrencyPrice = {
   amount: number;
   includes_tax: boolean;
-  tiers: any;
+  tiers: any | null;
   formatted_price: string;
   float_price: number;
-  on_sale: boolean;
-  original_price: {
-    amount: number;
-    formatted_price: string;
-    float_price: number;
-  };
 };
 
-type HitPrice = {
-  [key: string]: {
-    amount: number;
-    includes_tax: boolean;
-    tiers: {
-      [key: string]: {
-        minimum_quantity: number;
-        amount: number;
-      };
-    } | null;
-    formatted_price: string;
-    float_price: number;
-    on_sale: boolean;
-    sale_prices?: HitSalePrice;
+export type CatalogCategories = {
+  lvl0: string;
+  lvl1: string;
+  lvl2: string;
+};
+
+export type CatalogData = {
+  ep_price: {
+    [currency: string]: CurrencyPrice;
   };
+  ep_slug_categories?: CatalogCategories;
+  ep_categories?: CatalogCategories;
 };
 
 export interface SearchHit extends Hit {
-  ep_amount: number;
-  ep_categories: string[];
-  ep_description: string;
   ep_name: string;
-  ep_price?: HitPrice;
-  ep_sku: string;
+  ep_description: string;
   ep_slug: string;
+  ep_sku: string;
   ep_main_image_url: string;
-  ep_image_url: string;
+  ep_image_url?: string;
   objectID: string;
+  parentID: string | null;
+  is_child: number;
+  ep_sales?: any;
+  // Dynamic catalog keys (e.g., "bc6c9426-6a34-4348-bbaa-1c1f3544879b")
+  [catalogId: string]: any | CatalogData;
 }

@@ -9,9 +9,9 @@ import { Fragment, useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/solid";
 import { useInstantSearch, useSortBy } from "react-instantsearch";
 import { sortByItems } from "../../lib/sort-by-items";
-import { EP_ROUTE_PRICE } from "../../lib/search-constants";
+import { getEpRoutePrice } from "../../lib/search-constants";
 import NodeMenuAlgolia from "./NodeMenuAlgolia";
-import { useStore } from "../../react-shopper-hooks";
+import { useCatalogId, useStore } from "../../react-shopper-hooks";
 import HitsAlgolia from "./HitsAlgolia";
 import PaginationAlgolia from "./PaginationAlgolia";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
@@ -40,13 +40,17 @@ export default function SearchResultsAlgolia({
   const { uiState } = useInstantSearch();
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav } = useStore();
+  const catalogId = useCatalogId();
 
   const { options, refine } = useSortBy({ items: sortByItems });
 
   const { hierarchicalMenu, query } = uiState[algoliaEnvData.indexName];
-  const slugArray = hierarchicalMenu?.["ep_slug_categories.lvl0"];
+  const slugArray = catalogId
+    ? hierarchicalMenu?.[`${catalogId}.ep_slug_categories.lvl0`]
+    : undefined;
 
   const title = slugArray ? resolveTitle(slugArray, lookup) : "All Categories";
+  const EP_ROUTE_PRICE = catalogId ? getEpRoutePrice(catalogId) : undefined;
 
   return (
     <div className="grid gap-4">
@@ -121,7 +125,7 @@ export default function SearchResultsAlgolia({
         <div className="hidden w-[14rem] md:block lg:w-[16rem]">
           <h3 className="font-semibold">Category</h3>
           {nav && <NodeMenuAlgolia nav={nav} />}
-          <PriceRangeSlider attribute={EP_ROUTE_PRICE} />
+          {EP_ROUTE_PRICE && <PriceRangeSlider attribute={EP_ROUTE_PRICE} />}
           <ProductSpecification />
         </div>
 

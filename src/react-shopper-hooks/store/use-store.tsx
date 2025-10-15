@@ -3,7 +3,11 @@ import { StoreProviderContext } from "../store/store-provider";
 import { ElasticPath } from "@elasticpath/js-sdk";
 import { NavigationNode } from "../../shopper-common/src";
 
-export function useStore(): { client: ElasticPath; nav?: NavigationNode[] } {
+export function useStore(): {
+  client: ElasticPath;
+  nav?: NavigationNode[];
+  catalogId?: string;
+} {
   const ctx = useContext(StoreProviderContext);
 
   if (!ctx) {
@@ -15,5 +19,6 @@ export function useStore(): { client: ElasticPath; nav?: NavigationNode[] } {
   return {
     client: ctx.client,
     nav: ctx.nav,
+    catalogId: ctx.catalogId,
   };
 }
