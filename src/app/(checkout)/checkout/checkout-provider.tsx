@@ -101,6 +101,7 @@ export function StripeCheckoutProvider({
           sameAsShipping: true,
           shippingMethod: "__shipping_standard",
           paymentMethod: "ep_payment",
+          notes: "",
         }
       : {
           // For guest users
@@ -124,6 +125,7 @@ export function StripeCheckoutProvider({
           sameAsShipping: true,
           shippingMethod: "__shipping_standard",
           paymentMethod: "ep_payment",
+          notes: "",
         },
   });
 

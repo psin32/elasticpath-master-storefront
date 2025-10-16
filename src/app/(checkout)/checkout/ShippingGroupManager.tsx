@@ -460,18 +460,34 @@ export function ShippingGroupManager() {
         items: selectedItems,
       };
 
-      // Associate items with the shipping group
-      const updatePromises = selectedItems.map((itemId) =>
-        fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
+      console.log("shippingGroupRequest", shippingGroupRequest);
+      console.log("selectedItems", selectedItems);
+      console.log("groupData.data.id", groupData.data.id);
+      // Associate items with the shipping group while preserving location information
+      const updatePromises = selectedItems.map((itemId) => {
+        // Find the current item to preserve its location
+        const currentItem = cart?.items?.find(
+          (item: any) => item.id === itemId,
+        );
+        const updateData: any = {
+          shipping_group_id: groupData.data.id,
+        };
+
+        // Preserve the location field if it exists
+        if (currentItem?.location) {
+          updateData.location = currentItem.location;
+        }
+
+        console.log(`Updating item ${itemId} with:`, updateData);
+
+        return fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            shipping_group_id: groupData.data.id,
-          }),
-        }),
-      );
+          body: JSON.stringify(updateData),
+        });
+      });
 
       await Promise.all(updatePromises);
 
@@ -504,14 +520,23 @@ export function ShippingGroupManager() {
 
   const removeFromGroup = async (groupId: string, itemId: string) => {
     try {
+      // Find the current item to preserve its location
+      const currentItem = cart?.items?.find((item: any) => item.id === itemId);
+      const updateData: any = {
+        shipping_group_id: "",
+      };
+
+      // Preserve the location field if it exists
+      if (currentItem?.location) {
+        updateData.location = currentItem.location;
+      }
+
       const response = await fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          shipping_group_id: "",
-        }),
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -554,18 +579,25 @@ export function ShippingGroupManager() {
       // Get all items in this group
       const groupItems = getItemsForGroup(groupId);
 
-      // Remove shipping_group_id from all items in this group
-      const updatePromises = groupItems.map((item) =>
-        fetch(`/api/carts/${cart?.id}/items/${item.id}`, {
+      // Remove shipping_group_id from all items in this group while preserving location
+      const updatePromises = groupItems.map((item) => {
+        const updateData: any = {
+          shipping_group_id: "",
+        };
+
+        // Preserve the location field if it exists
+        if (item.location) {
+          updateData.location = item.location;
+        }
+
+        return fetch(`/api/carts/${cart?.id}/items/${item.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            shipping_group_id: "",
-          }),
-        }),
-      );
+          body: JSON.stringify(updateData),
+        });
+      });
 
       await Promise.all(updatePromises);
 
@@ -609,18 +641,31 @@ export function ShippingGroupManager() {
 
     setIsAttaching(true);
     try {
-      // Attach items to the selected shipping group
-      const updatePromises = itemsToAttach.map((itemId) =>
-        fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
+      // Attach items to the selected shipping group while preserving location information
+      console.log("itemsToAttach", itemsToAttach);
+      console.log("selectedGroupForAttach", selectedGroupForAttach);
+      const updatePromises = itemsToAttach.map((itemId) => {
+        // Find the current item to preserve its location
+        const currentItem = cart?.items?.find(
+          (item: any) => item.id === itemId,
+        );
+        const updateData: any = {
+          shipping_group_id: selectedGroupForAttach,
+        };
+
+        // Preserve the location field if it exists
+        if (currentItem?.location) {
+          updateData.location = currentItem.location;
+        }
+
+        return fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            shipping_group_id: selectedGroupForAttach,
-          }),
-        }),
-      );
+          body: JSON.stringify(updateData),
+        });
+      });
 
       await Promise.all(updatePromises);
 

@@ -4,6 +4,7 @@ import { Separator } from "../../../components/separator/Separator";
 import { PaymentForm } from "./PaymentForm";
 import { BillingForm } from "./BillingForm";
 import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
+import { NotesForm } from "./NotesForm";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { cookies } from "next/headers";
@@ -100,6 +101,9 @@ export async function AccountPayment({
           {enableExpressCheckout && (
             <ExpressCheckoutPaymentForm isAnonymous={false} />
           )}
+          <div className="flex flex-1">
+            <NotesForm />
+          </div>
           <div className="flex flex-1">
             <SubmitCheckoutButton cart={cart} />
           </div>

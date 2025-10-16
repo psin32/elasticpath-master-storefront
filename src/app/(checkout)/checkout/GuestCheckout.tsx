@@ -6,6 +6,7 @@ import { DeliveryForm } from "./DeliveryForm";
 import { PaymentForm } from "./PaymentForm";
 import { BillingForm } from "./BillingForm";
 import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
+import { NotesForm } from "./NotesForm";
 import { Separator } from "../../../components/separator/Separator";
 import * as React from "react";
 import { CheckoutSidebar } from "./CheckoutSidebar";
@@ -96,6 +97,9 @@ export async function GuestCheckout({ cart }: GuestCheckoutProps) {
               <BillingForm />
             </div>
           )}
+          <div className="flex flex-1 self-stretch">
+            <NotesForm />
+          </div>
           <div className="flex flex-1 self-stretch">
             <SubmitCheckoutButton cart={cart} />
           </div>

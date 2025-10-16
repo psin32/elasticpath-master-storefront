@@ -23,6 +23,8 @@ import {
   escalateOrder,
   getAccountMemberDetails,
 } from "../actions";
+import { getOrderNotesByOrderId } from "../../../../../services/custom-api";
+import { OrderNotes } from "./OrderNotes";
 import dynamic from "next/dynamic";
 const ApprovalActions = dynamic(() => import("./ApprovalActions"), {
   ssr: false,
@@ -147,6 +149,14 @@ export default async function Orders({
   const isCancelled =
     (shopperOrder.raw as any)?.status === "cancelled" ||
     (shopperOrder.raw as any)?.payment === "cancelled";
+
+  // Fetch order notes
+  const notesResponse = await getOrderNotesByOrderId(params.orderId);
+  const orderNotes = notesResponse.success ? notesResponse.data : [];
+
+  // Get current user name for adding notes
+  const currentUserName =
+    accountMember.data.name || accountMember.data.email || "";
 
   // Helper for badge color
   function getApprovalStatusColor(status: string) {
@@ -435,6 +445,13 @@ export default async function Orders({
           </div>
         </div>
       </div>
+
+      {/* Order Notes Section */}
+      <OrderNotes
+        orderId={params.orderId}
+        initialNotes={orderNotes}
+        currentUserName={currentUserName}
+      />
     </div>
   );
 }

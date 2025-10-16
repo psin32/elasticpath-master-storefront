@@ -23,6 +23,7 @@ import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../lib/cookie-constants"
 import { getCookie } from "cookies-next";
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 import { toast } from "react-toastify";
+import { createNoteForOrder } from "../../../services/custom-api";
 
 export type UsePaymentCompleteProps = {
   cartId: string | undefined;
@@ -71,6 +72,7 @@ export function usePaymentComplete(
         paymentMethod,
         cardId,
         quoteId,
+        notes,
       } = data;
 
       const client = getEpccImplicitClient();
@@ -298,6 +300,30 @@ export function usePaymentComplete(
             transactionId: confirmedPayment.data.id,
             options: {},
           });
+        }
+      }
+
+      // Create order note if notes are provided
+      if (notes && notes.trim()) {
+        try {
+          // Get user name for the note
+          let userName = "";
+          if ("guest" in data) {
+            // For guest users, use their name from shipping address or email as fallback
+            userName = customerName || data.guest.email;
+          } else if ("account" in data) {
+            // For account users, use their account name or email as fallback
+            userName = data.account.name || data.account.email;
+          }
+
+          await createNoteForOrder({
+            order_id: createdOrder.data.id,
+            note: notes.trim(),
+            added_by: userName,
+          });
+        } catch (error) {
+          console.error("Failed to create order note:", error);
+          // Don't throw error here - note creation failure shouldn't fail the entire checkout
         }
       }
 

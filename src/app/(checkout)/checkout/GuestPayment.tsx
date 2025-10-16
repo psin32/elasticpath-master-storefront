@@ -4,6 +4,7 @@ import { Separator } from "../../../components/separator/Separator";
 import { PaymentForm } from "./PaymentForm";
 import { BillingForm } from "./BillingForm";
 import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
+import { NotesForm } from "./NotesForm";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 import { cookies } from "next/headers";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
@@ -86,6 +87,9 @@ export async function GuestPayment({ cart }: GuestPaymentProps) {
           {enableExpressCheckout && (
             <ExpressCheckoutPaymentForm isAnonymous={true} />
           )}
+          <div className="flex flex-1 self-stretch">
+            <NotesForm />
+          </div>
           <div className="flex flex-1 self-stretch">
             <SubmitCheckoutButton cart={cart} />
           </div>

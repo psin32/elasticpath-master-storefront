@@ -5,6 +5,7 @@ import { DeliveryForm } from "./DeliveryForm";
 import { PaymentForm } from "./PaymentForm";
 import { BillingForm } from "./BillingForm";
 import { SubmitCheckoutButton } from "./SubmitCheckoutButton";
+import { NotesForm } from "./NotesForm";
 import { CheckoutSidebar } from "./CheckoutSidebar";
 import { AccountDisplay } from "./AccountDisplay";
 import { ShippingSelector } from "./ShippingSelector";
@@ -111,6 +112,9 @@ export async function AccountCheckout({
               <BillingForm />
             </div>
           )}
+          <div className="flex flex-1">
+            <NotesForm />
+          </div>
           <div className="flex flex-1">
             <SubmitCheckoutButton cart={cart} />
           </div>
