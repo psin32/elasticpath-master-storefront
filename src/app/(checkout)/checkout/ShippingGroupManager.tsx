@@ -84,7 +84,9 @@ interface ShippingGroup {
   };
 }
 
-export function ShippingGroupManager() {
+export function ShippingGroupManager({
+  hideDisableLink = false,
+}: { hideDisableLink?: boolean } = {}) {
   const { state: cart } = useCart();
   const { getValues } = useFormContext<CheckoutFormSchemaType>();
   const { selectedAccountToken } = useAuthedAccountMember();
@@ -460,9 +462,6 @@ export function ShippingGroupManager() {
         items: selectedItems,
       };
 
-      console.log("shippingGroupRequest", shippingGroupRequest);
-      console.log("selectedItems", selectedItems);
-      console.log("groupData.data.id", groupData.data.id);
       // Associate items with the shipping group while preserving location information
       const updatePromises = selectedItems.map((itemId) => {
         // Find the current item to preserve its location
@@ -477,8 +476,6 @@ export function ShippingGroupManager() {
         if (currentItem?.location) {
           updateData.location = currentItem.location;
         }
-
-        console.log(`Updating item ${itemId} with:`, updateData);
 
         return fetch(`/api/carts/${cart?.id}/items/${itemId}`, {
           method: "PUT",
@@ -642,8 +639,6 @@ export function ShippingGroupManager() {
     setIsAttaching(true);
     try {
       // Attach items to the selected shipping group while preserving location information
-      console.log("itemsToAttach", itemsToAttach);
-      console.log("selectedGroupForAttach", selectedGroupForAttach);
       const updatePromises = itemsToAttach.map((itemId) => {
         // Find the current item to preserve its location
         const currentItem = cart?.items?.find(
@@ -805,7 +800,7 @@ export function ShippingGroupManager() {
             <p className="text-gray-600">
               Organize your cart items into shipping groups
             </p>
-            <DisableShippingGroupsLink />
+            {!hideDisableLink && <DisableShippingGroupsLink />}
           </div>
         </div>
         <div className="flex space-x-2">
