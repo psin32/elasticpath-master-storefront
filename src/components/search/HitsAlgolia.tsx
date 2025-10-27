@@ -25,6 +25,7 @@ import {
 } from "../../services/multi-location-inventory";
 import { getCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
+import AlgoliaExportButton from "./AlgoliaExportButton";
 
 export default function HitsAlgolia(): JSX.Element {
   const { hits, sendEvent } = useHits<SearchHit>();
@@ -39,11 +40,33 @@ export default function HitsAlgolia(): JSX.Element {
   const [inventories, setInventories] = useState<
     Record<string, Record<string, number>>
   >({});
+
+  // Extract locations from Algolia hits _qty fields
+  const algoliaLocations = useState(() => {
+    const locationSet = new Set<string>();
+
+    hits.forEach((hit) => {
+      Object.keys(hit).forEach((key) => {
+        if (key.endsWith("_qty") && !key.startsWith("replenish")) {
+          const locationSlug = key.replace("_qty", "");
+          locationSet.add(locationSlug);
+        }
+      });
+    });
+
+    return Array.from(locationSet).map((slug) => ({
+      slug,
+      name: slug.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+    }));
+  })[0];
   const [locations, setLocations] = useState<any[]>([]);
   const [useMultiLocation, setUseMultiLocation] = useState<boolean>(false);
   const [selectedLocationSlug, setSelectedLocationSlug] = useState<
     string | undefined
   >();
+  const [perProductSelectedLocation, setPerProductSelectedLocation] = useState<
+    Record<string, string>
+  >({});
   const { useScopedAddProductToCart, useScopedAddBulkProductToCart } =
     useCart();
   const { mutate } = useScopedAddProductToCart();
@@ -130,6 +153,13 @@ export default function HitsAlgolia(): JSX.Element {
     setItems(newItems);
   };
 
+  const handleLocationSelect = (productId: string, locationSlug: string) => {
+    setPerProductSelectedLocation((prev) => ({
+      ...prev,
+      [productId]: locationSlug,
+    }));
+  };
+
   const handleAddToCart = (productId: string) => {
     const item = items.find((item: any) => item.productId === productId);
     const data: any = {
@@ -138,20 +168,73 @@ export default function HitsAlgolia(): JSX.Element {
       },
     };
 
+    // Use per-product selected location if available, otherwise fall back to global cookie location
+    const effectiveLocationSlug =
+      perProductSelectedLocation[productId] || selectedLocationSlug;
+
     // Add location information if multi-location inventory is enabled
-    if (useMultiLocation && selectedLocationSlug) {
+    if (useMultiLocation && effectiveLocationSlug) {
       // Find location name from locations array
       const selectedLocation = locations.find(
-        (loc) => loc.attributes?.slug === selectedLocationSlug,
+        (loc) => loc.attributes?.slug === effectiveLocationSlug,
       );
       const locationName =
-        selectedLocation?.attributes?.name || selectedLocationSlug;
+        selectedLocation?.attributes?.name || effectiveLocationSlug;
 
       if (!data.custom_inputs.location) {
         data.custom_inputs.location = {};
       }
       data.custom_inputs.location.location_name = locationName;
-      data.location = selectedLocationSlug;
+      data.location = effectiveLocationSlug;
+    }
+
+    mutate(
+      { productId: item.productId, quantity: item.quantity, data },
+      {
+        onError: (response: any) => {
+          if (response?.errors) {
+            toast.error(response?.errors?.[0].detail, {
+              position: "top-center",
+              autoClose: 2000,
+              hideProgressBar: false,
+            });
+          }
+        },
+      },
+    );
+  };
+
+  const handleMakeAndShip = (productId: string, locationSlug?: string) => {
+    const item = items.find((item: any) => item.productId === productId);
+    const data: any = {
+      custom_inputs: {
+        additional_information: [],
+        order_type: "Make and Ship",
+        note: "This is make and ship order and we will notify when shipment is ready to dispatch",
+      },
+    };
+
+    // Use the specific location passed from the button, or fall back to per-product/global selection
+    const effectiveLocationSlug =
+      locationSlug ||
+      perProductSelectedLocation[productId] ||
+      selectedLocationSlug;
+
+    // Add location information if multi-location inventory is enabled
+    if (useMultiLocation && effectiveLocationSlug) {
+      // Find location name from locations array
+      const selectedLocation = locations.find(
+        (loc) => loc.attributes?.slug === effectiveLocationSlug,
+      );
+      const locationName =
+        selectedLocation?.attributes?.name || effectiveLocationSlug;
+
+      if (!data.custom_inputs.location) {
+        data.custom_inputs.location = {};
+      }
+      data.custom_inputs.location.location_name = locationName;
+      // Add "replenish-" prefix for Make and Ship orders
+      data.location = "replenish-" + effectiveLocationSlug;
     }
 
     mutate(
@@ -171,22 +254,19 @@ export default function HitsAlgolia(): JSX.Element {
   };
 
   const handleAllAddToCart = () => {
-    // Find location name from locations array
-    const selectedLocation = locations.find(
-      (loc) => loc.attributes?.slug === selectedLocationSlug,
-    );
-    const locationName =
-      selectedLocation?.attributes?.name || selectedLocationSlug;
-
     const cartItems: CartItemObject[] = items
       .filter((item: any) => {
         // Filter out items with no quantity
         if (!item.productId || item.quantity <= 0) return false;
 
+        // Use per-product selected location if available, otherwise fall back to global cookie location
+        const effectiveLocationSlug =
+          perProductSelectedLocation[item.productId] || selectedLocationSlug;
+
         // If multi-location is enabled, filter out items with no inventory at selected location
-        if (useMultiLocation && selectedLocationSlug) {
+        if (useMultiLocation && effectiveLocationSlug) {
           const productInventory = inventories[item.productId] || {};
-          const locationInventory = productInventory[selectedLocationSlug];
+          const locationInventory = productInventory[effectiveLocationSlug];
           return locationInventory !== undefined && locationInventory > 0;
         }
 
@@ -202,17 +282,28 @@ export default function HitsAlgolia(): JSX.Element {
           },
         };
 
+        // Use per-product selected location if available, otherwise fall back to global cookie location
+        const effectiveLocationSlug =
+          perProductSelectedLocation[item.productId] || selectedLocationSlug;
+
         // Add location information if multi-location inventory is enabled
-        if (useMultiLocation && selectedLocationSlug) {
+        if (useMultiLocation && effectiveLocationSlug) {
           const productInventory = inventories[item.productId] || {};
-          const locationInventory = productInventory[selectedLocationSlug];
+          const locationInventory = productInventory[effectiveLocationSlug];
+
+          // Find location name from locations array
+          const selectedLocation = locations.find(
+            (loc) => loc.attributes?.slug === effectiveLocationSlug,
+          );
+          const locationName =
+            selectedLocation?.attributes?.name || effectiveLocationSlug;
 
           if (!data.custom_inputs.location) {
             data.custom_inputs.location = {};
           }
           data.custom_inputs.location.location_name = locationName;
           data.custom_inputs.location.available_quantity = locationInventory;
-          data.location = selectedLocationSlug;
+          data.location = effectiveLocationSlug;
         }
 
         return data;
@@ -290,6 +381,14 @@ export default function HitsAlgolia(): JSX.Element {
                   Add All Items to Cart
                 </StatusButton>
               )}
+              {/* Algolia Export Button - shows when there are _qty fields in hits */}
+              {algoliaLocations.length > 0 && (
+                <AlgoliaExportButton
+                  hits={hits}
+                  products={products?.data || []}
+                  locations={algoliaLocations}
+                />
+              )}
               <div>
                 <button
                   onClick={toggleView}
@@ -339,15 +438,20 @@ export default function HitsAlgolia(): JSX.Element {
                       (item: any) => item.productId === hit.objectID,
                     )?.items?.included?.main_images;
 
+                    // Use per-product selected location if available, otherwise fall back to global cookie location
+                    const effectiveLocationSlug =
+                      perProductSelectedLocation[hit.objectID] ||
+                      selectedLocationSlug;
+
                     // Check inventory for selected location
                     const productInventory = inventories[hit.objectID] || {};
-                    const locationInventory = selectedLocationSlug
-                      ? productInventory[selectedLocationSlug]
+                    const locationInventory = effectiveLocationSlug
+                      ? productInventory[effectiveLocationSlug]
                       : undefined;
 
                     const hasInventory =
                       !useMultiLocation ||
-                      !selectedLocationSlug ||
+                      !effectiveLocationSlug ||
                       (locationInventory !== undefined &&
                         locationInventory > 0);
 
@@ -363,10 +467,16 @@ export default function HitsAlgolia(): JSX.Element {
                           onGetVariants={getVariants}
                           hasInventory={hasInventory}
                           availableQuantity={
-                            useMultiLocation && selectedLocationSlug
+                            useMultiLocation && effectiveLocationSlug
                               ? locationInventory
                               : undefined
                           }
+                          useMultiLocation={useMultiLocation}
+                          locations={locations}
+                          productInventory={productInventory}
+                          selectedLocationSlug={effectiveLocationSlug}
+                          onLocationSelect={handleLocationSelect}
+                          onMakeAndShip={handleMakeAndShip}
                         />
                         {product.meta.variation_matrix &&
                           child?.map((item: any) => {

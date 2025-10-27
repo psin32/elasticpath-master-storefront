@@ -14,6 +14,9 @@ export default function SettingsPage() {
   const [useMultiLocationInventory, setUseMultiLocationInventory] = useState<
     boolean | undefined
   >(undefined);
+  const [showInventoryOnPLP, setShowInventoryOnPLP] = useState<
+    boolean | undefined
+  >(undefined);
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -32,6 +35,9 @@ export default function SettingsPage() {
     const multiLocationValue = getCookie("use_multi_location_inventory");
     // Default to true (enabled) if cookie doesn't exist
     setUseMultiLocationInventory(multiLocationValue !== "false");
+
+    const showInventoryOnPLPValue = getCookie("show_inventory_on_plp");
+    setShowInventoryOnPLP(showInventoryOnPLPValue === "true");
   }, []);
 
   useEffect(() => {
@@ -53,8 +59,8 @@ export default function SettingsPage() {
       maxAge: 60 * 60 * 24 * 365, // 1 year
       sameSite: "lax",
     });
-    setSaved(true);
-    const timeout = setTimeout(() => setSaved(false), 1200);
+    setSaved(false);
+    const timeout = setTimeout(() => setSaved(true), 1200);
     return () => clearTimeout(timeout);
   }, [useShippingGroups]);
 
@@ -86,11 +92,24 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [useMultiLocationInventory]);
 
+  useEffect(() => {
+    if (showInventoryOnPLP === undefined) return;
+    setCookie("show_inventory_on_plp", showInventoryOnPLP.toString(), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      sameSite: "lax",
+    });
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [showInventoryOnPLP]);
+
   if (
     productSource === undefined ||
     useShippingGroups === undefined ||
     paymentMode === undefined ||
-    useMultiLocationInventory === undefined
+    useMultiLocationInventory === undefined ||
+    showInventoryOnPLP === undefined
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -346,6 +365,58 @@ export default function SettingsPage() {
             <span
               className={
                 useMultiLocationInventory
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Enabled
+            </span>
+          </div>
+        </div>
+        {/* Show Inventory On PLP Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">
+              Show Inventory On PLP
+            </span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Enable showing inventory on the product listing page.
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                !showInventoryOnPLP
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Disabled
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle show inventory on PLP"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${showInventoryOnPLP ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setShowInventoryOnPLP(!showInventoryOnPLP);
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${showInventoryOnPLP ? "translate-x-7 bg-white border border-brand-primary" : "translate-x-1 bg-white border border-gray-400"}
+                `}
+              />
+            </button>
+            <span
+              className={
+                showInventoryOnPLP
                   ? "font-semibold text-brand-primary"
                   : "text-gray-500"
               }

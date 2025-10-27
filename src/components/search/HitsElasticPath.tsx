@@ -28,6 +28,7 @@ import {
 } from "../../services/multi-location-inventory";
 import { getCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "../../lib/resolve-cart-env";
+import ExportButton from "./ExportButton";
 
 export default function HitsElasticPath({
   adminDisplay,
@@ -306,6 +307,13 @@ export default function HitsElasticPath({
                 >
                   Add All Items to Cart
                 </StatusButton>
+              )}
+              {useMultiLocation && page.data && (
+                <ExportButton
+                  products={page.data.map((item: any) => item.response)}
+                  inventories={inventories}
+                  locations={locations}
+                />
               )}
               {!adminDisplay && (
                 <div>
