@@ -11,7 +11,7 @@ import { useCart } from "../../react-shopper-hooks";
 import { StatusButton } from "../button/StatusButton";
 import { toast } from "react-toastify";
 import {
-  parsePDF,
+  parsePDFWithOpenAI,
   parseTextFile,
   itemsToText,
   validateItems,
@@ -60,15 +60,35 @@ const BulkOrder = () => {
     setPdfParseErrors([]);
 
     try {
-      const result = isPDF ? await parsePDF(file) : await parseTextFile(file);
+      const result = isPDF
+        ? await parsePDFWithOpenAI(file)
+        : await parseTextFile(file);
 
       if (result.errors.length > 0) {
         setPdfParseErrors(result.errors);
-        toast.warning(`File parsed with ${result.errors.length} warnings`, {
-          position: "top-center",
-          autoClose: 3000,
-          hideProgressBar: false,
-        });
+
+        // Check if it's an API key error
+        const isApiKeyError = result.errors.some(
+          (err: string) =>
+            err.includes("API key") || err.includes("Invalid OpenAI"),
+        );
+
+        if (isApiKeyError) {
+          toast.error(
+            "Invalid OpenAI API key. Please use the regular PDF parser.",
+            {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+            },
+          );
+        } else {
+          toast.warning(`File parsed with ${result.errors.length} warnings`, {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+          });
+        }
       }
 
       if (result.items.length > 0) {
@@ -169,6 +189,16 @@ const BulkOrder = () => {
       {errors?.length > 0 && (
         <ErrorOverlay errors={errors} onClose={handleCloseOverlay} />
       )}
+      {isParsingPDF && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+            <span className="text-blue-800 font-medium">
+              Processing PDF with AI... This may take a moment.
+            </span>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center mb-4">
         <div className="text-left">
           <div>Add product by SKU</div>
@@ -196,7 +226,7 @@ const BulkOrder = () => {
             className="flex items-center text-brand-primary cursor-pointer hover:text-brand-secondary"
           >
             <DocumentIcon className="h-5 w-5 mr-2" />
-            {isParsingPDF ? "Parsing File..." : "Import PDF/TXT File"}
+            Import PDF/TXT File
           </label>
           <input
             id="file-upload"
