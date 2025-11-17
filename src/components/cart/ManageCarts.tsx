@@ -40,6 +40,9 @@ export function ManageCarts({ token }: ManageCartsProps) {
     },
   ]);
 
+  // Check if preview is enabled
+  const previewEnabled = getCookie("preview_enabled") === "true";
+
   const handleDeleteRow = (index: number) => {
     const newCustomFields = customFields.slice();
     newCustomFields.splice(index, 1);
@@ -212,6 +215,14 @@ export function ManageCarts({ token }: ManageCartsProps) {
                           >
                             Updated
                           </th>
+                          {previewEnabled && (
+                            <th
+                              scope="col"
+                              className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                            >
+                              Preview Date
+                            </th>
+                          )}
                           <th
                             scope="col"
                             className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-28"
@@ -275,6 +286,26 @@ export function ManageCarts({ token }: ManageCartsProps) {
                                   </div>
                                 </div>
                               </td>
+                              {previewEnabled && (
+                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-800">
+                                  {cart.snapshot_date ? (
+                                    <div>
+                                      <div>
+                                        {formatIsoDateString(
+                                          cart.snapshot_date,
+                                        )}
+                                      </div>
+                                      <div className="mt-1 text-xs leading-5 text-gray-500">
+                                        {formatIsoTimeString(
+                                          cart.snapshot_date,
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400">—</span>
+                                  )}
+                                </td>
+                              )}
                               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 w-28">
                                 <div className="text-right">
                                   <Menu

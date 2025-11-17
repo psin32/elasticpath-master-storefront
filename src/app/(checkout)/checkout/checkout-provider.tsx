@@ -168,11 +168,37 @@ export function StripeCheckoutProvider({
         }
       },
       onError: (error: any) => {
-        // Surface error to user and console
-        const message =
-          error?.message ||
-          (typeof error === "string" ? error : "Unknown error");
-        toast.error("Payment failed: " + message);
+        // Check if error is about snapshot_date
+        const errorDetail =
+          error?.errors?.[0]?.detail ||
+          error?.response?.data?.errors?.[0]?.detail ||
+          error?.data?.errors?.[0]?.detail;
+
+        const isSnapshotDateError =
+          errorDetail &&
+          typeof errorDetail === "string" &&
+          errorDetail.toLowerCase().includes("snapshot date");
+
+        if (isSnapshotDateError) {
+          toast.error(
+            "Cannot checkout with preview date. Please create new cart to continue.",
+            {
+              position: "top-center",
+              autoClose: 5000,
+            },
+          );
+        } else {
+          // Surface other errors to user and console
+          const message =
+            errorDetail ||
+            error?.message ||
+            error?.response?.data?.errors?.[0]?.detail ||
+            (typeof error === "string" ? error : "Unknown error");
+          toast.error("Payment failed: " + message, {
+            position: "top-center",
+            autoClose: 5000,
+          });
+        }
         console.error("Payment error:", error);
       },
     },

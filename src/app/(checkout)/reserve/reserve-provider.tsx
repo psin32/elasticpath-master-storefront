@@ -134,11 +134,34 @@ export function ReserveProvider({ children, cart }: ReserveProviderProps) {
           position: "top-center",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reserve order error:", error);
-      toast.error("Failed to reserve order. Please try again.", {
-        position: "top-center",
-      });
+      
+      // Check if error is about snapshot_date
+      const errorDetail =
+        error?.errors?.[0]?.detail ||
+        error?.response?.data?.errors?.[0]?.detail ||
+        error?.data?.errors?.[0]?.detail;
+      
+      const isSnapshotDateError =
+        errorDetail &&
+        typeof errorDetail === "string" &&
+        errorDetail.toLowerCase().includes("snapshot date");
+
+      if (isSnapshotDateError) {
+        toast.error(
+          "Cannot reserve order with preview date. Please remove the preview date from your cart to continue.",
+          {
+            position: "top-center",
+            autoClose: 5000,
+          },
+        );
+      } else {
+        toast.error("Failed to reserve order. Please try again.", {
+          position: "top-center",
+          autoClose: 5000,
+        });
+      }
     }
   };
 

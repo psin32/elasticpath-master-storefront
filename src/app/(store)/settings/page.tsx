@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { getCookie, setCookie } from "cookies-next";
+import { getCookie, setCookie, deleteCookie } from "cookies-next";
 
 export default function SettingsPage() {
   // Start with undefined, only set after reading cookie
@@ -17,6 +17,9 @@ export default function SettingsPage() {
   const [showInventoryOnPLP, setShowInventoryOnPLP] = useState<
     boolean | undefined
   >(undefined);
+  const [previewEnabled, setPreviewEnabled] = useState<boolean | undefined>(
+    undefined,
+  );
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -38,6 +41,9 @@ export default function SettingsPage() {
 
     const showInventoryOnPLPValue = getCookie("show_inventory_on_plp");
     setShowInventoryOnPLP(showInventoryOnPLPValue === "true");
+
+    const previewEnabledValue = getCookie("preview_enabled");
+    setPreviewEnabled(previewEnabledValue === "true");
   }, []);
 
   useEffect(() => {
@@ -104,12 +110,29 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [showInventoryOnPLP]);
 
+  useEffect(() => {
+    if (previewEnabled === undefined) return;
+    if (previewEnabled) {
+      setCookie("preview_enabled", "true", {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: "lax",
+      });
+    } else {
+      deleteCookie("preview_enabled", { path: "/" });
+    }
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [previewEnabled]);
+
   if (
     productSource === undefined ||
     useShippingGroups === undefined ||
     paymentMode === undefined ||
     useMultiLocationInventory === undefined ||
-    showInventoryOnPLP === undefined
+    showInventoryOnPLP === undefined ||
+    previewEnabled === undefined
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -417,6 +440,60 @@ export default function SettingsPage() {
             <span
               className={
                 showInventoryOnPLP
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Enabled
+            </span>
+          </div>
+        </div>
+        {/* Preview Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">Preview</span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Enable preview mode to view content before it goes live.
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                !previewEnabled
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Disabled
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle preview"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${previewEnabled ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setPreviewEnabled(!previewEnabled);
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${
+                    previewEnabled
+                      ? "translate-x-7 bg-white border border-brand-primary"
+                      : "translate-x-1 bg-white border border-gray-400"
+                  }
+                `}
+              />
+            </button>
+            <span
+              className={
+                previewEnabled
                   ? "font-semibold text-brand-primary"
                   : "text-gray-500"
               }

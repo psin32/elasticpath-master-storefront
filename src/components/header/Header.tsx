@@ -14,6 +14,7 @@ import { SearchModalAlgolia } from "../search/SearchModalAlgolia";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
 import { SelectedAccount } from "./account/SelectedAccount";
 import BulkOrderButton from "./BulkOrderButton";
+import PreviewCartButton from "./PreviewCartButton";
 import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
@@ -89,6 +90,7 @@ const Header = async () => {
             {process.env.NEXT_PUBLIC_DISABLE_BULK_ORDER_LINK != "true" && (
               <BulkOrderButton />
             )}
+            <PreviewCartButton />
             {algoliaEnvData.enabled && <SearchModalAlgolia />}
             {enabledKlevu && <SearchModalKlevu />}
             {accountMemberTokens &&
