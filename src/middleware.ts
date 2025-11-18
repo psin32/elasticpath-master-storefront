@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { middlewareRunner } from "./lib/middleware/middleware-runner";
 import { implicitAuthMiddleware } from "./lib/middleware/implicit-auth-middleware";
 import { cartCookieMiddleware } from "./lib/middleware/cart-cookie-middleware";
+import { productRedirectMiddleware } from "./lib/middleware/product-redirect-middleware";
 
 export async function middleware(req: NextRequest) {
   return middlewareRunner(
@@ -13,6 +14,12 @@ export async function middleware(req: NextRequest) {
     },
     {
       runnable: cartCookieMiddleware,
+      options: {
+        exclude: ["/_next", "/configuration-error"],
+      },
+    },
+    {
+      runnable: productRedirectMiddleware,
       options: {
         exclude: ["/_next", "/configuration-error"],
       },

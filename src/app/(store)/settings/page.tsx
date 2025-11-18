@@ -20,6 +20,9 @@ export default function SettingsPage() {
   const [previewEnabled, setPreviewEnabled] = useState<boolean | undefined>(
     undefined,
   );
+  const [redirectEnabled, setRedirectEnabled] = useState<boolean | undefined>(
+    undefined,
+  );
   const [saved, setSaved] = useState(false);
 
   // On mount, sync state with cookie
@@ -44,6 +47,9 @@ export default function SettingsPage() {
 
     const previewEnabledValue = getCookie("preview_enabled");
     setPreviewEnabled(previewEnabledValue === "true");
+
+    const redirectEnabledValue = getCookie("redirect_enabled");
+    setRedirectEnabled(redirectEnabledValue === "true");
   }, []);
 
   useEffect(() => {
@@ -126,13 +132,30 @@ export default function SettingsPage() {
     return () => clearTimeout(timeout);
   }, [previewEnabled]);
 
+  useEffect(() => {
+    if (redirectEnabled === undefined) return;
+    if (redirectEnabled) {
+      setCookie("redirect_enabled", "true", {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365, // 1 year
+        sameSite: "lax",
+      });
+    } else {
+      deleteCookie("redirect_enabled", { path: "/" });
+    }
+    setSaved(true);
+    const timeout = setTimeout(() => setSaved(false), 1200);
+    return () => clearTimeout(timeout);
+  }, [redirectEnabled]);
+
   if (
     productSource === undefined ||
     useShippingGroups === undefined ||
     paymentMode === undefined ||
     useMultiLocationInventory === undefined ||
     showInventoryOnPLP === undefined ||
-    previewEnabled === undefined
+    previewEnabled === undefined ||
+    redirectEnabled === undefined
   ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -494,6 +517,61 @@ export default function SettingsPage() {
             <span
               className={
                 previewEnabled
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Enabled
+            </span>
+          </div>
+        </div>
+        {/* Redirect Toggle */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-gray-700">Enable Redirect</span>
+            {saved && (
+              <span className="text-brand-primary text-xs font-semibold">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 text-sm mb-4">
+            Enable automatic redirects for product pages when redirect rules are
+            configured.
+          </p>
+          <div className="flex items-center gap-4">
+            <span
+              className={
+                !redirectEnabled
+                  ? "font-semibold text-brand-primary"
+                  : "text-gray-500"
+              }
+            >
+              Disabled
+            </span>
+            <button
+              type="button"
+              aria-label="Toggle redirect"
+              className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary
+                ${redirectEnabled ? "bg-brand-primary" : "bg-gray-300"}`}
+              onClick={() => {
+                setRedirectEnabled(!redirectEnabled);
+                setTimeout(() => window.location.reload(), 100); // allow state/cookie to update
+              }}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full shadow transition-transform duration-200
+                  ${
+                    redirectEnabled
+                      ? "translate-x-7 bg-white border border-brand-primary"
+                      : "translate-x-1 bg-white border border-gray-400"
+                  }
+                `}
+              />
+            </button>
+            <span
+              className={
+                redirectEnabled
                   ? "font-semibold text-brand-primary"
                   : "text-gray-500"
               }
