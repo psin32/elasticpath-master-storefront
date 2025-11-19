@@ -2,7 +2,7 @@
 import React, { ReactElement, ReactNode, useState } from "react";
 import { ShopperProduct } from "../../../../react-shopper-hooks";
 import { VariationProductDetail } from "../../../../components/product/variations/VariationProduct";
-import BundleProductDetail from "../../../../components/product/bundles/BundleProduct";
+import BundleProductWrapper from "../../../../components/product/bundles/BundleProductWrapper";
 import { ProductContext } from "../../../../lib/product-context";
 import SimpleProductDetail from "../../../../components/product/SimpleProduct";
 import {
@@ -73,7 +73,7 @@ export function resolveProductDetailComponent(
       );
     case "bundle-product":
       return (
-        <BundleProductDetail
+        <BundleProductWrapper
           bundleProduct={product}
           offerings={offerings}
           content={content}

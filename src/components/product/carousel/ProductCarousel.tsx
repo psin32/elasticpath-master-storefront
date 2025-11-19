@@ -1,6 +1,6 @@
 import type { File } from "@elasticpath/js-sdk";
 import "pure-react-carousel/dist/react-carousel.es.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HorizontalCarousel from "./HorizontalCarousel";
 import ProductHighlightCarousel from "./ProductHighlightCarousel";
 
@@ -13,11 +13,31 @@ const ProductCarousel = ({
   images,
   mainImage,
 }: IProductCarousel): JSX.Element => {
-  const completeImages: File[] = [...(mainImage ? [mainImage] : []), ...images];
+  // Filter out images without link property
+  const validMainImage = mainImage?.link ? mainImage : null;
+  const validImages = images.filter((img) => img?.link);
+  const completeImages: File[] = [
+    ...(validMainImage ? [validMainImage] : []),
+    ...validImages,
+  ];
 
-  const [selectedProductImage, setSelectedProductImage] = useState(
-    completeImages[0],
+  const [selectedProductImage, setSelectedProductImage] = useState<File | null>(
+    completeImages[0] || null,
   );
+
+  // Update selected image when images change
+  useEffect(() => {
+    if (completeImages.length > 0 && completeImages[0]?.link) {
+      setSelectedProductImage(completeImages[0]);
+    } else {
+      setSelectedProductImage(null);
+    }
+  }, [mainImage, images]);
+
+  // Don't render if no images available
+  if (!selectedProductImage || !selectedProductImage.link) {
+    return <div>No images available</div>;
+  }
 
   return (
     <div className="grid-cols-auto grid gap-6 w-full">
