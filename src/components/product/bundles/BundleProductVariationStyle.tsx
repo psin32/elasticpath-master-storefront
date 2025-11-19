@@ -211,7 +211,28 @@ export default function BundleProductVariationStyle({
 
         // Get product name (with variation support)
         const productName = (() => {
-          // Check if product has variation information
+          // First check for child_variations in meta
+          const childVariations = (productTile.product.meta as any)
+            ?.child_variations;
+          if (
+            childVariations &&
+            Array.isArray(childVariations) &&
+            childVariations.length > 0
+          ) {
+            // Extract option names from child_variations
+            const variationNames: string[] = [];
+            childVariations.forEach((childVariation: any) => {
+              if (childVariation?.option?.name) {
+                variationNames.push(childVariation.option.name);
+              }
+            });
+            // Return variation names joined smartly
+            if (variationNames.length > 0) {
+              return variationNames.join(" / ");
+            }
+          }
+
+          // Fallback: Check if product has variation information
           const variationMatrix = productTile.product.meta?.variation_matrix;
           const variations = productTile.product.meta?.variations;
 

@@ -38,8 +38,6 @@ export async function POST(req: NextRequest) {
       purpose: "user_data",
     });
 
-    console.log("File uploaded, ID:", uploadedFile.id);
-
     // 2) Use the Responses API with structured outputs
     const response = await openai.responses.create({
       model: "gpt-4o",

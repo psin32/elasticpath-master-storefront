@@ -118,10 +118,19 @@ function BundleProductVariationStylePageContainer({
       : undefined;
 
     // Get other images (files) - only those that belong to this product
-    const selectedOtherImages = componentProductImages.filter((img: any) => {
+    // Deduplicate by image ID to avoid showing the same image multiple times
+    const imageMap = new Map<string, any>();
+    componentProductImages.forEach((img: any) => {
       // Include if it's in the fileIds array (but not the main image)
-      return fileIds.includes(img.id) && img.id !== mainImageId;
+      if (fileIds.includes(img.id) && img.id !== mainImageId) {
+        // Only add if we haven't seen this image ID before
+        if (!imageMap.has(img.id)) {
+          imageMap.set(img.id, img);
+        }
+      }
     });
+
+    const selectedOtherImages = Array.from(imageMap.values());
 
     return {
       mainImage: selectedMainImage,
@@ -177,8 +186,33 @@ function BundleProductVariationStylePageContainer({
                 {selectedProduct ? (
                   <div>
                     <span className="text-xl font-semibold leading-[1.1] sm:text-3xl lg:text-4xl">
-                      {selectedProduct.attributes?.name ||
-                        response.attributes.name}
+                      {(() => {
+                        // First check for child_variations in meta
+                        const childVariations = (selectedProduct.meta as any)
+                          ?.child_variations;
+                        if (
+                          childVariations &&
+                          Array.isArray(childVariations) &&
+                          childVariations.length > 0
+                        ) {
+                          // Extract option names from child_variations
+                          const variationNames: string[] = [];
+                          childVariations.forEach((childVariation: any) => {
+                            if (childVariation?.option?.name) {
+                              variationNames.push(childVariation.option.name);
+                            }
+                          });
+                          // Return variation names joined smartly
+                          if (variationNames.length > 0) {
+                            return variationNames.join(" / ");
+                          }
+                        }
+                        // Fall back to product name
+                        return (
+                          selectedProduct.attributes?.name ||
+                          response.attributes.name
+                        );
+                      })()}
                     </span>
                     <div className="text-lg mt-2">
                       {selectedProduct.attributes?.sku ||

@@ -70,8 +70,6 @@ export function BundleProductProvider({
     },
     componentProductImages: srcComponentProductImages,
   } = configuredProduct;
-  console.log("initBundleConfiguration", initBundleConfiguration);
-  console.log("srcComponents", srcComponents);
 
   if (!initBundleConfiguration) {
     throw new Error(
