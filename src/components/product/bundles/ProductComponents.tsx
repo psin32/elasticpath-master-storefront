@@ -167,9 +167,12 @@ const ProductComponents = ({
     }
 
     // Parse selected options and apply quantities
+    // Use original components (not expandedComponents) to check for parent products
+    // because expandedComponents don't have parent product options anymore
     const selectedOptionsData = formSelectedOptionsToData(
       values.selectedOptions,
       quantities,
+      components, // Pass original components to filter out parent products
     );
     updateSelectedOptions(selectedOptionsData);
 

@@ -5,6 +5,7 @@ import React, {
   SetStateAction,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
@@ -69,6 +70,8 @@ export function BundleProductProvider({
     },
     componentProductImages: srcComponentProductImages,
   } = configuredProduct;
+  console.log("initBundleConfiguration", initBundleConfiguration);
+  console.log("srcComponents", srcComponents);
 
   if (!initBundleConfiguration) {
     throw new Error(
@@ -91,25 +94,136 @@ export function BundleProductProvider({
     components,
   ]);
 
-  const [selectedOptions, setSelectedOptions] =
+  const [selectedOptionsState, setSelectedOptionsRaw] =
     useState<BundleConfigurationSelectedOptions>(
       initBundleConfiguration.selected_options,
     );
 
+  // Wrapper to filter out parent product options when setting selected options
+  const setSelectedOptions = useCallback(
+    (
+      value:
+        | BundleConfigurationSelectedOptions
+        | ((
+            prev: BundleConfigurationSelectedOptions,
+          ) => BundleConfigurationSelectedOptions),
+    ) => {
+      setSelectedOptionsRaw((prev) => {
+        const newOptions = typeof value === "function" ? value(prev) : value;
+
+        // Filter out parent product options (those with product_should_be_substituted_with_child === true)
+        const filteredOptions: BundleConfigurationSelectedOptions = {};
+
+        for (const [componentKey, componentSelectedOptions] of Object.entries(
+          newOptions,
+        )) {
+          if (!componentSelectedOptions) {
+            filteredOptions[componentKey] = componentSelectedOptions;
+            continue;
+          }
+
+          const component = srcComponents[componentKey];
+          if (!component) {
+            filteredOptions[componentKey] = componentSelectedOptions;
+            continue;
+          }
+
+          const filteredComponentOptions: Record<string, number> = {};
+
+          // Only keep options that are NOT parent products
+          for (const [optionId, quantity] of Object.entries(
+            componentSelectedOptions,
+          )) {
+            const option = component.options?.find(
+              (opt: any) => opt.id === optionId,
+            );
+            const shouldSubstituteWithChild =
+              (option as any)?.product_should_be_substituted_with_child ===
+              true;
+
+            // Only include if it's NOT a parent product that should be substituted
+            if (!shouldSubstituteWithChild) {
+              filteredComponentOptions[optionId] = quantity;
+            }
+          }
+
+          filteredOptions[componentKey] = filteredComponentOptions;
+        }
+
+        // Check if the filtered options are actually different from previous state
+        // to prevent unnecessary re-renders and infinite loops
+        const prevKeys = Object.keys(prev || {});
+        const filteredKeys = Object.keys(filteredOptions);
+
+        if (prevKeys.length !== filteredKeys.length) {
+          return filteredOptions;
+        }
+
+        // Deep comparison of the options
+        for (const key of filteredKeys) {
+          const prevOptions = prev?.[key] || {};
+          const filteredOpts = filteredOptions[key] || {};
+          const prevOptKeys = Object.keys(prevOptions);
+          const filteredOptKeys = Object.keys(filteredOpts);
+
+          if (prevOptKeys.length !== filteredOptKeys.length) {
+            return filteredOptions;
+          }
+
+          for (const optKey of filteredOptKeys) {
+            if (prevOptions[optKey] !== filteredOpts[optKey]) {
+              return filteredOptions;
+            }
+          }
+        }
+
+        // If nothing changed, return previous state to prevent re-render
+        return prev;
+      });
+    },
+    [srcComponents],
+  );
+
+  // Use the state value for selectedOptions
+  const selectedOptions = selectedOptionsState;
+
+  const isConfiguringRef = useRef(false);
+  const lastConfiguredOptionsRef = useRef<string>("");
+
   const configureBundle = useCallback(
     async (selectedOptions: BundleConfigurationSelectedOptions) => {
+      // Prevent concurrent calls
+      if (isConfiguringRef.current) {
+        return;
+      }
+
+      // Create a stable string representation for comparison
+      const optionsKey = JSON.stringify(selectedOptions);
+
+      // Skip if we're configuring the same options
+      if (lastConfiguredOptionsRef.current === optionsKey) {
+        return;
+      }
+
       const { success: isValid } = validator(selectedOptions);
 
       if (isValid) {
-        const updatedBundleProduct = await _configureBundle(
-          configuredProduct.response.id,
-          selectedOptions,
-          client,
-        );
-        setConfiguredProduct((prevState) => ({
-          ...prevState,
-          response: updatedBundleProduct,
-        }));
+        isConfiguringRef.current = true;
+        lastConfiguredOptionsRef.current = optionsKey;
+
+        try {
+          const updatedBundleProduct = await _configureBundle(
+            configuredProduct.response.id,
+            selectedOptions,
+            client,
+          );
+          setConfiguredProduct((prevState) => ({
+            ...prevState,
+            response: updatedBundleProduct,
+          }));
+        } finally {
+          isConfiguringRef.current = false;
+        }
       }
     },
     [configuredProduct, setConfiguredProduct, validator, client],
@@ -118,6 +232,7 @@ export function BundleProductProvider({
   // Sync the configured product details when selected options change
   useEffect(() => {
     configureBundle(selectedOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedOptions]);
 
   return (
