@@ -186,33 +186,8 @@ function BundleProductVariationStylePageContainer({
                 {selectedProduct ? (
                   <div>
                     <span className="text-xl font-semibold leading-[1.1] sm:text-3xl lg:text-4xl">
-                      {(() => {
-                        // First check for child_variations in meta
-                        const childVariations = (selectedProduct.meta as any)
-                          ?.child_variations;
-                        if (
-                          childVariations &&
-                          Array.isArray(childVariations) &&
-                          childVariations.length > 0
-                        ) {
-                          // Extract option names from child_variations
-                          const variationNames: string[] = [];
-                          childVariations.forEach((childVariation: any) => {
-                            if (childVariation?.option?.name) {
-                              variationNames.push(childVariation.option.name);
-                            }
-                          });
-                          // Return variation names joined smartly
-                          if (variationNames.length > 0) {
-                            return variationNames.join(" / ");
-                          }
-                        }
-                        // Fall back to product name
-                        return (
-                          selectedProduct.attributes?.name ||
-                          response.attributes.name
-                        );
-                      })()}
+                      {selectedProduct.attributes?.name ||
+                        response.attributes.name}
                     </span>
                     <div className="text-lg mt-2">
                       {selectedProduct.attributes?.sku ||

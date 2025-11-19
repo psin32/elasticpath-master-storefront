@@ -223,7 +223,7 @@ export default function BundleProductVariationStyle({
             const variationNames: string[] = [];
             childVariations.forEach((childVariation: any) => {
               if (childVariation?.option?.name) {
-                variationNames.push(childVariation.option.name);
+                variationNames.push(childVariation.option.description);
               }
             });
             // Return variation names joined smartly
