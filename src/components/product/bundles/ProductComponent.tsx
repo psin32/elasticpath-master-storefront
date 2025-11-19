@@ -197,8 +197,33 @@ function CheckboxComponentOption({
         !selectedOptionKey.some((optionKey) => optionKey === option.id)) ||
       hasSiblingChildSelected; // Disable if another child from same parent is selected
 
-  const { display_price, original_display_price, sale_id } =
-    (product?.meta?.component_products?.[optionProduct.id] as any) || {};
+  // Get price from configured bundle (if option is selected) or from product itself
+  const configuredPrice = product?.meta?.component_products?.[
+    optionProduct.id
+  ] as any;
+
+  // For child products, show original price if it exists, otherwise show regular price
+  // For regular products, show both prices (with strikethrough for original)
+  let display_price, original_display_price;
+  if (isChildProduct) {
+    // Child products: use original price as main price if available, otherwise use display price
+    const originalPrice =
+      configuredPrice?.original_display_price ||
+      optionProduct.meta?.original_display_price;
+    display_price =
+      originalPrice ||
+      configuredPrice?.display_price ||
+      optionProduct.meta?.display_price;
+    original_display_price = undefined; // Don't show strikethrough for child products
+  } else {
+    // Regular products: show both prices with strikethrough
+    display_price =
+      configuredPrice?.display_price || optionProduct.meta?.display_price;
+    original_display_price =
+      configuredPrice?.original_display_price ||
+      optionProduct.meta?.original_display_price;
+  }
+  const sale_id = configuredPrice?.sale_id;
 
   const name = `selectedOptions.${componentKey}`;
   const inputId = `${name}.${option.id}`;
@@ -309,7 +334,7 @@ function CheckboxComponentOption({
           <div className="ml-4 mt-2 flex-1">
             <p className="text-sm">{optionProduct.attributes.name}</p>
             <p className="text-sm">
-              {display_price && (
+              {display_price ? (
                 <div className="flex items-center mb-2 mt-2">
                   {original_display_price && (
                     <StrikePrice
@@ -341,7 +366,7 @@ function CheckboxComponentOption({
                     size="text-md"
                   />
                 </div>
-              )}
+              ) : null}
             </p>
 
             {/* Sale message under the price */}
