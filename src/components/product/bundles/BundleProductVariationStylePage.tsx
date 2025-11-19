@@ -101,27 +101,33 @@ function BundleProductVariationStylePageContainer({
   // Get selected product's images
   const selectedProductImages = useMemo(() => {
     if (!selectedProduct) {
-      return { mainImage: main_image, otherImages };
+      return { mainImage: main_image, otherImages: otherImages || [] };
     }
 
-    // Get main image using file lookup utility
-    const selectedMainImage = getMainImageForProductResponse(
-      selectedProduct,
-      componentProductImages,
-    );
+    // Get main image ID from selected product
+    const mainImageId = selectedProduct.relationships?.main_image?.data?.id;
 
-    // Get other images using file lookup utility
-    const selectedOtherImages =
-      getOtherImagesForProductResponse(
-        selectedProduct,
-        componentProductImages,
-      ) || [];
+    // Get file IDs from selected product
+    const fileIds =
+      selectedProduct.relationships?.files?.data?.map((f: any) => f.id) || [];
+
+    // Filter componentProductImages to only include images/files for this specific product
+    const selectedMainImage = mainImageId
+      ? componentProductImages.find((img: any) => img.id === mainImageId) ||
+        undefined
+      : undefined;
+
+    // Get other images (files) - only those that belong to this product
+    const selectedOtherImages = componentProductImages.filter((img: any) => {
+      // Include if it's in the fileIds array (but not the main image)
+      return fileIds.includes(img.id) && img.id !== mainImageId;
+    });
 
     return {
       mainImage: selectedMainImage,
       otherImages: selectedOtherImages,
     };
-  }, [selectedProduct, main_image, otherImages, componentProductImages]);
+  }, [selectedProduct?.id, main_image, otherImages, componentProductImages]);
 
   const submit = useCallback(async () => {
     if (!selectedProductId) {
@@ -150,6 +156,7 @@ function BundleProductVariationStylePageContainer({
               selectedProductImages.mainImage &&
               selectedProductImages.mainImage.link ? (
                 <ProductCarousel
+                  key={selectedProductId}
                   images={selectedProductImages.otherImages}
                   mainImage={selectedProductImages.mainImage}
                 />
