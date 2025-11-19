@@ -1,4 +1,5 @@
 import { BundleConfigurationSelectedOptions } from "../../../react-shopper-hooks";
+import { ProductComponents } from "@elasticpath/js-sdk";
 
 export interface FormSelectedOptions {
   [key: string]: string[];
@@ -34,8 +35,11 @@ export function selectedOptionsToFormValues(
 export function formSelectedOptionsToData(
   selectedOptions: FormSelectedOptions,
   quantities?: FormQuantities,
+  components?: ProductComponents,
 ): BundleConfigurationSelectedOptions {
-  return Object.keys(selectedOptions).reduce((acc, componentKey) => {
+  const filteredOptions: BundleConfigurationSelectedOptions = Object.keys(
+    selectedOptions,
+  ).reduce((acc, componentKey) => {
     const componentOptions = selectedOptions[componentKey];
 
     return {
@@ -46,23 +50,53 @@ export function formSelectedOptionsToData(
             optionStr,
           ) as BundleConfigurationSelectedOptions[0];
 
+          // Filter out parent product options (those with product_should_be_substituted_with_child === true)
+          const filteredParsed: BundleConfigurationSelectedOptions[0] = {};
+          Object.keys(parsed).forEach((optionId) => {
+            // Check if this option has product_should_be_substituted_with_child === true
+            const component = components?.[componentKey];
+            const option = component?.options?.find(
+              (opt: any) => opt.id === optionId,
+            );
+            const shouldSubstituteWithChild =
+              (option as any)?.product_should_be_substituted_with_child ===
+              true;
+
+            // Only include if it's NOT a parent product that should be substituted
+            if (!shouldSubstituteWithChild) {
+              filteredParsed[optionId] = parsed[optionId];
+            }
+          });
+
           // If quantities are provided, use them instead of the default quantity
           if (quantities && quantities[componentKey]) {
-            Object.keys(parsed).forEach((optionId) => {
+            Object.keys(filteredParsed).forEach((optionId) => {
               const quantity = quantities[componentKey][optionId];
               if (quantity !== undefined) {
-                parsed[optionId] = quantity;
+                filteredParsed[optionId] = quantity;
               }
             });
           }
 
           return {
             ...innerAcc,
-            ...parsed,
+            ...filteredParsed,
           };
         },
         {} as BundleConfigurationSelectedOptions[0],
       ),
     };
-  }, {});
+  }, {} as BundleConfigurationSelectedOptions);
+
+  // Remove empty component entries
+  Object.keys(filteredOptions).forEach((componentKey) => {
+    if (
+      Object.keys(filteredOptions[componentKey] as Record<string, any>)
+        .length === 0
+    ) {
+      delete (filteredOptions as Record<string, any>)[componentKey];
+    }
+  });
+
+  return filteredOptions;
 }

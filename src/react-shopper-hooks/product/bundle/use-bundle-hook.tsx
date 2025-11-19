@@ -18,12 +18,14 @@ export function useBundle(): {
   bundleConfiguration: BundleConfiguration;
   setBundleConfiguration: (bundleConfiguration: BundleConfiguration) => void;
   componentProducts: ProductResponse[];
+  setComponentProducts: Dispatch<SetStateAction<ProductResponse[]>>;
   selectedOptions: BundleConfigurationSelectedOptions;
   configuredProduct: BundleProduct;
   updateSelectedOptions: (
     selectedOptions: BundleConfigurationSelectedOptions,
   ) => void;
   componentProductImages: File[];
+  setComponentProductImages: Dispatch<SetStateAction<File[]>>;
 } {
   const ctx = useContext(BundleProductContext);
 
@@ -39,10 +41,12 @@ export function useBundle(): {
     bundleConfiguration,
     setBundleConfiguration,
     componentProducts,
+    setComponentProducts,
     selectedOptions,
     configuredProduct,
     setSelectedOptions,
     componentProductImages,
+    setComponentProductImages,
   } = ctx;
 
   const updateSelectedOptions = useCallback(
@@ -58,9 +62,11 @@ export function useBundle(): {
     bundleConfiguration,
     setBundleConfiguration,
     componentProducts,
+    setComponentProducts,
     selectedOptions,
     configuredProduct,
     updateSelectedOptions,
     componentProductImages,
+    setComponentProductImages,
   };
 }

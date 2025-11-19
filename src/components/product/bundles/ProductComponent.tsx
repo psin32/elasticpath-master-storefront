@@ -11,6 +11,34 @@ import { ProductComponentOption, ProductResponse } from "@elasticpath/js-sdk";
 import { sortByOrder } from "./sort-by-order";
 import { useField, useFormikContext } from "formik";
 
+/**
+ * Filter out parent product options (those with product_should_be_substituted_with_child === true)
+ * from selected options for counting and validation purposes
+ */
+function filterParentProductOptions(
+  selectedOptions: Record<string, any>,
+  component: BundleComponent,
+): Record<string, any> {
+  // Handle null/undefined selectedOptions
+  if (!selectedOptions) {
+    return {};
+  }
+  
+  const filtered: Record<string, any> = {};
+  
+  Object.keys(selectedOptions).forEach((optionId) => {
+    const option = component.options.find((opt) => opt.id === optionId);
+    const shouldSubstituteWithChild = (option as any)?.product_should_be_substituted_with_child === true;
+    
+    // Only include if it's NOT a parent product that should be substituted
+    if (!shouldSubstituteWithChild) {
+      filtered[optionId] = selectedOptions[optionId];
+    }
+  });
+  
+  return filtered;
+}
+
 import clsx from "clsx";
 import Image from "next/image";
 import * as React from "react";
@@ -136,10 +164,12 @@ function CheckboxComponentOption({
     option.id,
   );
 
-  const selectedOptionKey = Object.keys(selected);
+  // Filter out parent product options for counting
+  const filteredSelected = filterParentProductOptions(selected, component);
+  const selectedOptionKey = Object.keys(filteredSelected);
 
   const reachedMax =
-    !!component.max && Object.keys(selected).length === component.max;
+    !!component.max && Object.keys(filteredSelected).length === component.max;
 
   const isDisabled = isRadio
     ? false // radios are only disabled if the whole field is disabled

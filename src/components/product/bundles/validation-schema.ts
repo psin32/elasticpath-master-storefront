@@ -5,17 +5,74 @@ import type {
 } from "../../../react-shopper-hooks";
 
 export const createBundleComponentSchema = (component: BundleComponent) => {
-  let schema = z.array(z.string());
+  let schema: z.ZodType<string[]> = z.array(z.string());
 
   const { min, max } = component;
 
-  if (min) {
-    schema = schema.min(min, `Must select at least ${min} options`);
-  }
+  // Add refinement to filter out parent products before counting
+  schema = schema.refine(
+    (options) => {
+      // Filter out parent product options (those with product_should_be_substituted_with_child === true)
+      const filteredOptions = options.filter((optionStr) => {
+        try {
+          const parsed = JSON.parse(optionStr);
+          const optionId = Object.keys(parsed)[0];
+          const option = component.options.find(
+            (opt: any) => opt.id === optionId,
+          );
+          const shouldSubstituteWithChild =
+            (option as any)?.product_should_be_substituted_with_child === true;
+          return !shouldSubstituteWithChild;
+        } catch {
+          return true; // Keep if parsing fails
+        }
+      });
 
-  if (max) {
-    schema = schema.max(max, `Must select no more than ${max} options`);
-  }
+      // Validate against filtered count
+      const filteredCount = filteredOptions.length;
+
+      if (min != null && filteredCount < min) {
+        return false;
+      }
+
+      if (max != null && filteredCount > max) {
+        return false;
+      }
+
+      return true;
+    },
+    (options) => {
+      // Filter to get actual count
+      const filteredOptions = options.filter((optionStr) => {
+        try {
+          const parsed = JSON.parse(optionStr);
+          const optionId = Object.keys(parsed)[0];
+          const option = component.options.find(
+            (opt: any) => opt.id === optionId,
+          );
+          const shouldSubstituteWithChild =
+            (option as any)?.product_should_be_substituted_with_child === true;
+          return !shouldSubstituteWithChild;
+        } catch {
+          return true;
+        }
+      });
+
+      const filteredCount = filteredOptions.length;
+      const { min, max } = component;
+
+      if (min != null && filteredCount < min) {
+        return { message: `Must select at least ${min} options` };
+      }
+
+      if (max != null && filteredCount > max) {
+        return { message: `Must select no more than ${max} options` };
+      }
+
+      return { message: "Invalid selection" };
+    },
+  );
+
   return schema;
 };
 

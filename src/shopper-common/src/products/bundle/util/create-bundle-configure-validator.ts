@@ -37,9 +37,25 @@ export const createBundleConfigureValidator = (
       bundleComponents,
     ).map((componentKey) => {
       const componentSelectedOptions = selectedOptions[componentKey] ?? {};
+      const component = bundleComponents[componentKey];
+
+      // Filter out parent product options (those with product_should_be_substituted_with_child === true)
+      const filteredOptions: Record<string, any> = {};
+      Object.keys(componentSelectedOptions).forEach((optionId) => {
+        const option = component.options?.find(
+          (opt: any) => opt.id === optionId,
+        );
+        const shouldSubstituteWithChild =
+          (option as any)?.product_should_be_substituted_with_child === true;
+
+        // Only include if it's NOT a parent product that should be substituted
+        if (!shouldSubstituteWithChild) {
+          filteredOptions[optionId] = componentSelectedOptions[optionId];
+        }
+      });
 
       const { min, max } = bundleComponents[componentKey] as any;
-      const result = validatePropertyCount(componentSelectedOptions, min, max);
+      const result = validatePropertyCount(filteredOptions, min, max);
 
       return { ...result, name: componentKey };
     });

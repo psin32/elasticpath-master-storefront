@@ -158,6 +158,7 @@ function BundleProductContainer({
       const selectedOptions = formSelectedOptionsToData(
         values.selectedOptions,
         values.quantities,
+        components,
       );
       // state?.id &&
       //   (await updateCustomAttributesForBundlesInCart(

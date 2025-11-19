@@ -167,3 +167,20 @@ export async function getNodesByIds(
   }
   return nodes;
 }
+
+/**
+ * Fetch child products by parent product ID
+ * Child products have base_product_id matching the parent product ID
+ */
+export async function getChildProductsByParentId(
+  parentProductId: string,
+  client: EPCCClient,
+): Promise<ShopperCatalogResourcePage<ProductResponse>> {
+  return client.ShopperCatalog.Products.With([
+    "main_image",
+    "files",
+    "component_products",
+  ]).GetProductChildren({
+    productId: parentProductId,
+  });
+}
