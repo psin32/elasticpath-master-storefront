@@ -23,19 +23,20 @@ function filterParentProductOptions(
   if (!selectedOptions) {
     return {};
   }
-  
+
   const filtered: Record<string, any> = {};
-  
+
   Object.keys(selectedOptions).forEach((optionId) => {
     const option = component.options.find((opt) => opt.id === optionId);
-    const shouldSubstituteWithChild = (option as any)?.product_should_be_substituted_with_child === true;
-    
+    const shouldSubstituteWithChild =
+      (option as any)?.product_should_be_substituted_with_child === true;
+
     // Only include if it's NOT a parent product that should be substituted
     if (!shouldSubstituteWithChild) {
       filtered[optionId] = selectedOptions[optionId];
     }
   });
-  
+
   return filtered;
 }
 
@@ -171,10 +172,30 @@ function CheckboxComponentOption({
   const reachedMax =
     !!component.max && Object.keys(filteredSelected).length === component.max;
 
+  // Check if this option is a child product and if another child from the same parent is selected
+  const parentProductId = (option as any)?.meta?.parent_product_id;
+  const isChildProduct = !!parentProductId;
+
+  // Find if any other child product from the same parent is already selected
+  // Check all selected options (not just filtered) to find sibling children
+  const allSelectedOptionKeys = Object.keys(selected || {});
+  const hasSiblingChildSelected = isChildProduct
+    ? allSelectedOptionKeys.some((selectedOptionId) => {
+        if (selectedOptionId === option.id) return false; // Don't disable self
+        const selectedOption = component.options?.find(
+          (opt) => opt.id === selectedOptionId,
+        );
+        const selectedParentId = (selectedOption as any)?.meta
+          ?.parent_product_id;
+        return selectedParentId === parentProductId;
+      })
+    : false;
+
   const isDisabled = isRadio
     ? false // radios are only disabled if the whole field is disabled
-    : reachedMax &&
-      !selectedOptionKey.some((optionKey) => optionKey === option.id);
+    : (reachedMax &&
+        !selectedOptionKey.some((optionKey) => optionKey === option.id)) ||
+      hasSiblingChildSelected; // Disable if another child from same parent is selected
 
   const { display_price, original_display_price, sale_id } =
     (product?.meta?.component_products?.[optionProduct.id] as any) || {};

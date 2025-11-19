@@ -78,13 +78,16 @@ const ProductComponents = ({
               // Create options for each child product
               for (const childProduct of childProductsResponse.data) {
                 // Create a new option for the child product
+                // Store parent product ID in meta for tracking
                 const childOption = {
                   id: childProduct.id,
                   type: "product_component_option",
                   quantity: 1,
                   sort_order: 0,
-                  meta: {},
-                } as ProductComponentOption;
+                  meta: {
+                    parent_product_id: parentId, // Store parent ID to track relationships
+                  },
+                } as any as ProductComponentOption;
 
                 expandedOptions.push(childOption);
                 expandedProds.push(childProduct);
