@@ -205,111 +205,134 @@ export default function BundleProductVariationStyle({
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div className="flex flex-wrap gap-2">
       {allProducts.map((productTile) => {
         const isSelected = selectedProductId === productTile.id;
 
-        return (
-          <button
-            type="button"
-            key={productTile.id}
-            onClick={() => handleProductSelect(productTile.id)}
-            className={clsx(
-              "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
-              isSelected
-                ? "border-brand-primary bg-brand-primary/5"
-                : "border-gray-300 hover:border-gray-400",
-            )}
-          >
-            {productTile.mainImage?.link?.href ? (
-              <div className="relative w-20 h-20">
-                <Image
-                  src={productTile.mainImage.link.href}
-                  alt={productTile.product.attributes?.name || ""}
-                  fill
-                  className="rounded object-contain"
-                  sizes="(max-width: 80px)"
-                />
-              </div>
-            ) : (
-              <div className="w-20 h-20 flex items-center justify-center">
-                <NoImage />
-              </div>
-            )}
-            <span className="text-sm font-medium text-center">
-              {(() => {
-                // Check if product has variation information
-                const variationMatrix =
-                  productTile.product.meta?.variation_matrix;
-                const variations = productTile.product.meta?.variations;
+        // Get product name (with variation support)
+        const productName = (() => {
+          // Check if product has variation information
+          const variationMatrix = productTile.product.meta?.variation_matrix;
+          const variations = productTile.product.meta?.variations;
 
-                if (
-                  variationMatrix &&
-                  variations &&
-                  Array.isArray(variations)
-                ) {
-                  // Extract variation option names/descriptions from variation_matrix
-                  const variationNames: string[] = [];
-                  Object.entries(variationMatrix).forEach(
-                    ([variationId, optionId]: [string, any]) => {
-                      const variation = variations.find(
-                        (v: any) => v.id === variationId,
-                      );
-                      if (variation) {
-                        const option = variation.options?.find(
-                          (opt: any) => opt.id === optionId,
-                        );
-                        if (option) {
-                          // Prefer description, fallback to name
-                          const optionText = option.description || option.name;
-                          if (optionText) {
-                            variationNames.push(optionText);
-                          }
-                        }
-                      }
-                    },
+          if (variationMatrix && variations && Array.isArray(variations)) {
+            // Extract variation option names/descriptions from variation_matrix
+            const variationNames: string[] = [];
+            Object.entries(variationMatrix).forEach(
+              ([variationId, optionId]: [string, any]) => {
+                const variation = variations.find(
+                  (v: any) => v.id === variationId,
+                );
+                if (variation) {
+                  const option = variation.options?.find(
+                    (opt: any) => opt.id === optionId,
                   );
-                  // Return variation name(s) if found, otherwise fall back to product name
-                  if (variationNames.length > 0) {
-                    return variationNames.join(" / ");
+                  if (option) {
+                    // Prefer description, fallback to name
+                    const optionText = option.description || option.name;
+                    if (optionText) {
+                      variationNames.push(optionText);
+                    }
                   }
                 }
-                // Fall back to product name
-                return productTile.product.attributes?.name || productTile.id;
-              })()}
-            </span>
-            {productTile.display_price && (
-              <div className="flex flex-col items-center gap-1">
-                {productTile.original_display_price && (
-                  <StrikePrice
-                    price={
-                      productTile.original_display_price?.without_tax
-                        ?.formatted ||
-                      productTile.original_display_price?.with_tax?.formatted
-                    }
-                    currency={
-                      productTile.original_display_price?.without_tax
-                        ?.currency ||
-                      productTile.original_display_price?.with_tax?.currency
-                    }
-                    size="text-xs"
-                  />
-                )}
-                <Price
-                  price={
-                    productTile.display_price?.without_tax?.formatted ||
-                    productTile.display_price?.with_tax?.formatted
-                  }
-                  currency={
-                    productTile.display_price?.without_tax?.currency ||
-                    productTile.display_price?.with_tax?.currency
-                  }
-                  original_display_price={productTile.original_display_price}
-                  size="text-sm"
-                />
-              </div>
+              },
+            );
+            // Return variation name(s) if found, otherwise fall back to product name
+            if (variationNames.length > 0) {
+              return variationNames.join(" / ");
+            }
+          }
+          // Fall back to product name
+          return productTile.product.attributes?.name || productTile.id;
+        })();
+
+        return (
+          <div
+            key={productTile.id}
+            className={clsx(
+              "w-full",
+              isSelected
+                ? "border-4 rounded-lg border-brand-primary bg-gradient-to-br from-brand-primary/5 via-brand-primary/10 to-brand-primary/15"
+                : "border-2 rounded-lg border-gray-500",
             )}
-          </button>
+          >
+            <button
+              type="button"
+              onClick={() => handleProductSelect(productTile.id)}
+              className="cursor-pointer w-full"
+            >
+              <div className="flex flex-row items-center justify-between w-full">
+                <div className="w-14 ml-4 mt-2">
+                  <div>
+                    <div className="relative aspect-square">
+                      {productTile.mainImage?.link?.href ? (
+                        <Image
+                          alt={productTile.mainImage?.id || productName}
+                          src={productTile.mainImage.link.href}
+                          className="rounded-lg"
+                          sizes="(max-width: 160px)"
+                          fill
+                          style={{
+                            objectFit: "contain",
+                            objectPosition: "center",
+                          }}
+                        />
+                      ) : (
+                        <NoImage />
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-4 mt-2 flex-1">
+                  <p className="text-sm text-left">{productName}</p>
+                  <p className="text-sm">
+                    {productTile.display_price ? (
+                      <div className="flex items-center mb-2 mt-2">
+                        {productTile.original_display_price && (
+                          <StrikePrice
+                            price={
+                              productTile.original_display_price?.without_tax
+                                ?.formatted
+                                ? productTile.original_display_price
+                                    ?.without_tax?.formatted
+                                : productTile.original_display_price.with_tax
+                                    .formatted
+                            }
+                            currency={
+                              productTile.original_display_price.without_tax
+                                ?.currency
+                                ? productTile.original_display_price
+                                    ?.without_tax?.currency
+                                : productTile.original_display_price.with_tax
+                                    .currency
+                            }
+                            size="text-md"
+                          />
+                        )}
+                        <Price
+                          price={
+                            productTile.display_price?.without_tax?.formatted
+                              ? productTile.display_price?.without_tax
+                                  ?.formatted
+                              : productTile.display_price.with_tax.formatted
+                          }
+                          currency={
+                            productTile.display_price?.without_tax?.currency
+                              ? productTile.display_price?.without_tax?.currency
+                              : productTile.display_price.with_tax.currency
+                          }
+                          original_display_price={
+                            productTile.original_display_price
+                          }
+                          size="text-md"
+                        />
+                      </div>
+                    ) : null}
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
         );
       })}
     </div>
