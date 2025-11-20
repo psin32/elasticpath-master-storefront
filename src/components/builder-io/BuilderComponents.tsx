@@ -6,6 +6,11 @@ const LazyProductGrid = dynamic(async () => {
   return (await import("./blocks/ProductGrid/ProductGrid")).ProductGrid;
 });
 
+const LazyProductGridAlgolia = dynamic(async () => {
+  return (await import("./blocks/ProductGrid/ProductGridAlgolia"))
+    .ProductGridAlgolia;
+});
+
 const LazyProductView = dynamic(
   () => import(`./blocks/ProductView/ProductView`),
   {
@@ -66,7 +71,8 @@ const gridSlotFields: Input[] = [
     type: "number",
     required: true,
     defaultValue: 1,
-    helperText: "1-based grid index where the banner starts (e.g., 3 for 3rd cell)",
+    helperText:
+      "1-based grid index where the banner starts (e.g., 3 for 3rd cell)",
   },
   {
     name: "spanCols",
@@ -147,24 +153,27 @@ const productGridSchema: Input[] = [
   {
     name: "gridLayout",
     type: "object",
-    helperText: "Grid layout configuration (only used when layoutMode is 'grid')",
+    helperText:
+      "Grid layout configuration (only used when layoutMode is 'grid')",
     subFields: [
       {
         name: "columns",
         type: "number",
         defaultValue: 4,
-        helperText: "Number of columns in the grid (e.g., 4 for a 4-column grid)",
+        helperText:
+          "Number of columns in the grid (e.g., 4 for a 4-column grid)",
       },
       {
         name: "cellsPerPage",
         type: "number",
-        helperText: "Total cells per page (optional, defaults to products.length + slots)",
+        helperText:
+          "Total cells per page (optional, defaults to products.length + slots)",
       },
       {
         name: "slots",
         type: "list",
         helperText: "Grid slots/banners that span multiple cells",
-        subFields: gridSlotFields,
+        subFields: gridSlotFields as any,
       },
     ],
   },
@@ -194,6 +203,69 @@ export const builderComponent: RegisteredComponent[] = [
         defaultValue: "xl:max-w-7xl xl:p-0 mx-auto max-w-full p-8",
       },
     ].concat(productGridSchema as any),
+  },
+  {
+    component: LazyProductGridAlgolia,
+    name: "ProductGridAlgolia",
+    canHaveChildren: true,
+    image: "https://unpkg.com/css.gg@2.0.0/icons/svg/play-list-add.svg",
+    inputs: [
+      {
+        name: "customCss",
+        type: "text",
+        defaultValue: "xl:max-w-7xl xl:p-0 mx-auto max-w-full p-8",
+        helperText: "Custom CSS classes for the grid container",
+      },
+      {
+        name: "searchQuery",
+        type: "string",
+        helperText:
+          "Optional search query to filter products (leave empty for all products)",
+      },
+      {
+        name: "filters",
+        type: "string",
+        helperText:
+          "Optional Algolia filters (e.g., 'price > 100 AND brand:Apple')",
+      },
+      {
+        name: "hitsPerPage",
+        type: "number",
+        defaultValue: 20,
+        helperText: "Number of products to display",
+      },
+      {
+        name: "sortBy",
+        type: "string",
+        helperText: "Sort order (e.g., 'price_asc', 'price_desc', 'name_asc')",
+      },
+      {
+        name: "gridLayout",
+        type: "object",
+        helperText: "Grid layout configuration with slots for banners",
+        subFields: [
+          {
+            name: "columns",
+            type: "number",
+            defaultValue: 4,
+            helperText:
+              "Number of columns in the grid (e.g., 4 for a 4-column grid)",
+          },
+          {
+            name: "cellsPerPage",
+            type: "number",
+            helperText:
+              "Total cells per page (optional, defaults to products.length + slots)",
+          },
+          {
+            name: "slots",
+            type: "list",
+            helperText: "Grid slots/banners that span multiple cells",
+            subFields: gridSlotFields as any,
+          },
+        ],
+      },
+    ],
   },
   {
     component: LazyProductView,
@@ -327,6 +399,9 @@ Builder.register("insertMenu", {
   items: [
     {
       name: "ProductGrid",
+    },
+    {
+      name: "ProductGridAlgolia",
     },
     {
       name: "ProductView",

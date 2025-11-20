@@ -34,48 +34,51 @@ export const PromoBanner: FC<PromoBannerProps> = ({ slot }) => {
   // Try multiple possible paths for the image URL
   const getImageUrl = () => {
     if (!content.image) return null;
-    
+
     // Builder.io file field can be:
     // - A string URL directly
     if (typeof content.image === "string") {
       return content.image;
     }
-    
+
     // - An object with url property (most common)
     if (content.image.url) {
       return content.image.url;
     }
-    
+
     // - An object with src property
     if (content.image.src) {
       return content.image.src;
     }
-    
+
     // - An object with image property (nested)
     if (content.image.image?.url) {
       return content.image.image.url;
     }
-    
+
     // - An object with href property
     if (content.image.href) {
       return content.image.href;
     }
-    
+
     // - Builder.io asset format: check for data attributes
     if (content.image.data?.url) {
       return content.image.data.url;
     }
-    
+
     // - Builder.io asset format: check for asset property
     if (content.image.asset?.url) {
       return content.image.asset.url;
     }
-    
+
     // - Check if it's a Builder.io image URL pattern
-    if (content.image.toString && content.image.toString().includes("builder.io")) {
+    if (
+      content.image.toString &&
+      content.image.toString().includes("builder.io")
+    ) {
       return content.image.toString();
     }
-    
+
     return null;
   };
 
@@ -129,4 +132,3 @@ export const PromoBanner: FC<PromoBannerProps> = ({ slot }) => {
     </div>
   );
 };
-
