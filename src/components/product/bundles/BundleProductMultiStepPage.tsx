@@ -390,7 +390,9 @@ function BundleProductMultiStepPageContainer({
                         status="idle"
                         disabled={false}
                         showPrice={!!display_price}
-                      />
+                      >
+                        Configure
+                      </AddToCartButton>
                     </div>
                   </Form>
                 );
