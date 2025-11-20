@@ -54,7 +54,83 @@ const carouselFields: Input[] = [
   },
 ];
 
+const gridSlotFields: Input[] = [
+  {
+    name: "id",
+    type: "string",
+    required: true,
+    helperText: "Unique identifier for this slot",
+  },
+  {
+    name: "startCell",
+    type: "number",
+    required: true,
+    defaultValue: 1,
+    helperText: "1-based grid index where the banner starts (e.g., 3 for 3rd cell)",
+  },
+  {
+    name: "spanCols",
+    type: "number",
+    required: true,
+    defaultValue: 1,
+    helperText: "How many columns the banner spans",
+  },
+  {
+    name: "spanRows",
+    type: "number",
+    required: true,
+    defaultValue: 1,
+    helperText: "How many rows the banner spans",
+  },
+  {
+    name: "content",
+    type: "object",
+    helperText: "Banner content (image, title, description, link)",
+    subFields: [
+      {
+        name: "image",
+        type: "file",
+        helperText: "Banner image",
+      },
+      {
+        name: "title",
+        type: "text",
+        helperText: "Banner title",
+      },
+      {
+        name: "description",
+        type: "text",
+        helperText: "Banner description",
+      },
+      {
+        name: "link",
+        type: "object",
+        helperText: "Banner link",
+        subFields: [
+          {
+            name: "url",
+            type: "url",
+            helperText: "Link URL",
+          },
+          {
+            name: "text",
+            type: "text",
+            helperText: "Link text (e.g., 'Learn More')",
+          },
+        ],
+      },
+    ],
+  },
+];
+
 const productGridSchema: Input[] = [
+  {
+    name: "layoutMode",
+    type: "string",
+    enum: ["carousel", "grid"],
+    defaultValue: "carousel",
+    helperText: "Layout mode: carousel (slider) or grid (CSS Grid with slots)",
+  },
   {
     name: "carouselProps",
     defaultValue: {
@@ -67,6 +143,30 @@ const productGridSchema: Input[] = [
     },
     type: "object",
     subFields: carouselFields,
+  },
+  {
+    name: "gridLayout",
+    type: "object",
+    helperText: "Grid layout configuration (only used when layoutMode is 'grid')",
+    subFields: [
+      {
+        name: "columns",
+        type: "number",
+        defaultValue: 4,
+        helperText: "Number of columns in the grid (e.g., 4 for a 4-column grid)",
+      },
+      {
+        name: "cellsPerPage",
+        type: "number",
+        helperText: "Total cells per page (optional, defaults to products.length + slots)",
+      },
+      {
+        name: "slots",
+        type: "list",
+        helperText: "Grid slots/banners that span multiple cells",
+        subFields: gridSlotFields,
+      },
+    ],
   },
 ];
 

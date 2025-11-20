@@ -2,6 +2,9 @@
 
 import { FC, useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
+import { PromoBanner } from "./PromoBanner";
+import { buildCells, validateGridSlot } from "./grid-utils";
+import { Cell, GridLayoutConfig } from "./types";
 import {
   ProductResponse,
   ShopperCatalogResourcePage,
@@ -11,48 +14,22 @@ import {
   getMainImageForProductResponse,
   getOtherImagesForProductResponse,
 } from "../../../../lib/file-lookup";
-import Slider from "react-slick";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { getProductByIds } from "../../../../services/products";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 import { getCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
 import { getMultipleInventoriesByProductIds } from "../../../../services/multi-location-inventory";
-import { ProductGridGrid } from "./ProductGridGrid";
 
-export interface CarouselProps {
-  slidesToShow: number;
-  slidesToScroll: number;
-  enableAutoplay: boolean;
-  enabledInfinite: boolean;
-  speed: number;
-  displayDots: boolean;
-}
-
-export interface ProductGridProps {
+export interface ProductGridGridProps {
   productsList?: any;
   customCss?: string;
-  carouselProps?: CarouselProps;
-  gridLayout?: {
-    columns: number;
-    cellsPerPage?: number;
-    slots?: Array<{
-      id: string;
-      startCell: number;
-      spanCols: number;
-      spanRows: number;
-      content?: any;
-    }>;
-  };
-  layoutMode?: "carousel" | "grid"; // New prop to switch between modes
+  gridLayout?: GridLayoutConfig;
 }
 
-export const ProductGrid: FC<ProductGridProps> = ({
+export const ProductGridGrid: FC<ProductGridGridProps> = ({
   productsList,
   customCss,
-  carouselProps,
-  gridLayout,
-  layoutMode = "carousel", // Default to carousel for backward compatibility
+  gridLayout = { columns: 4 },
 }) => {
   const [products, setProducts] = useState<any>();
   const [loading, setLoading] = useState(false);
@@ -62,6 +39,9 @@ export const ProductGrid: FC<ProductGridProps> = ({
   }>({});
   const [useMultiLocation, setUseMultiLocation] = useState<boolean>(false);
   const [selectedLocationSlug, setSelectedLocationSlug] = useState<string>("");
+  const [cells, setCells] = useState<Cell[]>([]);
+
+  const { columns, slots = [], cellsPerPage } = gridLayout;
 
   useEffect(() => {
     // Check product_source cookie
@@ -89,8 +69,37 @@ export const ProductGrid: FC<ProductGridProps> = ({
       setProducts(processResult(response));
       setLoading(false);
     };
-    init();
+    if (productsList) {
+      init();
+    }
   }, [productsList]);
+
+  // Build cells when products or grid layout changes
+  useEffect(() => {
+    if (!products?.data) {
+      setCells([]);
+      return;
+    }
+
+    // Validate slots
+    const totalCells = cellsPerPage || products.data.length + slots.length * 4;
+    const validSlots = slots.filter((slot) => {
+      const validation = validateGridSlot(slot, columns, totalCells);
+      if (!validation.valid) {
+        console.warn(`Invalid grid slot: ${validation.error}`, slot);
+      }
+      return validation.valid;
+    });
+
+    const builtCells = buildCells({
+      hits: products.data,
+      slots: validSlots,
+      columns,
+      cellsPerPage,
+    });
+
+    setCells(builtCells);
+  }, [products, columns, slots, cellsPerPage]);
 
   // Fetch inventory for all products when multi-location is enabled
   useEffect(() => {
@@ -151,88 +160,68 @@ export const ProductGrid: FC<ProductGridProps> = ({
     return null;
   }
 
-  // Render grid layout if mode is grid
-  if (layoutMode === "grid" && gridLayout) {
+  if (loading) {
     return (
-      <ProductGridGrid
-        productsList={productsList}
-        customCss={customCss}
-        gridLayout={gridLayout}
-      />
+      <div className="flex justify-center items-center p-8">
+        <div className="text-gray-500">Loading products...</div>
+      </div>
     );
   }
 
-  // Default to carousel layout
-  const NextArrow = (props: any) => {
-    const { onClick } = props;
-    return (
-      <ChevronRightIcon
-        onClick={onClick}
-        className="w-8 h-8 text-gray-600 absolute top-1/2 transform -translate-y-1/2 -right-6 z-20 cursor-pointer hover:text-gray-800"
-      />
-    );
-  };
-
-  const PrevArrow = (props: any) => {
-    const { onClick } = props;
-    return (
-      <ChevronLeftIcon
-        onClick={onClick}
-        className="w-8 h-8 text-gray-600 absolute top-1/2 transform -translate-y-1/2 -left-6 z-20 cursor-pointer hover:text-gray-800"
-      />
-    );
-  };
-
-  const settings = {
-    dots: carouselProps?.displayDots || false,
-    infinite: carouselProps?.enabledInfinite || false,
-    speed: carouselProps?.speed || 300,
-    slidesToShow: carouselProps?.slidesToShow || 4,
-    slidesToScroll: carouselProps?.slidesToScroll || 1,
-    autoplay: carouselProps?.enableAutoplay || false,
-    nextArrow: <NextArrow />,
-    prevArrow: <PrevArrow />,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          dots: carouselProps?.displayDots || false,
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-          dots: carouselProps?.displayDots || false,
-        },
-      },
-    ],
-  };
-
   return (
-    <div>
-      <Slider
-        {...settings}
-        className={
-          customCss ? customCss : "xl:max-w-7xl xl:p-0 mx-auto max-w-full p-8"
-        }
+    <div
+      className={customCss || "xl:max-w-7xl xl:p-0 mx-auto max-w-full p-8"}
+    >
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
       >
-        {products &&
-          products.data.map((hit: any, i: number) => {
-            const productId = hit.response.id;
+        {cells.map((cell, index) => {
+          const cellIndex = index + 1;
+
+          if (cell.type === "product") {
+            const productId = cell.product.response.id;
             const inventory = inventoryByProduct[productId];
             return (
               <ProductCard
-                key={`${productId}-${i}`}
-                product={hit}
+                key={`product-${productId}-${cellIndex}`}
+                product={cell.product}
                 locationInventory={inventory}
                 useMultiLocation={useMultiLocation}
                 selectedLocationSlug={selectedLocationSlug}
               />
             );
-          })}
-      </Slider>
+          }
+
+          if (cell.type === "slot") {
+            const { spanCols, spanRows } = cell.slot;
+            // Debug: log slot data
+            if (cell.slot.content?.image) {
+              console.log("Rendering slot:", {
+                slotId: cell.slot.id,
+                content: cell.slot.content,
+                image: cell.slot.content.image,
+              });
+            }
+            return (
+              <div
+                key={`slot-${cell.slot.id}-${cellIndex}`}
+                style={{
+                  gridColumn: `span ${spanCols}`,
+                  gridRow: `span ${spanRows}`,
+                }}
+                className="w-full h-full"
+              >
+                <PromoBanner slot={cell.slot} />
+              </div>
+            );
+          }
+
+          // slot-shadow cells are occupied by the main slot area; render nothing
+          // empty cells can be rendered as empty divs or nothing
+          return null;
+        })}
+      </div>
     </div>
   );
 };
@@ -263,3 +252,4 @@ function processResult(
     data: processedData,
   };
 }
+
