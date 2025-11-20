@@ -13,10 +13,13 @@ import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 
 interface IProductComponentsProps {
   product: ShopperProduct["response"];
+  // Optional: only show a specific component (for multi-step scenarios)
+  componentKeyToShow?: string;
 }
 
 const ProductComponents = ({
   product,
+  componentKeyToShow,
 }: IProductComponentsProps): JSX.Element => {
   const {
     components,
@@ -196,16 +199,22 @@ const ProductComponents = ({
   return (
     <div className="flex flex-row flex-wrap">
       {bundle &&
-        bundle.sort(sortComponents).map((item: any) => {
-          return (
-            <ProductComponent
-              key={item.key}
-              component={item}
-              componentLookupKey={item.key}
-              product={product}
-            />
-          );
-        })}
+        bundle
+          .sort(sortComponents)
+          .filter((item: any) => {
+            // If componentKeyToShow is specified, only show that component
+            return componentKeyToShow ? item.key === componentKeyToShow : true;
+          })
+          .map((item: any) => {
+            return (
+              <ProductComponent
+                key={item.key}
+                component={item}
+                componentLookupKey={item.key}
+                product={product}
+              />
+            );
+          })}
     </div>
   );
 };

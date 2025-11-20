@@ -6,6 +6,7 @@ import {
 import { ResourcePage, SubscriptionOffering } from "@elasticpath/js-sdk";
 import BundleProductDetail from "./BundleProduct";
 import BundleProductVariationStylePage from "./BundleProductVariationStylePage";
+import BundleProductMultiStepPage from "./BundleProductMultiStepPage";
 
 interface IBundleProductWrapper {
   bundleProduct: BundleProduct;
@@ -25,11 +26,24 @@ const BundleProductWrapper = ({
     bundleProduct.response.attributes.extensions?.["products(template)"]
       ?.version || "Standard";
   const isProductTemplate = templateVersion === "Product";
+  const isMultiStepTemplate = templateVersion === "Multi-Step";
 
   // Render Product template component
   if (isProductTemplate) {
     return (
       <BundleProductVariationStylePage
+        bundleProduct={bundleProduct}
+        offerings={offerings}
+        content={content}
+        relationship={relationship}
+      />
+    );
+  }
+
+  // Render Multi-Step template component
+  if (isMultiStepTemplate) {
+    return (
+      <BundleProductMultiStepPage
         bundleProduct={bundleProduct}
         offerings={offerings}
         content={content}

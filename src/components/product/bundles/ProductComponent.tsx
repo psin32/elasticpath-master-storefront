@@ -245,18 +245,19 @@ function CheckboxComponentOption({
     id: inputId,
   });
 
-  // Quantity field
-  const [quantityField, , quantityHelpers] = useField({
-    name: quantityName,
-    type: "number",
-  });
+  // Quantity field - use formik context to set values
+  const { values, setFieldValue } = useFormikContext<{
+    quantities?: Record<string, Record<string, number>>;
+  }>();
+
+  const quantityValue = values.quantities?.[componentKey]?.[option.id];
 
   // Ensure quantity field has a value
   React.useEffect(() => {
-    if (quantityField.value === undefined || quantityField.value === null) {
-      quantityHelpers.setValue(defaultQuantity);
+    if (quantityValue === undefined || quantityValue === null) {
+      setFieldValue(quantityName, defaultQuantity, false);
     }
-  }, [quantityField.value, defaultQuantity, quantityHelpers]);
+  }, [quantityValue, defaultQuantity, setFieldValue, quantityName]);
 
   // For radio, checked if selected has this option id
   const checked = isRadio
@@ -274,7 +275,7 @@ function CheckboxComponentOption({
   };
 
   const handleQuantityChange = (newQuantity: number) => {
-    quantityHelpers.setValue(newQuantity);
+    setFieldValue(quantityName, newQuantity);
 
     // Don't update the form field value here as it interferes with checkbox selection
     // The quantities will be handled separately in the form submission
@@ -402,8 +403,7 @@ function CheckboxComponentOption({
                     <button
                       type="button"
                       onClick={() => {
-                        const currentValue =
-                          quantityField.value || defaultQuantity;
+                        const currentValue = quantityValue ?? defaultQuantity;
                         const newValue = Math.max(
                           currentValue - 1,
                           minQuantity,
@@ -411,8 +411,7 @@ function CheckboxComponentOption({
                         handleQuantityChange(newValue);
                       }}
                       disabled={
-                        (quantityField.value || defaultQuantity) <=
-                          minQuantity ||
+                        (quantityValue ?? defaultQuantity) <= minQuantity ||
                         (minQuantity === 1 && maxQuantity === 99)
                       }
                       className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-r border-gray-200"
@@ -436,10 +435,7 @@ function CheckboxComponentOption({
                       min={minQuantity}
                       max={maxQuantity}
                       value={Math.min(
-                        Math.max(
-                          quantityField.value || defaultQuantity,
-                          minQuantity,
-                        ),
+                        Math.max(quantityValue ?? defaultQuantity, minQuantity),
                         maxQuantity,
                       )}
                       onChange={(e) => {
@@ -472,8 +468,7 @@ function CheckboxComponentOption({
                     <button
                       type="button"
                       onClick={() => {
-                        const currentValue =
-                          quantityField.value || defaultQuantity;
+                        const currentValue = quantityValue ?? defaultQuantity;
                         const newValue = Math.min(
                           currentValue + 1,
                           maxQuantity,
@@ -481,8 +476,7 @@ function CheckboxComponentOption({
                         handleQuantityChange(newValue);
                       }}
                       disabled={
-                        (quantityField.value || defaultQuantity) >=
-                          maxQuantity ||
+                        (quantityValue ?? defaultQuantity) >= maxQuantity ||
                         (minQuantity === 1 && maxQuantity === 99)
                       }
                       className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border-l border-gray-200"
