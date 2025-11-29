@@ -13,7 +13,7 @@ import {
 } from "../../../../react-shopper-hooks";
 import { StatusButton } from "../../../button/StatusButton";
 import { Sheet, SheetContent } from "../../../sheet/Sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { parseProductResponse } from "../../../../shopper-common/src/products/util/shopper-product-helpers";
 import {
   ProductDetailsComponent,
@@ -25,6 +25,9 @@ import { usePathname } from "next/navigation";
 import { getCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
 import { getAllInventoriesByProductId } from "../../../../services/multi-location-inventory";
+
+// Cache to prevent duplicate API calls for the same product SKU
+const productCache = new Map<string, Promise<any>>();
 
 export interface ProductCardProps {
   product: any;
@@ -67,6 +70,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [shopperProduct, setShopperProduct] = useState<any>(null);
   const pathname = usePathname();
   const loginUrl = `/login?returnUrl=${encodeURIComponent(pathname)}`;
+  const sku = product.response.attributes.sku;
+  const fetchedSkuRef = useRef<string | null>(null);
 
   // Multi-location inventory state
   // Use props if provided (from ProductGrid), otherwise fetch individually
@@ -85,23 +90,50 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 
   useEffect(() => {
+    // Skip if already fetched for this SKU
+    if (!sku || fetchedSkuRef.current === sku) {
+      return;
+    }
+
     const init = async () => {
-      const client = getEpccImplicitClient();
-      const result = await client.ShopperCatalog.Products.With([
-        "main_image",
-        "files",
-        "component_products",
-      ])
-        .Filter({
-          eq: {
-            sku: product.response.attributes.sku,
-          },
-        })
-        .All();
-      setShopperProduct(await parseProductResponse(result, client));
+      // Check if there's already a pending request for this SKU
+      let fetchPromise = productCache.get(sku);
+
+      if (!fetchPromise) {
+        // Create a new fetch promise and cache it
+        fetchPromise = (async () => {
+          const client = getEpccImplicitClient();
+          const result = await client.ShopperCatalog.Products.With([
+            "main_image",
+            "files",
+            "component_products",
+          ])
+            .Filter({
+              eq: {
+                sku: sku,
+              },
+            })
+            .All();
+          return await parseProductResponse(result, client);
+        })();
+
+        productCache.set(sku, fetchPromise);
+      }
+
+      try {
+        const parsedProduct = await fetchPromise;
+        setShopperProduct(parsedProduct);
+        fetchedSkuRef.current = sku;
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        // Remove from cache on error so it can be retried
+        productCache.delete(sku);
+        fetchedSkuRef.current = null;
+      }
     };
+
     init();
-  }, [product]);
+  }, [sku]);
 
   // Update state when props change (from ProductGrid)
   useEffect(() => {
