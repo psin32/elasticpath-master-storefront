@@ -43,3 +43,4 @@ yarn-error.log*
 /localStorage
 
 test-results
+package-lock.json

@@ -21,7 +21,6 @@ import {
 } from "../../../../app/(store)/products/[productId]/product-display";
 import { getEpccImplicitClient } from "../../../../lib/epcc-implicit-client";
 import LoginToSeePriceButton from "../../../product/LoginToSeePriceButton";
-import { usePathname } from "next/navigation";
 import { getCookie } from "cookies-next";
 import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
 import { getAllInventoriesByProductId } from "../../../../services/multi-location-inventory";
@@ -68,8 +67,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const isVariationProduct = !!variation_matrix;
 
   const [shopperProduct, setShopperProduct] = useState<any>(null);
-  const pathname = usePathname();
-  const loginUrl = `/login?returnUrl=${encodeURIComponent(pathname)}`;
   const sku = product.response.attributes.sku;
   const fetchedSkuRef = useRef<string | null>(null);
 
@@ -213,11 +210,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="max-w-full sm:max-w-lg p-3 flex flex-col h-full">
-      <LinkWrapper
-        href={display_price ? `/products/${slug}` : loginUrl}
-        passHref
-        disabled={gatedSetting}
-      >
+      <LinkWrapper href={`/products/${slug}`} passHref disabled={gatedSetting}>
         <div
           className="group flex h-full cursor-pointer flex-col items-stretch bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
           data-testid={id}
