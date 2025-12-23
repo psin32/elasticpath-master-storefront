@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../../../../components/button/Button";
 import { toast } from "react-toastify";
 import { createNoteForOrder } from "../../../../../services/custom-api";
 import { ChatBubbleLeftRightIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  useAuthedAccountMember,
+  useAccountMembers,
+} from "../../../../../react-shopper-hooks";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../../components/select/Select";
+import { AccountMember } from "@elasticpath/js-sdk";
 
 interface OrderNotesProps {
   orderId: string;
@@ -21,6 +33,54 @@ export function OrderNotes({
   const [newNote, setNewNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedAccountMemberId, setSelectedAccountMemberId] = useState<
+    string | undefined
+  >();
+
+  const { data: accountMember, selectedAccountToken } = useAuthedAccountMember();
+  const accountId = selectedAccountToken?.account_id;
+
+  // Fetch all account members for the selected account
+  const { data: accountMembersData, isLoading: isLoadingMembers } =
+    useAccountMembers(accountId || "", {
+      enabled: !!accountId && !!selectedAccountToken?.token,
+    });
+
+  // Extract account members from the response
+  let accountMembers: AccountMember[] = [];
+  if (Array.isArray(accountMembersData)) {
+    accountMembers = accountMembersData as AccountMember[];
+  } else if (
+    accountMembersData &&
+    typeof accountMembersData === "object" &&
+    "data" in accountMembersData
+  ) {
+    const data = (accountMembersData as { data?: AccountMember[] }).data;
+    accountMembers = (data as AccountMember[]) || [];
+  }
+
+  const hasMultipleMembers = accountMembers.length > 1;
+
+  // Set initial selected account member when account members are loaded
+  useEffect(() => {
+    if (
+      accountMember?.id &&
+      !selectedAccountMemberId &&
+      accountMembers.length > 0
+    ) {
+      // Check if logged-in member exists in the list, otherwise use first member
+      const loggedInMember = accountMembers.find(
+        (member: AccountMember) => member.id === accountMember.id,
+      );
+      setSelectedAccountMemberId(loggedInMember?.id || accountMembers[0]?.id);
+    }
+  }, [accountMember?.id, accountMembers, selectedAccountMemberId]);
+
+  // Get the selected account member's name for the note
+  const selectedMember = accountMembers.find(
+    (member: AccountMember) => member.id === selectedAccountMemberId,
+  ) || accountMember;
+  const noteAuthorName = selectedMember?.name || selectedMember?.email || currentUserName;
 
   const handleSubmitNote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +95,7 @@ export function OrderNotes({
       const result = await createNoteForOrder({
         order_id: orderId,
         note: newNote.trim(),
-        added_by: currentUserName,
+        added_by: noteAuthorName,
       });
 
       if (result?.data) {
@@ -105,6 +165,37 @@ export function OrderNotes({
           >
             Add a New Note
           </label>
+          {hasMultipleMembers && !isLoadingMembers && (
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Account Member
+              </label>
+              <Select
+                value={selectedAccountMemberId || ""}
+                onValueChange={(value) => setSelectedAccountMemberId(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select account member">
+                    {selectedMember
+                      ? `${selectedMember.name} (${selectedMember.email})`
+                      : "Select account member"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {accountMembers.map((member: AccountMember) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{member.name}</span>
+                        <span className="text-sm text-gray-500">
+                          {member.email}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <textarea
             id="newNote"
             value={newNote}

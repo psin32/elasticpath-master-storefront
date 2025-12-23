@@ -131,6 +131,10 @@ export async function selectedAccount(args: FormData) {
     throw new Error("Invalid account id");
   }
 
+  // Check if account is actually changing
+  const isAccountChanging =
+    accountMemberCredentials.selected !== selectedAccount.account_id;
+
   const client = getServerSideImplicitClient();
   await mergeCart(
     accountMemberCredentials?.accounts[accountId].token,
