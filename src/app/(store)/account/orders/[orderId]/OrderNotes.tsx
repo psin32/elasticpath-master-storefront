@@ -37,8 +37,16 @@ export function OrderNotes({
     string | undefined
   >();
 
-  const { data: accountMember, selectedAccountToken } = useAuthedAccountMember();
+  const {
+    data: accountMember,
+    selectedAccountToken,
+    accountMemberTokens,
+  } = useAuthedAccountMember();
   const accountId = selectedAccountToken?.account_id;
+
+  // Show account tags dropdown only when there are multiple accounts
+  const hasMultipleAccounts =
+    accountMemberTokens && Object.keys(accountMemberTokens).length > 1;
 
   // Fetch all account members for the selected account
   const { data: accountMembersData, isLoading: isLoadingMembers } =
@@ -77,10 +85,12 @@ export function OrderNotes({
   }, [accountMember?.id, accountMembers, selectedAccountMemberId]);
 
   // Get the selected account member's name for the note
-  const selectedMember = accountMembers.find(
-    (member: AccountMember) => member.id === selectedAccountMemberId,
-  ) || accountMember;
-  const noteAuthorName = selectedMember?.name || selectedMember?.email || currentUserName;
+  const selectedMember =
+    accountMembers.find(
+      (member: AccountMember) => member.id === selectedAccountMemberId,
+    ) || accountMember;
+  const noteAuthorName =
+    selectedMember?.name || selectedMember?.email || currentUserName;
 
   const handleSubmitNote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +175,7 @@ export function OrderNotes({
           >
             Add a New Note
           </label>
-          {hasMultipleMembers && !isLoadingMembers && (
+          {hasMultipleAccounts && hasMultipleMembers && !isLoadingMembers && (
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Account Member

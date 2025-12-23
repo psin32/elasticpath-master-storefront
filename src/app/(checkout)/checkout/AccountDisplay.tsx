@@ -22,9 +22,16 @@ import {
 import { AccountMember } from "@elasticpath/js-sdk";
 
 export function AccountDisplay() {
-  const { data: accountMember, selectedAccountToken } =
-    useAuthedAccountMember();
+  const {
+    data: accountMember,
+    selectedAccountToken,
+    accountMemberTokens,
+  } = useAuthedAccountMember();
   const accountId = selectedAccountToken?.account_id;
+
+  // Show account tags dropdown only when there are multiple accounts
+  const hasMultipleAccounts =
+    accountMemberTokens && Object.keys(accountMemberTokens).length > 1;
 
   const { control, setValue } = useFormContext<CheckoutFormSchemaType>();
 
@@ -110,7 +117,7 @@ export function AccountDisplay() {
             </div>
           ) : (
             <>
-              {hasMultipleMembers ? (
+              {hasMultipleAccounts && hasMultipleMembers ? (
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-gray-700">
                     Select Account Member
