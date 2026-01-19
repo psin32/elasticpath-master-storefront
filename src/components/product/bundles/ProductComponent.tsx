@@ -261,7 +261,7 @@ function CheckboxComponentOption({
 
   // For radio, checked if selected has this option id
   const checked = isRadio
-    ? Object.keys(selected)[0] === option.id
+    ? Object.keys(selected || {})[0] === option.id
     : field.checked;
 
   // For radio, onChange should set the selected option directly
