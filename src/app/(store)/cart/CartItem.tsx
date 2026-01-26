@@ -99,13 +99,18 @@ export function CartItem({
               </span>
             )}
             <span className="text-xs text-black/60">
-              Item Price: {item.meta.display_price.with_tax.unit.formatted}
+              Item Price:{" "}
+              {item.meta.display_price.without_tax?.unit.formatted
+                ? item.meta.display_price.without_tax?.unit.formatted
+                : item.meta.display_price.with_tax.unit.formatted}
             </span>
             <CartItemPromotions item={item} />
           </div>
           <div className="flex h-7 gap-2 flex-col">
             <span className="font-medium">
-              {item.meta.display_price.with_tax.value.formatted}
+              {item.meta.display_price.without_tax?.value.formatted
+                ? item.meta.display_price.without_tax?.value.formatted
+                : item.meta.display_price.with_tax.value.formatted}
             </span>
             {item.meta.display_price.without_discount?.value.amount &&
               item.meta.display_price.without_discount?.value.amount !==
