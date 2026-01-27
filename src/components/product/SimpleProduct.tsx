@@ -229,6 +229,12 @@ function SimpleProductContainer({
         response?.attributes?.extensions?.["products(vendor)"]?.vendor_store_id;
     }
 
+    if (response?.attributes?.extensions?.["products(global)"]) {
+      data.custom_inputs.net_weight =
+        response?.attributes?.extensions?.["products(global)"]?.net_weight ||
+        10;
+    }
+
     const price_type = formData.get("price_type")?.toString() || "";
     if (price_type === "" || price_type === "one_time") {
       mutateAddItem(
