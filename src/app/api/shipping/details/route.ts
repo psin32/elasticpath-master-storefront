@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getShippingDataByCurrency } from "../../../../services/custom-api";
+import { cookies } from "next/headers";
+import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
 
 // Mock shipping details - fallback when API doesn't return data
 const mockShippingDetails = {
@@ -47,8 +49,14 @@ const mockShippingDetails = {
 
 export async function GET(request: NextRequest) {
   try {
+    // Get cartId from cookie (optional - for backward compatibility)
+    const cookieStore = cookies();
+    const cartCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_cart`);
+    const cartId = cartCookie?.value || undefined;
+
     // Try to fetch shipping data from Custom API
-    const apiResponse = await getShippingDataByCurrency();
+    // cartId is optional and will only be sent if it exists
+    const apiResponse = await getShippingDataByCurrency(undefined, cartId);
     let shippingDetails = apiResponse.success ? apiResponse.data : null;
 
     // If no data from API, fall back to mock data
@@ -77,7 +85,11 @@ export async function POST(request: NextRequest) {
     const { shippingType, address, items, cartId } = body;
 
     // Try to fetch shipping data from Custom API
-    const apiResponse = await getShippingDataByCurrency();
+    // cartId is optional and will only be sent if it exists (backward compatible)
+    const apiResponse = await getShippingDataByCurrency(
+      undefined,
+      cartId || undefined,
+    );
     let shippingDetails = apiResponse.success ? apiResponse.data : null;
 
     // If no data from API, fall back to mock data

@@ -38,6 +38,7 @@ export async function getPurchaseHistoryByProductIdAndAccountId(
 
 export async function getShippingDataByCurrency(
   currency?: string,
+  cartId?: string,
 ): Promise<any> {
   try {
     // Get currency from cookie if not provided
@@ -54,6 +55,12 @@ export async function getShippingDataByCurrency(
 
     const client = getServerSideCredentialsClient();
 
+    // Build headers object with cartId if provided (backward compatible)
+    const headers: Record<string, string> = {};
+    if (cartId && cartId.trim() !== "") {
+      headers["x-moltin-cart-id"] = cartId;
+    }
+
     // Fetch shipping data from Custom API - only filter by currency and enabled status
     const response = await client.request.send(
       `/extensions/shippings?filter=eq(currency,${currency}):eq(enabled,true)`,
@@ -63,6 +70,7 @@ export async function getShippingDataByCurrency(
       client,
       false,
       "v2",
+      Object.keys(headers).length > 0 ? headers : undefined,
     );
 
     if (response && response.data && response.data.length > 0) {
