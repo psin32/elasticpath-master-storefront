@@ -351,6 +351,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                               data.location = selectedLocationSlug;
                             }
 
+                            if (
+                              product?.response?.attributes?.extensions?.[
+                                "products(global)"
+                              ]
+                            ) {
+                              data.custom_inputs.net_weight =
+                                product?.response?.attributes?.extensions?.[
+                                  "products(global)"
+                                ]?.net_weight || 10;
+                            }
+
                             mutate({
                               productId: id,
                               quantity: quantity || 1,
