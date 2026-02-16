@@ -27,7 +27,6 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
-import { RecommendedProducts } from "../recommendations/RecommendationProducts";
 import ProductRelationship from "./related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 import moment from "moment";
@@ -436,7 +435,6 @@ function SimpleProductContainer({
           )}
         </div>
       </div>
-      <RecommendedProducts productId={id} />
       {relationship &&
         relationship.map((rel: any) => {
           return (

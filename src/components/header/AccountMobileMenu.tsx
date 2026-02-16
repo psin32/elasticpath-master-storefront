@@ -5,6 +5,7 @@ import {
   ArrowLeftOnRectangleIcon,
   ArrowRightOnRectangleIcon,
   ClipboardDocumentListIcon,
+  GiftIcon,
   MapPinIcon,
   UserCircleIcon,
   UserPlusIcon,
@@ -68,6 +69,19 @@ export function AccountMobileMenu() {
                 <Link href="/account/summary">
                   <UserCircleIcon className="mr-2 h-5 w-5" aria-hidden="true" />
                   My Account
+                </Link>
+              </AccountMenuButton>
+            </SheetClose>
+          </div>
+          <div>
+            <SheetClose asChild>
+              <AccountMenuButton
+                pathname={{ target: "/account/rewards", current: pathname }}
+                asChild
+              >
+                <Link href="/account/rewards">
+                  <GiftIcon className="mr-2 h-5 w-5" aria-hidden="true" />
+                  Rewards
                 </Link>
               </AccountMenuButton>
             </SheetClose>

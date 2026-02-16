@@ -19,3 +19,11 @@ export const hierarchicalAttributes: string[] = [
   "ep_slug_categories.lvl2",
   "ep_slug_categories.lvl3",
 ];
+
+export const INSTANT_SEARCH_HIERARCHICAL_ATTRIBUTES = [
+  "meta.search.categories.lvl0",
+  "meta.search.categories.lvl1",
+  "meta.search.categories.lvl2",
+  "meta.search.categories.lvl3",
+  "meta.search.categories.lvl4",
+];

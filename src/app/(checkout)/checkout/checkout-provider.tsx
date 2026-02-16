@@ -102,6 +102,8 @@ export function StripeCheckoutProvider({
           shippingMethod: "__shipping_standard",
           paymentMethod: "ep_payment",
           notes: "",
+          useStoreCredit: false,
+          storeCreditAmount: undefined,
         }
       : {
           // For guest users
@@ -126,6 +128,8 @@ export function StripeCheckoutProvider({
           shippingMethod: "__shipping_standard",
           paymentMethod: "ep_payment",
           notes: "",
+          useStoreCredit: false,
+          storeCreditAmount: undefined,
         },
   });
 

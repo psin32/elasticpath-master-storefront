@@ -28,7 +28,6 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
-import { RecommendedProducts } from "../../recommendations/RecommendationProducts";
 import ProductRelationship from "../related-products/ProductRelationship";
 import moment from "moment";
 import { getInventoryDetails } from "../actions";
@@ -459,7 +458,6 @@ export function VariationProductContainer({
           )}
         </div>
       </div>
-      <RecommendedProducts productId={id} />
       {relationship &&
         relationship.map((rel: any) => {
           return (

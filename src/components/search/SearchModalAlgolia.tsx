@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Configure, useHits, useSearchBox } from "react-instantsearch";
-import { InstantSearchNext } from "react-instantsearch-nextjs";
+import { Configure, useHits, useSearchBox, InstantSearch } from "react-instantsearch";
 import NoResults from "./NoResults";
 import { SearchHit } from "./SearchHit";
 import { searchClient } from "../../lib/search-client";
@@ -251,14 +250,7 @@ export const SearchModalAlgolia = (): JSX.Element => {
   const catalogId = useCatalogId();
 
   return (
-    <InstantSearchNext
-      searchClient={searchClient}
-      indexName={algoliaEnvData.indexName}
-      insights={true}
-      future={{
-        preserveSharedStateOnUnmount: true,
-      }}
-    >
+    <InstantSearch searchClient={searchClient} indexName={algoliaEnvData.indexName} insights={true}>
       <Configure
         filters={
           catalogId ? `is_child:0 AND catalog_${catalogId}:true` : "is_child:0"
@@ -371,7 +363,7 @@ export const SearchModalAlgolia = (): JSX.Element => {
           </div>
         </Dialog>
       </Transition>
-    </InstantSearchNext>
+    </InstantSearch>
   );
 };
 

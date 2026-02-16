@@ -21,7 +21,8 @@ import {
 } from "../../../react-shopper-hooks/cart/hooks/use-checkout";
 import { getEpccImplicitClient } from "../../../lib/epcc-implicit-client";
 import { createPayPalPayment } from "../../../react-shopper-hooks/payments/hooks/use-payments";
-import { useCart } from "../../../react-shopper-hooks";
+import { useCart, useStoreCreditBalance } from "../../../react-shopper-hooks";
+import { BanknotesIcon } from "@heroicons/react/24/outline";
 
 type PaymentFormProps = {
   stripeCustomerId?: string | undefined;
@@ -72,6 +73,59 @@ export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
     process.env.NEXT_PUBLIC_ENABLE_PURCHASE_ORDER_CHECKOUT === "true" || false;
   const enablePayPal = process.env.NEXT_PUBLIC_ENABLE_PAYPAL === "true";
 
+  const { balance: storeCreditBalance, isLoading: isStoreCreditLoading } =
+    useStoreCreditBalance({ enabled: true });
+  const [useStoreCredit, setUseStoreCredit] = useState(false);
+  // Amount to use in minor units (capped at balance and order total); display as major in input
+  const [storeCreditAmountDisplay, setStoreCreditAmountDisplay] = useState("");
+
+  // Order total in minor units (from cart)
+  const orderTotalMinor =
+    (cartState as any)?.meta?.display_price?.with_tax?.amount ?? 0;
+  // Max store credit = min(balance, order total) so we never apply more than the order
+  const maxStoreCreditMinor = Math.min(
+    storeCreditBalance?.totalMinor ?? 0,
+    orderTotalMinor,
+  );
+  const maxStoreCreditFormatted =
+    storeCreditBalance?.currency &&
+    new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: storeCreditBalance.currency,
+    }).format(maxStoreCreditMinor / 100);
+
+  useEffect(() => {
+    if (useStoreCredit && storeCreditBalance?.totalMinor != null) {
+      const defaultMinor = maxStoreCreditMinor;
+      setValue("storeCreditAmount", defaultMinor);
+      setStoreCreditAmountDisplay((defaultMinor / 100).toFixed(2));
+    } else {
+      setValue("storeCreditAmount", undefined);
+      setValue("useStoreCredit", false);
+      setStoreCreditAmountDisplay("");
+    }
+  }, [useStoreCredit, storeCreditBalance?.totalMinor, maxStoreCreditMinor, setValue]);
+  const handleStoreCreditAmountChange = (value: string) => {
+    setStoreCreditAmountDisplay(value);
+    if (value === "") {
+      setValue("storeCreditAmount", 0);
+      return;
+    }
+    const parsed = parseFloat(value);
+    if (Number.isNaN(parsed) || parsed < 0) return;
+    const minor = Math.round(parsed * 100);
+    const cappedMinor = Math.min(minor, maxStoreCreditMinor);
+    setValue("storeCreditAmount", cappedMinor);
+  };
+  const handleStoreCreditAmountBlur = () => {
+    if (storeCreditAmountDisplay === "") return;
+    const parsed = parseFloat(storeCreditAmountDisplay);
+    const minor = Number.isNaN(parsed) || parsed < 0 ? 0 : Math.round(parsed * 100);
+    const cappedMinor = Math.min(minor, maxStoreCreditMinor);
+    setStoreCreditAmountDisplay((cappedMinor / 100).toFixed(2));
+    setValue("storeCreditAmount", cappedMinor);
+  };
+
   // Replace the placeholder handlePayPalPayment with real logic
   async function handlePayPalPayment() {
     setPaypalLoading(true);
@@ -86,6 +140,10 @@ export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
         : formValues.billingAddress;
       const purchaseOrderNumber = formValues.purchaseOrderNumber;
       const quoteId = formValues.quoteId;
+      const storeCreditAmount =
+        formValues.useStoreCredit && (formValues.storeCreditAmount ?? 0) > 0
+          ? formValues.storeCreditAmount
+          : undefined;
       let order;
       // 2. Create the order if needed
       if (isAuthenticated) {
@@ -95,6 +153,7 @@ export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
           billingAddress,
           purchaseOrderNumber,
           quoteId,
+          storeCreditAmount,
         });
       } else {
         order = await mutateCheckout({
@@ -103,6 +162,7 @@ export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
           billingAddress,
           purchaseOrderNumber,
           quoteId,
+          storeCreditAmount,
         });
       }
       const orderId = order?.data?.id;
@@ -127,6 +187,94 @@ export function PaymentForm({ stripeCustomerId, quoteId }: PaymentFormProps) {
       </div>
       <div className="w-full mx-auto mt-2">
         <div className="space-y-4">
+          {/* Store Credit - first, only for authenticated users with balance */}
+          {storeCreditBalance &&
+            storeCreditBalance.totalMinor > 0 &&
+            !isStoreCreditLoading &&
+            orderTotalMinor > 0 && (
+              <div className="border rounded-lg overflow-hidden shadow-md">
+                <div className="p-4 bg-white">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={useStoreCredit}
+                      disabled={maxStoreCreditMinor <= 0}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setUseStoreCredit(checked);
+                        setValue("useStoreCredit", checked);
+                        setValue(
+                          "paymentMethod",
+                          checked ? "store_credit" : "ep_payment",
+                        );
+                        if (!checked) {
+                          setValue("storeCreditAmount", undefined);
+                          setStoreCreditAmountDisplay("");
+                        } else if (storeCreditBalance?.totalMinor != null) {
+                          const defaultMinor = storeCreditBalance.totalMinor;
+                          setValue("storeCreditAmount", defaultMinor);
+                          setStoreCreditAmountDisplay(
+                            (defaultMinor / 100).toFixed(2),
+                          );
+                        }
+                      }}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                      <BanknotesIcon className="h-5 w-5" />
+                      Use store credit
+                    </span>
+                    <span className="text-sm font-semibold text-gray-600 ml-auto">
+                      {storeCreditBalance.formatted} available
+                    </span>
+                  </label>
+                </div>
+                {useStoreCredit && storeCreditBalance && (
+                  <div className="p-4 bg-gray-50 space-y-3 border-t border-gray-200">
+                    <p className="text-sm text-gray-600">
+                      Use store credit toward this order. Remaining balance will
+                      be charged to your payment method.
+                    </p>
+                    <div>
+                      <FormLabel>
+                        Amount to use (max {maxStoreCreditFormatted})
+                      </FormLabel>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-500">
+                          {storeCreditBalance.currency}
+                        </span>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={maxStoreCreditMinor / 100}
+                          step={0.01}
+                          placeholder="0.00"
+                          value={storeCreditAmountDisplay}
+                          onChange={(e) =>
+                            handleStoreCreditAmountChange(e.target.value)
+                          }
+                          onBlur={handleStoreCreditAmountBlur}
+                          sizeKind="mediumUntilSm"
+                          className="max-w-[10rem]"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                      onClick={() => {
+                        const full = maxStoreCreditMinor;
+                        setValue("storeCreditAmount", full);
+                        setStoreCreditAmountDisplay((full / 100).toFixed(2));
+                      }}
+                    >
+                      Use maximum ({maxStoreCreditFormatted})
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
           <div className="border rounded-lg overflow-hidden shadow-md">
             <div
               className="cursor-pointer p-4 flex justify-between items-center bg-white hover:bg-gray-50 transition"

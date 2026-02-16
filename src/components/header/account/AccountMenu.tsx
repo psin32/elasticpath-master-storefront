@@ -13,6 +13,7 @@ import {
   ArrowPathRoundedSquareIcon,
   PencilSquareIcon,
   RectangleStackIcon,
+  GiftIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { logout } from "../../../app/(auth)/actions";
@@ -122,6 +123,23 @@ export function AccountMenu() {
                             aria-hidden="true"
                           />
                           My Account
+                        </Popover.Button>
+                      </div>
+                      <div>
+                        <Popover.Button
+                          as={Link}
+                          href="/account/rewards"
+                          className={`${
+                            pathname.startsWith("/account/rewards")
+                              ? "font-semibold"
+                              : "text-gray-900"
+                          } group flex w-full items-center rounded-md px-2 py-2 text-sm hover:bg-brand-primary hover:text-white transition-color ease-in-out duration-100`}
+                        >
+                          <GiftIcon
+                            className="mr-2 h-5 w-5"
+                            aria-hidden="true"
+                          />
+                          Rewards
                         </Popover.Button>
                       </div>
                       <div>

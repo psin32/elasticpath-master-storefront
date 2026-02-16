@@ -2,7 +2,7 @@ import { algoliaEnvData } from "./resolve-algolia-env";
 import { RouterParams } from "./types/search-query-params";
 import { EP_CURRENCY_CODE } from "./resolve-ep-currency-code";
 import type { UiState } from "instantsearch.js";
-import { InstantSearchNextRouting } from "react-instantsearch-nextjs";
+// We avoid depending on react-instantsearch-nextjs types here for compatibility.
 
 const EP_ROUTE_BRAND = "ep_extensions_products_specifications.brand";
 const EP_ROUTE_ON_SALE = "ep_extensions_products_specifications.on-sale";
@@ -10,13 +10,13 @@ const EP_ROUTE_COLOR = "ep_extensions_products_specifications.color";
 
 export function resolveAlgoliaRouting<TUiState extends UiState = UiState>(
   catalogId: string,
-): InstantSearchNextRouting<TUiState, RouterParams> {
+): any {
   const EP_ROUTE_CATEGORY = `${catalogId}.ep_slug_categories.lvl0`;
   const EP_ROUTE_PRICE = `${catalogId}.ep_price.${EP_CURRENCY_CODE}.float_price`;
 
   return {
     router: {
-      createURL: ({ qsModule, routeState, location }) => {
+      createURL: ({ qsModule, routeState, location }: any) => {
         const { protocol, hostname, port = "", pathname, hash } = location;
 
         const { node, ...otherRouteState } = routeState;
@@ -37,7 +37,7 @@ export function resolveAlgoliaRouting<TUiState extends UiState = UiState>(
 
         return `${protocol}//${hostname}${portWithPrefix}${outputPathname}?${queryString}${hash}`;
       },
-      parseURL: ({ location }) => {
+      parseURL: ({ location }: any) => {
         const params = urlToParams(location.toString());
 
         let nodePath;
@@ -52,7 +52,7 @@ export function resolveAlgoliaRouting<TUiState extends UiState = UiState>(
       },
     },
     stateMapping: {
-      routeToState(routeState) {
+      routeToState(routeState: any) {
         //  stateNode set to default to node for initial direct navigation render
         const {
           q,
@@ -93,7 +93,7 @@ export function resolveAlgoliaRouting<TUiState extends UiState = UiState>(
           },
         } as TUiState;
       },
-      stateToRoute(uiState) {
+      stateToRoute(uiState: any) {
         const indexUiState = uiState[algoliaEnvData.indexName] || {};
         const {
           query,

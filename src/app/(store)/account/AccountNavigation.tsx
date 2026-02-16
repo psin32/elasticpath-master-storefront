@@ -25,6 +25,15 @@ export function AccountNavigation() {
           <Button
             className="w-full justify-start"
             asChild
+            reversed={!pathname.startsWith("/account/rewards")}
+          >
+            <Link href="/account/rewards">Rewards</Link>
+          </Button>
+        </li>
+        <li>
+          <Button
+            className="w-full justify-start"
+            asChild
             reversed={!pathname.startsWith("/account/analytics")}
           >
             <Link href="/account/analytics">Analytics</Link>

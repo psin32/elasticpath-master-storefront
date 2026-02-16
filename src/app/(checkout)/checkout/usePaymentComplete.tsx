@@ -73,6 +73,8 @@ export function usePaymentComplete(
         cardId,
         quoteId,
         notes,
+        useStoreCredit,
+        storeCreditAmount,
       } = data;
 
       const client = getEpccImplicitClient();
@@ -142,13 +144,20 @@ export function usePaymentComplete(
         cartInclShipping = await client.Cart(cartId || "").Items();
       }
 
-      if (paymentMethod === "ep_payment") {
+      // Submit Stripe elements when paying by card or when using store credit + card for remainder
+      if (paymentMethod === "ep_payment" || paymentMethod === "store_credit") {
         await elements?.submit();
       }
 
       /**
        * 1. Convert our cart to an order we can pay
        */
+      // Apply store credit for all payment methods (card, manual, etc.)
+      const storeCreditToApply =
+        useStoreCredit && storeCreditAmount && storeCreditAmount > 0
+          ? storeCreditAmount
+          : undefined;
+
       const createdOrder: any = await ("guest" in data
         ? mutateConvertToOrderGuest({
             customer: {
@@ -158,6 +167,7 @@ export function usePaymentComplete(
             ...checkoutProps,
             purchaseOrderNumber,
             quoteId,
+            storeCreditAmount: storeCreditToApply,
           })
         : mutateConvertToOrder({
             contact: {
@@ -167,6 +177,7 @@ export function usePaymentComplete(
             ...checkoutProps,
             purchaseOrderNumber,
             quoteId,
+            storeCreditAmount: storeCreditToApply,
           }));
 
       let paymentRequest: any = {};
@@ -212,7 +223,7 @@ export function usePaymentComplete(
       if (
         !("guest" in data) &&
         stripe_customer_id &&
-        paymentMethod === "ep_payment"
+        (paymentMethod === "ep_payment" || paymentMethod === "store_credit")
       ) {
         const effectiveBillingAddress =
           billingAddress || effectiveShippingAddress;
@@ -256,7 +267,11 @@ export function usePaymentComplete(
         },
       });
 
-      if (paymentMethod === "ep_payment" && subsItem?.length == 0) {
+      // Confirm with Stripe when paying by card or when using store credit + card for remainder
+      if (
+        (paymentMethod === "ep_payment" || paymentMethod === "store_credit") &&
+        subsItem?.length == 0
+      ) {
         /**
          * 3. Confirm the payment with Stripe
          */

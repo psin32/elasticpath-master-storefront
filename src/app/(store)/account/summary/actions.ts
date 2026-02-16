@@ -3,11 +3,21 @@
 import { z } from "zod";
 import { cookies } from "next/headers";
 import { getServerSideImplicitClient } from "../../../../lib/epcc-server-side-implicit-client";
-import { retrieveAccountMemberCredentials } from "../../../../lib/retrieve-account-member-credentials";
+import {
+  getSelectedAccount,
+  retrieveAccountMemberCredentials,
+} from "../../../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../../../lib/cookie-constants";
+import { COOKIE_PREFIX_KEY } from "../../../../lib/resolve-cart-env";
 import { revalidatePath } from "next/cache";
 import { getServerSideCredentialsClient } from "../../../../lib/epcc-server-side-credentials-client";
 import { getErrorMessage } from "../../../../lib/get-error-message";
+import {
+  getCreditBalance,
+  getTotalStoreCreditBalance,
+  type CreditBalanceResponse,
+  type StoreCreditClient,
+} from "../../../../services/store-credit";
 
 const updateAccountSchema = z.object({
   id: z.string(),
@@ -69,6 +79,53 @@ const updateUserAuthenticationPasswordProfileSchema = z.object({
 const PASSWORD_PROFILE_ID = process.env.NEXT_PUBLIC_PASSWORD_PROFILE_ID!;
 const AUTHENTICATION_REALM_ID =
   process.env.NEXT_PUBLIC_AUTHENTICATION_REALM_ID!;
+
+/**
+ * Fetches store credit balance for the current account member.
+ * Calls GET credit/balance with x-moltin-currency and EP-Account-Management-Authentication-Token headers.
+ */
+export async function getStoreCreditBalance(): Promise<{
+  balance: { totalMinor: number; currency: string; formatted: string };
+  response: CreditBalanceResponse | null;
+} | null> {
+  const accountMemberCookie = retrieveAccountMemberCredentials(
+    cookies(),
+    ACCOUNT_MEMBER_TOKEN_COOKIE_NAME,
+  );
+  if (!accountMemberCookie) return null;
+  const selectedAccount = getSelectedAccount(accountMemberCookie);
+  const cookieStore = cookies();
+  const currencyInCookie = cookieStore.get(`${COOKIE_PREFIX_KEY}_ep_currency`);
+  const currency =
+    currencyInCookie?.value ||
+    process.env.NEXT_PUBLIC_DEFAULT_CURRENCY_CODE ||
+    "USD";
+  try {
+    const client = getServerSideImplicitClient() as StoreCreditClient;
+    const response = await getCreditBalance(client, {
+      "x-moltin-currency": currency,
+      "EP-Account-Management-Authentication-Token": selectedAccount.token,
+    });
+    const { totalMinor, currency: balanceCurrency } =
+      getTotalStoreCreditBalance(response);
+    const formatted =
+      balanceCurrency && totalMinor >= 0
+        ? new Intl.NumberFormat("en-GB", {
+            style: "currency",
+            currency: balanceCurrency,
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }).format(totalMinor / 100)
+        : "";
+    return {
+      balance: { totalMinor, currency: balanceCurrency, formatted },
+      response,
+    };
+  } catch (error) {
+    console.error("getStoreCreditBalance error:", error);
+    return null;
+  }
+}
 
 export async function updateUserAuthenticationPasswordProfile(
   formData: FormData,

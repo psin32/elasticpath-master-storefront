@@ -11,7 +11,9 @@ import CurrencySelector from "./CurrencySelector";
 import CatalogSelector from "./CatalogSelector";
 import LocationSelector from "./LocationSelector";
 import { SearchModalAlgolia } from "../search/SearchModalAlgolia";
+import { SearchModalEPCC } from "../search/SearchModalEPCC";
 import { algoliaEnvData } from "../../lib/resolve-algolia-env";
+import { epccSearchEnvData } from "../../lib/resolve-epcc-search-env";
 import { SelectedAccount } from "./account/SelectedAccount";
 import BulkOrderButton from "./BulkOrderButton";
 import PreviewCartButton from "./PreviewCartButton";
@@ -19,7 +21,6 @@ import { cookies } from "next/headers";
 import { retrieveAccountMemberCredentials } from "../../lib/retrieve-account-member-credentials";
 import { ACCOUNT_MEMBER_TOKEN_COOKIE_NAME } from "../../lib/cookie-constants";
 import AdminAccountBanner from "./AdminAccountBanner";
-import SearchModalKlevu from "../search/SearchModalKlevu";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { builder } from "@builder.io/sdk";
@@ -38,8 +39,6 @@ const Header = async () => {
 
   const accountMemberTokens = accountMemberCookie?.accounts;
   const selectedAccountId = accountMemberCookie?.selected;
-  const enabledKlevu: boolean =
-    process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
 
   const contentData = async () => {
     if (enableBuilderIO) {
@@ -92,7 +91,7 @@ const Header = async () => {
             )}
             <PreviewCartButton />
             {algoliaEnvData.enabled && <SearchModalAlgolia />}
-            {enabledKlevu && <SearchModalKlevu />}
+            {epccSearchEnvData.enabled && <SearchModalEPCC />}
             {accountMemberTokens &&
               Object.keys(accountMemberTokens).length > 1 &&
               Object.keys(accountMemberTokens).map((tokenKey) => {

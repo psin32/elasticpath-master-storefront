@@ -1,7 +1,8 @@
 "use client";
 import { searchClient } from "../../../lib/search-client";
-import { InstantSearchNext } from "react-instantsearch-nextjs";
+import { InstantSearch } from "react-instantsearch";
 import { algoliaEnvData } from "../../../lib/resolve-algolia-env";
+import { epccSearchEnvData } from "../../../lib/resolve-epcc-search-env";
 import { resolveAlgoliaRouting } from "../../../lib/algolia-search-routing";
 import React from "react";
 import { buildBreadcrumbLookup } from "../../../lib/build-breadcrumb-lookup";
@@ -32,7 +33,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { ShopperCatalogResourcePage } from "@elasticpath/js-sdk";
 import SearchResultsAlgolia from "../../../components/search/SearchResultsAlgolia";
 import SearchResultsElasticPath from "../../../components/search/SearchResultsElasticPath";
-import SearchResultsKlevu from "../../../components/search/SearchResultsKlevu";
+import EPCCInstantSearch from "../../../components/search/EPCCInstantSearch";
 
 export function Search({
   page,
@@ -48,13 +49,11 @@ export function Search({
   const searchParams = useSearchParams();
   const q = searchParams.get("q") || "";
   const nodes = pathname.split("/search/")?.[1]?.split("/");
-  const enabledKlevu: boolean =
-    process.env.NEXT_PUBLIC_ENABLE_KLEVU === "true" || false;
 
   // Remove the router.refresh() effect
 
-  // If catalog ID is not available yet, show loading or fallback
-  if (algoliaEnvData.enabled && !catalogId) {
+  // If using Algolia and catalog ID is not available yet, show loading
+  if (algoliaEnvData.enabled && !epccSearchEnvData.enabled && !catalogId) {
     return <div>Loading...</div>;
   }
 
@@ -63,33 +62,42 @@ export function Search({
     : [];
   const EP_ROUTE_PRICE = catalogId ? getEpRoutePrice(catalogId) : "";
 
-  return algoliaEnvData.enabled && catalogId ? (
-    <InstantSearchNext
-      key={q}
-      indexName={algoliaEnvData.indexName}
-      searchClient={searchClient}
-      routing={resolveAlgoliaRouting(catalogId)}
-      insights={true}
-      future={{
-        preserveSharedStateOnUnmount: true,
-      }}
-    >
-      {/* Virtual widgets are here as a workaround for this issue https://github.com/algolia/instantsearch/issues/5890 */}
-      <VirtualSearchBox autoCapitalize="off" />
-      <VirtualPagination />
-      <VirtualSortBy items={sortByItems} />
-      <VirtualRangeInput attribute={EP_ROUTE_PRICE} />
-      <VirtualRefinementList attribute="price" />
-      <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
-      <SearchResultsAlgolia key={q} lookup={lookup} content={content} />
-      <Configure
-        filters={`is_child:0 AND catalog_${catalogId}:true`}
-        {...({} as any)}
-      />
-    </InstantSearchNext>
-  ) : enabledKlevu ? (
-    <SearchResultsKlevu content={content} />
-  ) : (
+  // Use Algolia when enabled and not using EPCC search
+  const useAlgolia =
+    algoliaEnvData.enabled && catalogId && !epccSearchEnvData.enabled;
+
+  if (useAlgolia) {
+    return (
+      <InstantSearch
+        key={q}
+        indexName={algoliaEnvData.indexName}
+        searchClient={searchClient}
+        routing={resolveAlgoliaRouting(catalogId)}
+        insights={true}
+      >
+        {/* Virtual widgets are here as a workaround for this issue https://github.com/algolia/instantsearch/issues/5890 */}
+        <VirtualSearchBox autoCapitalize="off" />
+        <VirtualPagination />
+        <VirtualSortBy items={sortByItems} />
+        <VirtualRangeInput attribute={EP_ROUTE_PRICE} />
+        <VirtualRefinementList attribute="price" />
+        <VirtualHierarchicalMenu attributes={hierarchicalAttributes} />
+        <SearchResultsAlgolia key={q} lookup={lookup} content={content} />
+        <Configure
+          filters={`is_child:0 AND catalog_${catalogId}:true`}
+          {...({} as any)}
+        />
+      </InstantSearch>
+    );
+  }
+
+  // EPCC instant search when env is enabled (client-side InstantSearch backed by EPCC catalog adapter)
+  if (epccSearchEnvData.enabled) {
+    return <EPCCInstantSearch indexName="search" />;
+  }
+
+  // Fallback: hierarchy/catalog browse
+  return (
     <SearchResultsElasticPath page={page} nodes={nodes} content={content} />
   );
 }

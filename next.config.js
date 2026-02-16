@@ -15,6 +15,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "**.cm.elasticpath.com",
       },
+      {
+        protocol: "https",
+        hostname: "api.qrserver.com",
+      },
     ],
     unoptimized: process.env.NEXT_PUBLIC_DISABLE_IMAGE_OPTIMIZATION == "true",
   },

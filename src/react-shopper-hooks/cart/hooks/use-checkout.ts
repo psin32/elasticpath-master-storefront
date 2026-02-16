@@ -16,6 +16,7 @@ export type UseCheckoutReq = {
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
   quoteId?: string;
+  storeCreditAmount?: number;
 };
 
 export const useCheckout = (
@@ -31,6 +32,7 @@ export const useCheckout = (
       additionalHeaders,
       purchaseOrderNumber,
       quoteId,
+      storeCreditAmount,
     }: UseCheckoutReq) => {
       const body: any = {
         data: {
@@ -45,8 +47,11 @@ export const useCheckout = (
       if (quoteId) {
         body.data.quote_ref = quoteId;
       }
+      if (storeCreditAmount != null && storeCreditAmount > 0) {
+        body.data.store_credit_amount = storeCreditAmount;
+      }
       return await client.request.send(
-        `/carts/${cartId}/checkout`,
+        `carts/${cartId}/checkout`,
         "POST",
         body,
         undefined,
@@ -67,6 +72,7 @@ export type UseCheckoutWithAccountReq = {
   additionalHeaders?: CartAdditionalHeaders;
   purchaseOrderNumber?: string;
   quoteId?: string;
+  storeCreditAmount?: number;
 };
 
 export const useCheckoutWithAccount = (
@@ -86,6 +92,7 @@ export const useCheckoutWithAccount = (
       additionalHeaders,
       purchaseOrderNumber,
       quoteId,
+      storeCreditAmount,
     }: UseCheckoutWithAccountReq) => {
       const body: any = {
         data: {
@@ -99,6 +106,9 @@ export const useCheckoutWithAccount = (
       }
       if (quoteId) {
         body.data.quote_ref = quoteId;
+      }
+      if (storeCreditAmount != null && storeCreditAmount > 0) {
+        body.data.store_credit_amount = storeCreditAmount;
       }
       return await client.request.send(
         `/carts/${cartId}/checkout`,
