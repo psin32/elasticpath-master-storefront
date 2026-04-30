@@ -18,6 +18,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface ISearchResults {
@@ -36,7 +37,7 @@ export default function SearchResultsAlgolia({
   lookup,
   content,
 }: ISearchResults): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const { uiState } = useInstantSearch();
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav } = useStore();
@@ -120,6 +121,7 @@ export default function SearchResultsAlgolia({
           customComponents={builderComponent}
         />
       )}
+      {enablePlasmic && <PlasmicContent component="page" />}
 
       <div className="grid grid-cols-[auto_1fr] gap-8">
         <div className="hidden w-[14rem] md:block lg:w-[16rem]">

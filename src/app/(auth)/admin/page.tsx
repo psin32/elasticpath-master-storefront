@@ -12,6 +12,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export default async function Login({
@@ -21,7 +22,7 @@ export default async function Login({
 }) {
   const session = await getServerSession(authOptions);
   const { returnUrl } = searchParams;
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
 
   const cookieStore = cookies();
   const { t } = await useTranslation(
@@ -65,6 +66,7 @@ export default async function Login({
                   customComponents={builderComponent}
                 />
               )}
+              {enablePlasmic && <PlasmicContent component="logo" />}
             </div>
           </Link>
         </div>

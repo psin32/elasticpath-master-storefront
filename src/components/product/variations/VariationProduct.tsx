@@ -28,6 +28,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../plasmic/PlasmicContent";
 import ProductRelationship from "../related-products/ProductRelationship";
 import moment from "moment";
 import { getInventoryDetails } from "../actions";
@@ -70,7 +71,7 @@ export function VariationProductContainer({
   relationship: any[];
   purchaseHistory: any;
 }): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const { product, selectedOptions } = useVariationProduct() as any;
   const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } =
     useCart();
@@ -478,6 +479,7 @@ export function VariationProductContainer({
           customComponents={builderComponent}
         />
       )}
+      {enablePlasmic && <PlasmicContent component="page" />}
       <Reviews product={response} />
     </div>
   );

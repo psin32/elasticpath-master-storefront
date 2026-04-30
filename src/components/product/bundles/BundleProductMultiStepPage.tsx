@@ -19,6 +19,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../builder-io/BuilderComponents";
+import PlasmicContent from "../../plasmic/PlasmicContent";
 import ProductRelationship from "../related-products/ProductRelationship";
 import { Dialog } from "@headlessui/react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
@@ -207,7 +208,7 @@ function BundleProductMultiStepPageContainer({
   content: any;
   relationship: any[];
 }): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const {
     configuredProduct,
     components,
@@ -420,6 +421,7 @@ function BundleProductMultiStepPageContainer({
             customComponents={builderComponent}
           />
         )}
+        {enablePlasmic && <PlasmicContent component="page" />}
         <Reviews product={response} />
       </div>
 

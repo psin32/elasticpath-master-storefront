@@ -8,10 +8,11 @@ import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../components/plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export default async function Home() {
-  const { enabledStoryblok, enableBuilderIO } = cmsConfig;
+  const { enabledStoryblok, enableBuilderIO, enablePlasmic } = cmsConfig;
 
   const cookieStore = cookies();
   const locale = cookieStore.get("locale")?.value || "en";
@@ -22,21 +23,20 @@ export default async function Home() {
     if (enabledStoryblok) {
       return await getHomePageContent(locale);
     }
-    if (enableBuilderIO) {
-      return await builder
-        .get("page", {
-          userAttributes: { urlPath: "/homepage" },
-          prerender: false,
-        })
-        .toPromise();
-    }
+    return await builder
+      .get("page", {
+        userAttributes: { urlPath: "/homepage" },
+        prerender: false,
+      })
+      .toPromise();
   };
   const content = await contentData();
 
   return (
     <div>
       {enabledStoryblok && content && <Content content={content}></Content>}
-      {enableBuilderIO && content && (
+      {enablePlasmic && <PlasmicContent component="homepage" />}
+      {content && (
         <BuilderContent
           model="page"
           content={content}

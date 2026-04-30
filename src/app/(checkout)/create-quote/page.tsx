@@ -18,6 +18,7 @@ import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
 import Link from "next/link";
 import { Content as BuilderContent } from "@builder.io/sdk-react";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export const metadata: Metadata = {
@@ -59,7 +60,7 @@ export default async function CheckoutPage() {
     ));
   const accountMembers = response.included.account_members;
 
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const locale = cookieStore.get("locale")?.value || "en";
   const contentData = async () => {
     if (enableBuilderIO) {
@@ -93,6 +94,7 @@ export default async function CheckoutPage() {
                     customComponents={builderComponent}
                   />
                 )}
+                {enablePlasmic && <PlasmicContent component="logo" />}
               </Link>
             </div>
             <div className="flex flex-col lg:flex-row items-start flex-only-grow w-full">
@@ -108,6 +110,7 @@ export default async function CheckoutPage() {
                         customComponents={builderComponent}
                       />
                     )}
+                    {enablePlasmic && <PlasmicContent component="logo" />}
                   </Link>
                 </div>
                 {selectedAccount && (

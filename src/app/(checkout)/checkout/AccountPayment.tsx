@@ -14,6 +14,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 import { ExpressCheckoutPaymentForm } from "./ExpressCheckoutPaymentForm";
 import { CheckoutProgress } from "./CheckoutProgress";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
@@ -29,7 +30,7 @@ export async function AccountPayment({
   stripeCustomerId,
   quoteId,
 }: AccountPaymentProps) {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const cookieStore = cookies();
   const locale = cookieStore.get("locale")?.value || "en";
   const contentData = async () => {
@@ -64,6 +65,7 @@ export async function AccountPayment({
               customComponents={builderComponent}
             />
           )}
+          {enablePlasmic && <PlasmicContent component="logo" />}
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
@@ -79,6 +81,7 @@ export async function AccountPayment({
                   customComponents={builderComponent}
                 />
               )}
+              {enablePlasmic && <PlasmicContent component="logo" />}
             </Link>
           </div>
           <Separator />

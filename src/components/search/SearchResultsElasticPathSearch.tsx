@@ -18,6 +18,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../builder-io/BuilderComponents";
+import PlasmicContent from "../plasmic/PlasmicContent";
 import HitsElasticPathSearch from "./HitsElasticPathSearch";
 import { INSTANT_SEARCH_HIERARCHICAL_ATTRIBUTES } from "../../lib/hierarchical-attributes";
 import ProductSpecification from "./product-specification/ProductSpecification";
@@ -35,7 +36,7 @@ export default function SearchResultsElasticPathSearch({
   content,
   indexName = "search",
 }: ISearchResults): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const { uiState } = useInstantSearch();
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const { options, refine } = useSortBy({ items: sortByItems });
@@ -109,6 +110,7 @@ export default function SearchResultsElasticPathSearch({
           customComponents={builderComponent}
         />
       )}
+      {enablePlasmic && <PlasmicContent component="page" />}
 
       <div className="grid grid-cols-[auto_1fr] gap-8">
         <div className="hidden w-[14rem] md:block lg:w-[16rem]">

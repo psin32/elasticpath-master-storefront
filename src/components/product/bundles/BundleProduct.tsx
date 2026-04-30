@@ -26,6 +26,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../builder-io/BuilderComponents";
+import PlasmicContent from "../../plasmic/PlasmicContent";
 import ProductRelationship from "../related-products/ProductRelationship";
 import { updateCustomAttributesForBundlesInCart } from "./actions";
 import BundleLocationInventorySelector from "./BundleLocationInventorySelector";
@@ -65,7 +66,7 @@ function BundleProductContainer({
   content: any;
   relationship: any[];
 }): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const { configuredProduct, selectedOptions, components } = useBundle();
   const { state, useScopedAddBundleProductToCart } = useCart();
 
@@ -282,6 +283,7 @@ function BundleProductContainer({
             customComponents={builderComponent}
           />
         )}
+        {enablePlasmic && <PlasmicContent component="page" />}
         <Reviews product={response} />
       </div>
     </Formik>

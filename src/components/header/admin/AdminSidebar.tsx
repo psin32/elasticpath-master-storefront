@@ -18,6 +18,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 interface AdminSidebarProps {
@@ -32,7 +33,7 @@ export function AdminSidebar({
   content,
 }: AdminSidebarProps) {
   const pathname = usePathname();
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const navigation = [
     {
       name: "Home",
@@ -98,6 +99,7 @@ export function AdminSidebar({
                       customComponents={builderComponent}
                     />
                   )}
+                  {enablePlasmic && <PlasmicContent component="logo" />}
                 </div>
               </div>
               <nav className="flex flex-1 flex-col">
@@ -158,6 +160,7 @@ export function AdminSidebar({
                   customComponents={builderComponent}
                 />
               )}
+              {enablePlasmic && <PlasmicContent component="logo" />}
             </div>{" "}
           </div>
           <nav className="flex flex-1 flex-col">

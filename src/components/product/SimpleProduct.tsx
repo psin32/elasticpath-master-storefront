@@ -27,6 +27,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../plasmic/PlasmicContent";
 import ProductRelationship from "./related-products/ProductRelationship";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 import moment from "moment";
@@ -72,7 +73,7 @@ function SimpleProductContainer({
   relationship: any[];
   purchaseHistory: any;
 }): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   const { product } = useSimpleProduct() as any;
   const { useScopedAddProductToCart, useScopedAddSubscriptionItemToCart } =
     useCart();
@@ -455,6 +456,7 @@ function SimpleProductContainer({
           customComponents={builderComponent}
         />
       )}
+      {enablePlasmic && <PlasmicContent component="page" />}
       <Reviews product={response} />
     </div>
   );

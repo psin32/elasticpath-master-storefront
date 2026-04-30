@@ -25,10 +25,11 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../lib/resolve-cms-env";
+import PlasmicContent from "../plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 const Header = async () => {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const catalogMenu = await getCatalogMenu();
 
   const cookieStore = cookies();
@@ -70,6 +71,7 @@ const Header = async () => {
             customComponents={builderComponent}
           />
         )}
+        {enablePlasmic && <PlasmicContent component="announcement" />}
         <Suspense>
           <MobileNavBar />
         </Suspense>

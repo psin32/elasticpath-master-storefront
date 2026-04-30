@@ -13,6 +13,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 import Cookies from "js-cookie";
 import {
   ItemSidebarHideable,
@@ -65,7 +66,7 @@ export function ReserveConfirmation({
     return null;
   }
 
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
 
   const customerName = (
     order.data.contact?.name ??
@@ -90,7 +91,8 @@ export function ReserveConfirmation({
               customComponents={builderComponent}
             />
           )}
-          {(!enabledStoryblok && !enableBuilderIO) ||
+          {enablePlasmic && <PlasmicContent component="logo" />}
+          {(!enabledStoryblok && !enableBuilderIO && !enablePlasmic) ||
           (!content && !isLoading) ? (
             <EpIcon className="h-8 w-auto relative" />
           ) : null}
@@ -112,7 +114,8 @@ export function ReserveConfirmation({
                   customComponents={builderComponent}
                 />
               )}
-              {(!enabledStoryblok && !enableBuilderIO) ||
+              {enablePlasmic && <PlasmicContent component="logo" />}
+              {(!enabledStoryblok && !enableBuilderIO && !enablePlasmic) ||
               (!content && !isLoading) ? (
                 <EpIcon className="h-12 w-auto relative" />
               ) : null}

@@ -11,6 +11,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 import { DeliveryContinueButton } from "./DeliveryContinueButton";
 import { CheckoutProgress } from "./CheckoutProgress";
 import { ShippingGroupManager } from "./ShippingGroupManager";
@@ -22,7 +23,7 @@ type GuestDeliveryProps = {
 };
 
 export async function GuestDelivery({ cart }: GuestDeliveryProps) {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const cookieStore = cookies();
   const locale = cookieStore.get("locale")?.value || "en";
   const contentData = async () => {
@@ -54,6 +55,7 @@ export async function GuestDelivery({ cart }: GuestDeliveryProps) {
               customComponents={builderComponent}
             />
           )}
+          {enablePlasmic && <PlasmicContent component="logo" />}
         </Link>
       </div>
       <div className="flex flex-col lg:flex-row items-start flex-only-grow max-w-[90rem]">
@@ -69,6 +71,7 @@ export async function GuestDelivery({ cart }: GuestDeliveryProps) {
                   customComponents={builderComponent}
                 />
               )}
+              {enablePlasmic && <PlasmicContent component="logo" />}
             </Link>
           </div>
           <Separator />

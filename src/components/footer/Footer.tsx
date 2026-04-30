@@ -2,10 +2,11 @@ import { getFooter } from "../../services/storyblok";
 import Content from "../storyblok/Content";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../lib/resolve-cms-env";
+import PlasmicContent from "../plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 const Footer = async () => {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
 
   const contentData = async () => {
     if (enableBuilderIO) {
@@ -66,6 +67,7 @@ const Footer = async () => {
           </div>
         </footer>
       )}
+      {enablePlasmic && <PlasmicContent component="footer" />}
     </>
   );
 };

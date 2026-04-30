@@ -14,6 +14,7 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { cmsConfig } from "../../lib/resolve-cms-env";
 import { builder } from "@builder.io/sdk";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../plasmic/PlasmicContent";
 import clsx from "clsx";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
@@ -30,7 +31,7 @@ export default function SearchResultsElasticPath({
   content,
   adminDisplay,
 }: ISearchResults): JSX.Element {
-  const { enableBuilderIO } = cmsConfig;
+  const { enableBuilderIO, enablePlasmic } = cmsConfig;
   let [showFilterMenu, setShowFilterMenu] = useState(false);
   const { nav, client } = useStore() as any;
   const lookup = buildBreadcrumbLookup(nav ?? []);
@@ -68,6 +69,7 @@ export default function SearchResultsElasticPath({
             customComponents={builderComponent}
           />
         )}
+        {enablePlasmic && <PlasmicContent component="page" />}
         <div
           className={clsx(
             !adminDisplay ? "grid-cols-[auto_1fr]" : "",

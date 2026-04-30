@@ -13,6 +13,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export default async function Register({
@@ -20,7 +21,7 @@ export default async function Register({
 }: {
   searchParams: { returnUrl?: string };
 }) {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
 
   const { returnUrl } = searchParams;
   const cookieStore = cookies();
@@ -59,6 +60,7 @@ export default async function Register({
                   customComponents={builderComponent}
                 />
               )}
+              {enablePlasmic && <PlasmicContent component="logo" />}
             </div>
           </Link>
           <h2 className="mt-6 text-center text-2xl font-medium leading-9 tracking-tight text-gray-900">

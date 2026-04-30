@@ -6,10 +6,11 @@ import { Content as BuilderContent } from "@builder.io/sdk-react";
 import { builderComponent } from "../../components/builder-io/BuilderComponents";
 import { builder } from "@builder.io/sdk";
 import { cmsConfig } from "../../lib/resolve-cms-env";
+import PlasmicContent from "../plasmic/PlasmicContent";
 builder.init(process.env.NEXT_PUBLIC_BUILDER_IO_KEY || "");
 
 export default async function Logo() {
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
   const cookieStore = cookies();
   const locale = cookieStore.get("locale")?.value || "en";
   const contentData = async () => {
@@ -40,6 +41,7 @@ export default async function Logo() {
             customComponents={builderComponent}
           />
         )}
+        {enablePlasmic && <PlasmicContent component="Logo" />}
       </Link>
     </div>
   );

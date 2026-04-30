@@ -14,6 +14,7 @@ import { builder } from "@builder.io/sdk";
 import { getLogo } from "../../../services/storyblok";
 import Content from "../../../components/storyblok/Content";
 import { builderComponent } from "../../../components/builder-io/BuilderComponents";
+import PlasmicContent from "../../../components/plasmic/PlasmicContent";
 import Cookies from "js-cookie";
 import { useEffect, useMemo, useState } from "react";
 
@@ -59,7 +60,7 @@ export function OrderConfirmation({ order: orderProp }: { order?: any } = {}) {
     loadContent();
   }, []);
 
-  const { enableBuilderIO, enabledStoryblok } = cmsConfig;
+  const { enableBuilderIO, enabledStoryblok, enablePlasmic } = cmsConfig;
 
   const customerName = order
     ? (order.data.contact?.name ?? order.data.customer?.name ?? "").split(
@@ -156,7 +157,8 @@ export function OrderConfirmation({ order: orderProp }: { order?: any } = {}) {
               customComponents={builderComponent}
             />
           )}
-          {(!enabledStoryblok && !enableBuilderIO) ||
+          {enablePlasmic && <PlasmicContent component="logo" />}
+          {(!enabledStoryblok && !enableBuilderIO && !enablePlasmic) ||
           (!content && !isLoading) ? (
             <EpIcon className="h-8 w-auto relative" />
           ) : null}
@@ -178,7 +180,8 @@ export function OrderConfirmation({ order: orderProp }: { order?: any } = {}) {
                   customComponents={builderComponent}
                 />
               )}
-              {(!enabledStoryblok && !enableBuilderIO) ||
+              {enablePlasmic && <PlasmicContent component="logo" />}
+              {(!enabledStoryblok && !enableBuilderIO && !enablePlasmic) ||
               (!content && !isLoading) ? (
                 <EpIcon className="h-12 w-auto relative" />
               ) : null}
