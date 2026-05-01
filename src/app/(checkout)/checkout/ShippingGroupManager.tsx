@@ -402,6 +402,22 @@ export function ShippingGroupManager({
     }).format(amount / 100); // Convert cents to dollars
   };
 
+  const getItemUnitPrice = (item: any) => {
+    return (
+      item?.meta?.display_price?.without_tax?.unit?.formatted ||
+      item?.meta?.display_price?.with_tax?.unit?.formatted ||
+      "N/A"
+    );
+  };
+
+  const getItemSubtotal = (item: any) => {
+    return (
+      item?.meta?.display_price?.without_tax?.value?.formatted ||
+      item?.meta?.display_price?.with_tax?.value?.formatted ||
+      "N/A"
+    );
+  };
+
   const createShippingGroup = async () => {
     if (selectedItems.length === 0) {
       toast.error("Please select at least one item");
@@ -959,9 +975,13 @@ export function ShippingGroupManager({
 
             <div>
               <Label className="mb-2 block mt-6">Select Items</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+            <div className="flex flex-col gap-2 max-h-64 overflow-y-auto border rounded-lg p-3">
                 {getItemsNotInGroups().map((item) => (
-                  <div key={item.id} className="flex items-center space-x-2">
+                <div
+                  key={item.id}
+                  className="flex items-start gap-3 rounded-md border border-gray-100 p-2"
+                >
+                  <div className="pt-0.5">
                     <Checkbox
                       id={`item-${item.id}`}
                       checked={selectedItems.includes(item.id)}
@@ -969,9 +989,27 @@ export function ShippingGroupManager({
                         handleItemSelection(item.id, checked as boolean)
                       }
                     />
-                    <Label htmlFor={`item-${item.id}`} className="text-sm">
-                      {item.name} (Qty: {item.quantity})
-                    </Label>
+                  </div>
+                  <Label htmlFor={`item-${item.id}`} className="text-sm flex-1">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs text-gray-600">
+                          Item: {getItemUnitPrice(item)}
+                        </p>
+                        <p className="text-sm font-medium text-gray-900">
+                          Subtotal: {getItemSubtotal(item)}
+                        </p>
+                      </div>
+                    </div>
+                  </Label>
                   </div>
                 ))}
                 {getItemsNotInGroups().length === 0 && (
