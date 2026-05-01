@@ -97,15 +97,23 @@ export async function POST(request: NextRequest) {
       shippingDetails = mockShippingDetails;
     }
 
-    // Return specific shipping type details
-    const specificShippingDetails =
-      shippingDetails[shippingType as keyof typeof shippingDetails];
+    // If shippingType is passed, return only that method.
+    if (shippingType) {
+      const specificShippingDetails =
+        shippingDetails[shippingType as keyof typeof shippingDetails];
 
-    if (!specificShippingDetails) {
-      return NextResponse.json(
-        { error: "Invalid shipping type" },
-        { status: 400 },
-      );
+      if (!specificShippingDetails) {
+        return NextResponse.json(
+          { error: "Invalid shipping type" },
+          { status: 400 },
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: specificShippingDetails,
+        source: apiResponse.success ? "api" : "mock",
+      });
     }
 
     // You could add additional logic here for:
@@ -116,8 +124,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: specificShippingDetails,
+      data: shippingDetails,
       source: apiResponse.success ? "api" : "mock",
+      request_context: {
+        has_address: Boolean(address),
+        item_count: Array.isArray(items) ? items.length : 0,
+      },
     });
   } catch (error) {
     console.error("Error calculating shipping details:", error);

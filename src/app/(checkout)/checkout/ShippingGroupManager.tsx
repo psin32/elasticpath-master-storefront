@@ -113,14 +113,93 @@ export function ShippingGroupManager({
 
   const client = getEpccImplicitClient();
 
-  // Fetch shipping details when shipping type changes
+  const getShippingAddress = () => {
+    if (selectedAddressId) {
+      const selectedAddress = getSelectedAddress();
+      if (selectedAddress) {
+        return {
+          first_name: selectedAddress.first_name,
+          last_name: selectedAddress.last_name,
+          phone_number: selectedAddress.phone_number || "",
+          company_name: selectedAddress.company_name || "",
+          line_1: selectedAddress.line_1,
+          line_2: selectedAddress.line_2 || "",
+          city: selectedAddress.city,
+          postcode: selectedAddress.postcode,
+          county: selectedAddress.county || "",
+          country: selectedAddress.country,
+          region: selectedAddress.region || "",
+          instructions: selectedAddress.instructions || "",
+        };
+      }
+
+      // When an address id is selected but address records are not ready yet,
+      // return null so we don't incorrectly fall back to form values.
+      return null;
+    }
+
+    const formValues = getValues();
+    return formValues.shippingAddress;
+  };
+
+  const isAddressComplete = (address: any) => {
+    if (!address) return false;
+    const requiredFields = [
+      "first_name",
+      "line_1",
+      "city",
+      "postcode",
+      "country",
+    ];
+    return requiredFields.every((field) => address[field]);
+  };
+
   const fetchShippingDetails = async () => {
+    const shippingAddress = getShippingAddress();
+    if (!isAddressComplete(shippingAddress) || selectedItems.length === 0) {
+      setShippingDetails({});
+      setShippingType("");
+      return;
+    }
+
+    const selectedCartItems =
+      cart?.items
+        ?.filter((item) => selectedItems.includes(item.id))
+        .map((item) => ({
+          id: item.id,
+          sku: item.sku,
+          quantity: item.quantity,
+          product_id: item.product_id,
+        })) || [];
+
     setIsLoadingShippingDetails(true);
     try {
-      const response = await fetch(`/api/shipping/details`);
+      const internalShippingDetailsPath = "/api/shipping/details";
+      const shouldUseEpccEndpointPrefix =
+        process.env.NEXT_PUBLIC_USE_EPCC_ENDPOINT_FOR_INTERNAL_API === "true";
+      console.log("shouldUseEpccEndpointPrefix", shouldUseEpccEndpointPrefix);
+      const epccEndpoint = process.env.NEXT_PUBLIC_EPCC_ENDPOINT_URL;
+      const shippingDetailsUrl =
+        shouldUseEpccEndpointPrefix && epccEndpoint
+          ? `${epccEndpoint.startsWith("http") ? epccEndpoint : `https://${epccEndpoint}`}${internalShippingDetailsPath}`
+          : internalShippingDetailsPath;
+
+      const response = await fetch(shippingDetailsUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: shippingAddress,
+          items: selectedCartItems,
+          cartId: cart?.id,
+          currency:
+            cart?.meta?.display_price?.with_tax?.currency || EP_CURRENCY_CODE,
+        }),
+      });
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.data) {
+        if (data.data) {
           // Transform the API response to match our expected format
           let transformedData: Record<string, ShippingDetails> = {};
 
@@ -165,6 +244,11 @@ export function ShippingGroupManager({
           // Auto-select the first shipping type if none is selected
           if (!shippingType && Object.keys(transformedData).length > 0) {
             setShippingType(Object.keys(transformedData)[0]);
+          } else if (
+            shippingType &&
+            !Object.prototype.hasOwnProperty.call(transformedData, shippingType)
+          ) {
+            setShippingType(Object.keys(transformedData)[0] || "");
           }
         }
       }
@@ -175,19 +259,12 @@ export function ShippingGroupManager({
     }
   };
 
-  // Fetch all shipping details on component mount
+  // Fetch shipping details only after address and items are selected
   useEffect(() => {
     if (showCreateForm) {
       fetchShippingDetails();
     }
-  }, [showCreateForm]);
-
-  // Fetch shipping details when shipping type changes
-  useEffect(() => {
-    if (showCreateForm && shippingType && !shippingDetails[shippingType]) {
-      fetchShippingDetails();
-    }
-  }, [shippingType, showCreateForm]);
+  }, [showCreateForm, selectedAddressId, selectedItems, cart?.id]);
 
   // Use React Query to fetch account addresses
   const { data: accountAddressesData } = useQuery({
@@ -209,6 +286,19 @@ export function ShippingGroupManager({
   });
 
   const accountAddresses = accountAddressesData?.data || [];
+
+  // Re-fetch shipping details when address records are loaded/refreshed.
+  useEffect(() => {
+    if (showCreateForm) {
+      fetchShippingDetails();
+    }
+  }, [
+    accountAddresses.length,
+    showCreateForm,
+    selectedAddressId,
+    selectedItems,
+    cart?.id,
+  ]);
 
   // Auto-select first address when addresses are loaded
   useEffect(() => {
@@ -318,33 +408,7 @@ export function ShippingGroupManager({
       return;
     }
 
-    // Get shipping address from selected address or form
-    let shippingAddress;
-
-    if (selectedAddressId && accountAddresses.length > 0) {
-      // Use selected address from address book
-      const selectedAddress = getSelectedAddress();
-      if (selectedAddress) {
-        shippingAddress = {
-          first_name: selectedAddress.first_name,
-          last_name: selectedAddress.last_name,
-          phone_number: selectedAddress.phone_number || "",
-          company_name: selectedAddress.company_name || "",
-          line_1: selectedAddress.line_1,
-          line_2: selectedAddress.line_2 || "",
-          city: selectedAddress.city,
-          postcode: selectedAddress.postcode,
-          county: selectedAddress.county || "",
-          country: selectedAddress.country,
-          region: selectedAddress.region || "",
-          instructions: selectedAddress.instructions || "",
-        };
-      }
-    } else {
-      // Use address from form
-      const formValues = getValues();
-      shippingAddress = formValues.shippingAddress;
-    }
+    const shippingAddress = getShippingAddress();
 
     if (!shippingAddress) {
       toast.error(
@@ -356,7 +420,6 @@ export function ShippingGroupManager({
     // Validate required address fields
     const requiredFields = [
       "first_name",
-      "last_name",
       "line_1",
       "city",
       "postcode",
@@ -375,6 +438,13 @@ export function ShippingGroupManager({
 
     setIsCreating(true);
     try {
+      if (!shippingType) {
+        toast.error(
+          "Select address and items first to load available shipping methods",
+        );
+        return;
+      }
+
       // Get shipping details for the selected type
       const currentShippingDetails = shippingDetails[shippingType];
 
@@ -834,6 +904,84 @@ export function ShippingGroupManager({
             <h3 className="text-lg font-semibold">Create New Shipping Group</h3>
           </div>
           <div className="space-y-8">
+            {selectedAccountToken?.account_id && (
+              <div>
+                <Label htmlFor="addressSelect">Select Delivery Address</Label>
+                <Select
+                  value={selectedAddressId}
+                  onValueChange={(value) => {
+                    if (value === "new") {
+                      setIsAddressDialogOpen(true);
+                    } else {
+                      setSelectedAddressId(value);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select an address" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accountAddresses.map((address) => (
+                      <SelectItem key={address.id} value={address.id}>
+                        {address.name ||
+                          `${address.first_name} ${address.last_name}`}{" "}
+                        - {address.line_1}, {address.city}
+                      </SelectItem>
+                    ))}
+                    <SelectItem
+                      value="new"
+                      className="text-blue-600 font-medium"
+                    >
+                      + Add New Address
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {selectedAddressId && (
+              <div className="p-3 bg-gray-50 rounded-lg text-sm mt-2">
+                <p className="font-medium">
+                  {getSelectedAddress()?.name ||
+                    `${getSelectedAddress()?.first_name} ${getSelectedAddress()?.last_name}`}
+                </p>
+                <p>{getSelectedAddress()?.line_1}</p>
+                {getSelectedAddress()?.line_2 && (
+                  <p>{getSelectedAddress()?.line_2}</p>
+                )}
+                <p>
+                  {getSelectedAddress()?.city}, {getSelectedAddress()?.region}{" "}
+                  {getSelectedAddress()?.postcode}
+                </p>
+                <p>{getSelectedAddress()?.country}</p>
+              </div>
+            )}
+
+            <div>
+              <Label className="mb-2 block mt-6">Select Items</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                {getItemsNotInGroups().map((item) => (
+                  <div key={item.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`item-${item.id}`}
+                      checked={selectedItems.includes(item.id)}
+                      onCheckedChange={(checked) =>
+                        handleItemSelection(item.id, checked as boolean)
+                      }
+                    />
+                    <Label htmlFor={`item-${item.id}`} className="text-sm">
+                      {item.name} (Qty: {item.quantity})
+                    </Label>
+                  </div>
+                ))}
+                {getItemsNotInGroups().length === 0 && (
+                  <p className="text-sm text-gray-500 col-span-full">
+                    All items are already in shipping groups
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="shippingType" className="mb-4 block mt-2">
@@ -849,7 +997,7 @@ export function ShippingGroupManager({
                       .sort(
                         ([, a], [, b]) =>
                           (b.sort_order || 0) - (a.sort_order || 0),
-                      ) // Sort by sort_order descending
+                      )
                       .map(([type, details]) => (
                         <div key={type} className="relative w-full">
                           <RadioGroupItem
@@ -906,9 +1054,9 @@ export function ShippingGroupManager({
                       ))
                   ) : (
                     <div className="text-sm text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50 w-full">
-                      {isLoadingShippingDetails
-                        ? "Loading shipping options..."
-                        : "No shipping options available"}
+                      {selectedItems.length === 0
+                        ? "Select one or more items to load shipping options"
+                        : "Select a complete delivery address to load shipping options"}
                     </div>
                   )}
                 </RadioGroup>
@@ -917,98 +1065,20 @@ export function ShippingGroupManager({
               {isLoadingShippingDetails && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-500">
-                    Loading shipping details...
+                    Loading shipping details using selected address and items...
                   </p>
                 </div>
               )}
             </div>
 
-            {selectedAccountToken?.account_id && (
-              <div>
-                <Label htmlFor="addressSelect">Select Delivery Address</Label>
-                <Select
-                  value={selectedAddressId}
-                  onValueChange={(value) => {
-                    if (value === "new") {
-                      setIsAddressDialogOpen(true);
-                    } else {
-                      setSelectedAddressId(value);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select an address" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accountAddresses.map((address) => (
-                      <SelectItem key={address.id} value={address.id}>
-                        {address.name ||
-                          `${address.first_name} ${address.last_name}`}{" "}
-                        - {address.line_1}, {address.city}
-                      </SelectItem>
-                    ))}
-                    <SelectItem
-                      value="new"
-                      className="text-blue-600 font-medium"
-                    >
-                      + Add New Address
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <Button
+              onClick={createShippingGroup}
+              disabled={isCreating || selectedItems.length === 0}
+              className="w-full mt-6"
+            >
+              {isCreating ? "Creating..." : "Create Shipping Group"}
+            </Button>
           </div>
-
-          {selectedAddressId && (
-            <div className="p-3 bg-gray-50 rounded-lg text-sm mt-2">
-              <p className="font-medium">
-                {getSelectedAddress()?.name ||
-                  `${getSelectedAddress()?.first_name} ${getSelectedAddress()?.last_name}`}
-              </p>
-              <p>{getSelectedAddress()?.line_1}</p>
-              {getSelectedAddress()?.line_2 && (
-                <p>{getSelectedAddress()?.line_2}</p>
-              )}
-              <p>
-                {getSelectedAddress()?.city}, {getSelectedAddress()?.region}{" "}
-                {getSelectedAddress()?.postcode}
-              </p>
-              <p>{getSelectedAddress()?.country}</p>
-            </div>
-          )}
-
-          <div>
-            <Label className="mb-2 block mt-6">Select Items</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-              {getItemsNotInGroups().map((item) => (
-                <div key={item.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`item-${item.id}`}
-                    checked={selectedItems.includes(item.id)}
-                    onCheckedChange={(checked) =>
-                      handleItemSelection(item.id, checked as boolean)
-                    }
-                  />
-                  <Label htmlFor={`item-${item.id}`} className="text-sm">
-                    {item.name} (Qty: {item.quantity})
-                  </Label>
-                </div>
-              ))}
-              {getItemsNotInGroups().length === 0 && (
-                <p className="text-sm text-gray-500 col-span-full">
-                  All items are already in shipping groups
-                </p>
-              )}
-            </div>
-          </div>
-
-          <Button
-            onClick={createShippingGroup}
-            disabled={isCreating || selectedItems.length === 0}
-            className="w-full mt-6"
-          >
-            {isCreating ? "Creating..." : "Create Shipping Group"}
-          </Button>
         </div>
       )}
 
