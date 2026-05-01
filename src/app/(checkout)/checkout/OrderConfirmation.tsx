@@ -181,10 +181,6 @@ export function OrderConfirmation({ order: orderProp }: { order?: any } = {}) {
                 />
               )}
               {enablePlasmic && <PlasmicContent component="logo" />}
-              {(!enabledStoryblok && !enableBuilderIO && !enablePlasmic) ||
-              (!content && !isLoading) ? (
-                <EpIcon className="h-12 w-auto relative" />
-              ) : null}
             </Link>
           </div>
           <Separator />
