@@ -258,7 +258,7 @@ export default async function Subscription({}) {
       {result?.data?.length == 0 && (
         <div className="flex flex-col self-stretch gap-5">
           <div className="mt-8 flow-root">
-            Your account does not have any quote created at the moment.
+            Your account does not have any subscriptions created at the moment.
           </div>
         </div>
       )}
