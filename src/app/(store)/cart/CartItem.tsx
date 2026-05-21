@@ -8,6 +8,7 @@ import { LoadingDots } from "../../../components/LoadingDots";
 import { CartAdditionalData } from "../../../components/cart/CartAdditionalData";
 import { CartComponentData } from "../../../components/cart/CartComponentData";
 import { CartItemPromotions } from "../../../components/cart/CartItemPromotions";
+import { CartItemCustomInputsPromo } from "../../../components/cart/CartItemCustomInputsPromo";
 import Image from "next/image";
 import AddItemCustomDiscount from "../../(admin)/admin/quotes/new/AddItemCustomDiscount";
 import { useState } from "react";
@@ -98,6 +99,7 @@ export function CartItem({
                 )}
               </span>
             )}
+            <CartItemCustomInputsPromo item={item} />
             <span className="text-xs text-black/60">
               Item Price:{" "}
               {item.meta.display_price.without_tax?.unit.formatted

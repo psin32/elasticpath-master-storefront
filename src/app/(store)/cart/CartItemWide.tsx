@@ -8,6 +8,7 @@ import { LoadingDots } from "../../../components/LoadingDots";
 import { CartAdditionalData } from "../../../components/cart/CartAdditionalData";
 import { CartComponentData } from "../../../components/cart/CartComponentData";
 import { CartItemPromotions } from "../../../components/cart/CartItemPromotions";
+import { CartItemCustomInputsPromo } from "../../../components/cart/CartItemCustomInputsPromo";
 import Image from "next/image";
 
 export function CartItemWide({ item, hideLocation = false }: CartItemProps) {
@@ -66,6 +67,7 @@ export function CartItemWide({ item, hideLocation = false }: CartItemProps) {
                 )}
               </span>
             )}
+            <CartItemCustomInputsPromo item={item} />
             <span className="text-sm text-black/60">
               Item Price: {item.meta.display_price.with_tax.unit.formatted}
             </span>
