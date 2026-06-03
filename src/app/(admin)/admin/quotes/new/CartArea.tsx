@@ -28,6 +28,11 @@ export default function CartArea({
   error,
   status,
   accountId,
+  quoteNote,
+  setQuoteNote,
+  cartId,
+  initialNotes,
+  adminName,
 }: {
   setOpenDiscount: any;
   enableCustomDiscount: boolean;
@@ -37,6 +42,11 @@ export default function CartArea({
   error: string;
   status?: string;
   accountId: string;
+  quoteNote?: string;
+  setQuoteNote?: (note: string) => void;
+  cartId?: string;
+  initialNotes?: any[];
+  adminName?: string;
 }) {
   const { state, useScopedRemoveCartItem } = useCart() as any;
   const { useScopedUpdateCartItem } = useCart();
@@ -84,6 +94,11 @@ export default function CartArea({
             products={products}
             status={status}
             account_id={accountId}
+            cartId={cartId}
+            initialNotes={initialNotes}
+            adminName={adminName}
+            quoteNote={quoteNote}
+            setQuoteNote={setQuoteNote}
           />
         )}
       </div>

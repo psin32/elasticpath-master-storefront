@@ -205,10 +205,10 @@ export function CartItem({
         <CartComponentData item={item} />
         <CartAdditionalData item={item} hideLocation={hideLocation} />
       </div>
-      {enableCustomDiscount && selectedAccount && (
+      {enableCustomDiscount && (
         <AddItemCustomDiscount
           itemId={item.id}
-          selectedSalesRep={selectedAccount}
+          selectedSalesRep={selectedAccount ?? ""}
           enableCustomDiscount={enableCustomDiscount}
           openDiscount={openDiscount}
           setOpenDiscount={setOpenDiscount}

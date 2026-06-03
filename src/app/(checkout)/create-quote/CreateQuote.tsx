@@ -9,6 +9,7 @@ import {
   createShippingGroup,
   getAccountAddresses,
 } from "../../(admin)/admin/quotes/actions";
+import { createNoteForCart } from "../../../services/custom-api";
 import {
   CheckIcon,
   EnvelopeIcon,
@@ -59,6 +60,7 @@ export default function AccountSelector({
   const [loadingCreateQuote, setLoadingCreateQuote] = useState(false);
   const [error, setError] = useState<string>("");
   const [isOverlayOpen, setIsOverlayOpen] = useState<boolean>(false);
+  const [quoteNote, setQuoteNote] = useState<string>("");
 
   useEffect(() => {
     const init = async () => {
@@ -133,12 +135,12 @@ export default function AccountSelector({
     if (response?.errors) {
       setError(response?.errors?.[0]?.detail);
     } else {
-      const request: any = {
+      const shippingRequest: any = {
         type: "shipping_group",
         shipping_type: "Standard",
         address: selectedAddress,
       };
-      await createShippingGroup(state?.id, request);
+      await createShippingGroup(state?.id, shippingRequest);
       await associateCartWithAccount(state?.id, accountId);
       const client = getEpccImplicitClient();
       const cartRequest: any = {
@@ -147,6 +149,16 @@ export default function AccountSelector({
         is_quote: true,
       };
       await client.Cart(state?.id).UpdateCart(cartRequest);
+      if (quoteNote.trim()) {
+        const addedBy = accountMembers?.find(
+          (member: any) => member.id === selectedAccountMember,
+        )?.name;
+        await createNoteForCart({
+          cart_id: state?.id,
+          note: quoteNote.trim(),
+          added_by: addedBy,
+        });
+      }
     }
     setLoadingCreateQuote(false);
     setIsOverlayOpen(true);
@@ -423,6 +435,8 @@ export default function AccountSelector({
             loadingCreateQuote={loadingCreateQuote}
             error={error}
             accountId={accountId}
+            quoteNote={quoteNote}
+            setQuoteNote={setQuoteNote}
           />
           {accountsCount > 1 && (
             <AddCartCustomDiscount

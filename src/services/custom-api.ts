@@ -266,6 +266,42 @@ export async function getPublicSharedLists() {
 }
 
 /**
+ * Fetch cart notes by cart ID from the Custom API.
+ */
+export async function getCartNotesByCartId(cartId: string) {
+  try {
+    const client = getServerSideCredentialsClient();
+    const response = await client.request.send(
+      `/extensions/notes?filter=eq(cart_id,${cartId}):eq(private,false)`,
+      "GET",
+      undefined,
+      undefined,
+      client,
+      false,
+      "v2",
+    );
+    if (response && response.data) {
+      return {
+        success: true,
+        data: response.data,
+      };
+    }
+    return {
+      success: false,
+      data: [],
+      error: "No data received",
+    };
+  } catch (error) {
+    console.error("Error fetching cart notes:", error);
+    return {
+      success: false,
+      data: [],
+      error: error,
+    };
+  }
+}
+
+/**
  * Fetch order notes by order ID from the Custom API.
  */
 export async function getOrderNotesByOrderId(orderId: string) {
@@ -330,6 +366,39 @@ export async function createNoteForOrder({
     )
     .catch((err) => {
       console.error("Error while creating new order note", err);
+      return err;
+    });
+}
+
+export async function createNoteForCart({
+  cart_id,
+  note,
+  added_by,
+}: {
+  cart_id: string;
+  note: string;
+  added_by?: string;
+}) {
+  const client = getServerSideCredentialsClient();
+  const payload = {
+    type: "note_ext",
+    cart_id,
+    note,
+    private: false,
+    ...(added_by && { added_by }),
+  };
+  return await client.request
+    .send(
+      `/extensions/notes`,
+      "POST",
+      payload,
+      undefined,
+      client,
+      undefined,
+      "v2",
+    )
+    .catch((err) => {
+      console.error("Error while creating new cart note", err);
       return err;
     });
 }

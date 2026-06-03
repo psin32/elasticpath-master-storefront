@@ -24,6 +24,8 @@ import {
 import { useSession } from "next-auth/react";
 import clsx from "clsx";
 import { Separator } from "../../../../../components/separator/Separator";
+import { getCartNotesByCartId } from "../../../../../services/custom-api";
+import { getEpccImplicitClient } from "../../../../../lib/epcc-implicit-client";
 
 export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const { state } = useCart() as any;
@@ -42,6 +44,8 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const [selectedSalesRep, setSelectedSalesRep] = useState("");
   const [quoteStatus, setQuoteStatus] = useState("");
   const [selectedQuoteStatus, setSelectedQuoteStatus] = useState("");
+  const [quoteNotes, setQuoteNotes] = useState<any[]>([]);
+  const [togglingPriceOverride, setTogglingPriceOverride] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -77,6 +81,8 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
         quote?.data?.[0].account_id,
       );
       setAccounts(accountResponse.data);
+      const notesResponse = await getCartNotesByCartId(quote?.data?.[0]?.cart_id);
+      setQuoteNotes(notesResponse.data ?? []);
     };
     init();
   }, [quoteId]);
@@ -84,6 +90,25 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
   const getCountryName = (country: string) => {
     const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
     return regionNames.of(country.toUpperCase()) || country;
+  };
+
+  const handleTogglePriceOverride = async () => {
+    setTogglingPriceOverride(true);
+    try {
+      const client = getEpccImplicitClient();
+      const next = !enableCustomDiscount;
+      await client.Cart(state?.id).UpdateCart({
+        discount_settings: {
+          custom_discounts_enabled: next,
+          use_rule_promotions: !next,
+        },
+      } as any);
+      setEnableCustomDiscount(next);
+    } catch (err) {
+      console.error("Error toggling price override:", err);
+    } finally {
+      setTogglingPriceOverride(false);
+    }
   };
 
   const createQuote = async () => {
@@ -256,6 +281,33 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
                     </span>
                   </dd>
                 </div>
+                <Separator />
+                <div className="mt-6">
+                  <dt className="font-medium text-gray-900">Price Override</dt>
+                  <dd className="mt-3">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={enableCustomDiscount}
+                      disabled={togglingPriceOverride}
+                      onClick={handleTogglePriceOverride}
+                      className={clsx(
+                        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+                        enableCustomDiscount ? "bg-brand-primary" : "bg-gray-200",
+                      )}
+                    >
+                      <span
+                        className={clsx(
+                          "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          enableCustomDiscount ? "translate-x-5" : "translate-x-0",
+                        )}
+                      />
+                    </button>
+                    <span className="ml-3 text-sm text-gray-600">
+                      {enableCustomDiscount ? "Enabled" : "Disabled"}
+                    </span>
+                  </dd>
+                </div>
               </div>
             </dl>
             <dl className="mt-8 divide-y divide-gray-200 text-sm lg:col-span-3 lg:mt-0">
@@ -295,6 +347,9 @@ export default function QuoteDetails({ quoteId }: { quoteId: string }) {
           error={error}
           accountId={quoteData.account_id}
           status="created"
+          cartId={quoteData.cart_id}
+          initialNotes={quoteNotes}
+          adminName={data?.user?.name ?? data?.user?.email ?? "Admin"}
         />
         <AddCartCustomDiscount
           selectedSalesRep={quoteData.sales_agent_email}
