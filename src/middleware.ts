@@ -21,7 +21,7 @@ export async function middleware(req: NextRequest) {
     {
       runnable: productRedirectMiddleware,
       options: {
-        exclude: ["/_next", "/configuration-error"],
+        exclude: ["/_next", "/configuration-error", "/plasmic-host"],
       },
     },
   )(req);
