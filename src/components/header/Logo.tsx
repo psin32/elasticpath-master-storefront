@@ -30,7 +30,7 @@ export default async function Logo() {
   const content = await contentData();
 
   return (
-    <div className="ml-4 flex lg:ml-0 text-white mr-4 min-w-40">
+    <div className="ml-4 flex lg:ml-0 text-white mr-4">
       <Link href="/">
         {enabledStoryblok && <Content content={content}></Content>}
         {enableBuilderIO && (

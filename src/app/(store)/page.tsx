@@ -36,7 +36,7 @@ export default async function Home() {
     <div>
       {enabledStoryblok && content && <Content content={content}></Content>}
       {enablePlasmic && <PlasmicContent component="homepage" />}
-      {content && (
+      {enableBuilderIO && content && (
         <BuilderContent
           model="page"
           content={content}
