@@ -3,6 +3,7 @@ import { cmsConfig } from "../../lib/resolve-cms-env";
 import PlasmicProductCarousel, {
   type PlasmicProductCarouselProps,
 } from "./blocks/ProductCarousel/PlasmicProductCarousel";
+import { ProductPickerControl } from "./blocks/ProductCarousel/ProductPickerControl";
 
 const { plasmicProjectId, plasmicApiToken } = cmsConfig;
 
@@ -31,11 +32,11 @@ if (PLASMIC) {
         defaultValue: "products",
         description: "Fetch products by specific IDs or by a catalog node",
       },
-      productIds: {
-        type: "string",
-        defaultValue: "",
+      products: {
+        type: "custom",
+        control: ProductPickerControl,
         description:
-          "Comma-separated EP Catalog product IDs (used when Selection Mode is 'products')",
+          "Search and select EP Catalog products by name (used when Selection Mode is 'products')",
         hidden: (props: PlasmicProductCarouselProps) =>
           props.selectionMode === "node",
       },

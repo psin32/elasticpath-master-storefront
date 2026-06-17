@@ -15,9 +15,14 @@ import type {
 } from "@elasticpath/js-sdk";
 import type { ShopperProduct } from "../../../../react-shopper-hooks";
 
+export type SelectedProduct = {
+  id: string;
+  name: string;
+};
+
 export type PlasmicProductCarouselProps = {
   selectionMode?: "products" | "node";
-  productIds?: string;
+  products?: SelectedProduct[];
   nodeId?: string;
   title?: string;
   slidesToShow?: number;
@@ -31,7 +36,7 @@ export type PlasmicProductCarouselProps = {
 
 const PlasmicProductCarousel: FC<PlasmicProductCarouselProps> = ({
   selectionMode = "products",
-  productIds = "",
+  products: selectedProducts = [],
   nodeId = "",
   title,
   slidesToShow = 4,
@@ -45,6 +50,10 @@ const PlasmicProductCarousel: FC<PlasmicProductCarouselProps> = ({
   const [products, setProducts] = useState<ShopperProduct[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Stable string key — avoids re-triggering the effect when Plasmic passes
+  // a new array reference with the same IDs on each render.
+  const productIdsKey = selectedProducts.map((p) => p.id).join(",");
+
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
@@ -52,24 +61,12 @@ const PlasmicProductCarousel: FC<PlasmicProductCarouselProps> = ({
         const client = getEpccImplicitClient();
 
         if (selectionMode === "node" && nodeId?.trim()) {
-          const nodeResponse = await client.ShopperCatalog.Nodes.GetNodeProducts(
-            { nodeId: nodeId.trim() },
-          );
-          const ids = nodeResponse?.data?.map((p: any) => p.id).filter(Boolean).join(",");
-          if (ids) {
-            const response = await client.ShopperCatalog.Products.With([
-              "main_image",
-              "files",
-              "component_products",
-            ])
-              .Filter({ in: { id: ids } })
-              .All();
-            setProducts(processResult(response));
-          }
-        } else if (selectionMode === "products" && productIds?.trim()) {
-          const ids = productIds
-            .split(",")
-            .map((id) => id.trim())
+          const nodeResponse =
+            await client.ShopperCatalog.Nodes.GetNodeProducts({
+              nodeId: nodeId.trim(),
+            });
+          const ids = nodeResponse?.data
+            ?.map((p: any) => p.id)
             .filter(Boolean)
             .join(",");
           if (ids) {
@@ -82,6 +79,17 @@ const PlasmicProductCarousel: FC<PlasmicProductCarouselProps> = ({
               .All();
             setProducts(processResult(response));
           }
+        } else if (selectionMode === "products" && productIdsKey) {
+          const response = await client.ShopperCatalog.Products.With([
+            "main_image",
+            "files",
+            "component_products",
+          ])
+            .Filter({ in: { id: productIdsKey } })
+            .All();
+          setProducts(processResult(response));
+        } else {
+          setProducts([]);
         }
       } catch (err) {
         console.error("PlasmicProductCarousel: error fetching products", err);
@@ -91,7 +99,8 @@ const PlasmicProductCarousel: FC<PlasmicProductCarouselProps> = ({
     };
 
     fetchProducts();
-  }, [selectionMode, productIds, nodeId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectionMode, productIdsKey, nodeId]);
 
   const NextArrow = (props: any) => (
     <ChevronRightIcon
