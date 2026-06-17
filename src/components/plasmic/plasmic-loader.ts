@@ -4,6 +4,7 @@ import PlasmicProductCarousel, {
   type PlasmicProductCarouselProps,
 } from "./blocks/ProductCarousel/PlasmicProductCarousel";
 import { ProductPickerControl } from "./blocks/ProductCarousel/ProductPickerControl";
+import { NodePickerControl } from "./blocks/ProductCarousel/NodePickerControl";
 
 const { plasmicProjectId, plasmicApiToken } = cmsConfig;
 
@@ -41,10 +42,10 @@ if (PLASMIC) {
           props.selectionMode === "node",
       },
       nodeId: {
-        type: "string",
-        defaultValue: "",
+        type: "custom",
+        control: NodePickerControl,
         description:
-          "EP Catalog node ID — products belonging to this node will be shown (used when Selection Mode is 'node')",
+          "Select a hierarchy then a node — products in that node will be shown (used when Selection Mode is 'node')",
         hidden: (props: PlasmicProductCarouselProps) =>
           props.selectionMode !== "node",
       },
